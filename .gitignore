@@ -1,0 +1,5 @@
+.bitrise*
+_tmp
+go/bin/
+go/pkg/
+
