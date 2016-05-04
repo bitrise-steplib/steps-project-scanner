@@ -43,8 +43,8 @@ workflows:
     - path::./:
         title: Step Test
         inputs:
-        - scan_dir: ./_tmp/sample-repo
-        - output_dir: ./_tmp/result
+        - scan_dir: ./
+        - output_dir: ./result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
 

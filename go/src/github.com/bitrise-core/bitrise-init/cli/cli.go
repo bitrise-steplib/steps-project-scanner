@@ -6,22 +6,8 @@ import (
 	"path"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/bitrise-core/bitrise-plugins-init/version"
+	"github.com/bitrise-core/bitrise-init/version"
 	"github.com/codegangsta/cli"
-)
-
-//=======================================
-// Variables
-//=======================================
-
-const (
-	pluginInputPayloadKey        = "BITRISE_PLUGIN_INPUT_PAYLOAD"
-	pluginInputBitriseVersionKey = "BITRISE_PLUGIN_INPUT_BITRISE_VERSION"
-	pluginInputTriggerEventKey   = "BITRISE_PLUGIN_INPUT_TRIGGER"
-	pluginInputPluginModeKey     = "BITRISE_PLUGIN_INPUT_PLUGIN_MODE"
-	pluginInputDataDirKey        = "BITRISE_PLUGIN_INPUT_DATA_DIR"
-
-	bitrisePluginOutputEnvKey = "BITRISE_PLUGIN_OUTPUT"
 )
 
 //=======================================
@@ -40,7 +26,6 @@ func before(c *cli.Context) error {
 	})
 
 	// Log level
-	// If log level defined - use it
 	logLevelStr := c.String("loglevel")
 	if logLevelStr == "" {
 		logLevelStr = "info"
@@ -51,21 +36,6 @@ func before(c *cli.Context) error {
 		return err
 	}
 	log.SetLevel(level)
-
-	// bitriseVersion := os.Getenv(pluginInputBitriseVersionKey)
-
-	// log.Debug("")
-	// log.Debugf("pluginInputBitriseVersion: %s", bitriseVersion)
-
-	// triggerEvent := os.Getenv(pluginInputTriggerEventKey)
-
-	// log.Debug("")
-	// log.Debugf("pluginInputTriggerEvent: %s", triggerEvent)
-
-	// dataDir := os.Getenv(pluginInputDataDirKey)
-
-	// log.Debug("")
-	// log.Debugf("pluginInputDataDir: %s", dataDir)
 
 	return nil
 }
@@ -82,7 +52,7 @@ func Run() {
 	app := cli.NewApp()
 
 	app.Name = path.Base(os.Args[0])
-	app.Usage = "Bitrise Init plugin"
+	app.Usage = "Bitrise Init Tool"
 	app.Version = version.VERSION
 
 	app.Author = ""
@@ -104,7 +74,7 @@ func Run() {
 	app.Commands = []cli.Command{
 		cli.Command{
 			Name:   "config",
-			Usage:  "Generates a bitrise config files in the current directory.",
+			Usage:  "Generates a bitrise config files.",
 			Action: initConfig,
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -120,18 +90,6 @@ func Run() {
 					Usage: "If true it indicates that source repository is private!",
 				},
 			},
-		},
-		cli.Command{
-			Name:   "step",
-			Usage:  "Generates step template files in the current directory.",
-			Action: initStep,
-			Flags:  []cli.Flag{},
-		},
-		cli.Command{
-			Name:   "plugin",
-			Usage:  "Generates plugin template files in the current directory.",
-			Action: initPlugin,
-			Flags:  []cli.Flag{},
 		},
 	}
 

@@ -1,7 +1,7 @@
 package scanners
 
 import (
-	"github.com/bitrise-core/bitrise-plugins-init/models"
+	"github.com/bitrise-core/bitrise-init/models"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 )
 

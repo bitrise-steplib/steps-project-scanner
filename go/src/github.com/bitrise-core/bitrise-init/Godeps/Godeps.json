@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/bitrise-core/bitrise-plugins-init",
+	"ImportPath": "github.com/bitrise-core/bitrise-init",
 	"GoVersion": "go1.6",
 	"Packages": [
 		"./..."

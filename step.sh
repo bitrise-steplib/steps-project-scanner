@@ -86,7 +86,7 @@ else
 fi
 
 bin_pth="$tmp_dir/scanner"
-scanner_go_path="$THIS_SCRIPTDIR/go/src/github.com/bitrise-core/bitrise-plugins-init"
+scanner_go_path="$THIS_SCRIPTDIR/go/src/github.com/bitrise-core/bitrise-init"
 
 cd $scanner_go_path
 go build -o "$bin_pth"
