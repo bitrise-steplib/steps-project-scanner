@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 export THIS_SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 RESTORE='\033[0m'
@@ -60,14 +62,16 @@ echo_info "Configs:"
 echo_details "* scan_dir: $scan_dir"
 echo_details "* output_dir: $output_dir"
 echo_details "* scan_result_submit_url: $scan_result_submit_url"
-echo_details "* scan_result_submit_api_token: $scan_result_submit_api_token"
 
 echo
 
 validate_required_input "scan_dir" $scan_dir
+validate_required_input "output_dir" $output_dir
 
 #
 # Create scanner bin
+echo_info "Create scanner bin..."
+
 tmp_dir=$(mktemp -d)
 current_dir=$(pwd)
 
@@ -92,6 +96,36 @@ cd $scanner_go_path
 go build -o "$bin_pth"
 cd $current_dir
 
+echo_done "ceated at: ${bin_pth}"
+
 #
-# Run scanner
+# Running scanner
+echo_info "Running scanner..."
+
 $bin_pth config --dir $scan_dir --output-dir $output_dir
+
+echo
+echo_done "scan finished"
+
+#
+# Submitting results
+if [ ! -z "${scan_result_submit_url}" ] ; then
+	if [[ -z "${CI}" ]] ; then
+		echo_warn "scan_result_submit_url defined but step runs in NOT CI mode"
+		echo_fail "only run in CI mode generated result to upload"
+	fi
+
+	if [[ ! -f "${output_dir}/result.json" ]] ; then
+		echo_warn "no scan result found at ${output_dir}/result.json"
+		echo_fail "nothing to upload"
+	fi
+
+	echo_info "Submitting results..."
+
+	curl --fail -H "Content-Type: application/json" \
+		--data-binary @${output_dir}/result.json \
+		"${scan_result_submit_url}"
+
+	echo
+	echo_done "submitted"
+fi

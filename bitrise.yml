@@ -5,7 +5,6 @@ app:
   envs:
   # define these in your .bitrise.secrets.yml
   - BITRISE_SCAN_RESULT_POST_URL: $BITRISE_SCAN_RESULT_POST_URL
-  - BITRISE_APP_API_TOKEN: $BITRISE_APP_API_TOKEN
   - SCAN_DIR: "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-ios-cocoapods"
   - SCAN_DIR: "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-android"
   - SCAN_DIR: "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-xamarin-uitest"
@@ -13,6 +12,8 @@ app:
 
 workflows:
   test:
+    envs:
+    - CI: "true"
     steps:
     - script:
         title: _tmp dir cleanup
@@ -44,7 +45,7 @@ workflows:
         title: Step Test
         inputs:
         - scan_dir: ./
-        - output_dir: ./result
+        - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
 
