@@ -72,6 +72,9 @@ validate_required_input "output_dir" $output_dir
 # Create scanner bin
 echo_info "Create scanner bin..."
 
+export GO15VENDOREXPERIMENT="1"
+export GOPATH="$GOPATH:$THIS_SCRIPTDIR/go/"
+
 tmp_dir=$(mktemp -d)
 current_dir=$(pwd)
 
@@ -80,10 +83,8 @@ export GOARCH=amd64
 
 current_os=$(uname -s)
 if [[ "$current_os" == "Darwin" ]] ; then
-  export OS=Darwin
   export GOOS=darwin
 elif [[ "$current_os" == "Darwin" ]]; then
-  export OS=Linux
   export GOOS=linux
 else
   echo_fail "step runs on unsupported os: $current_os"
