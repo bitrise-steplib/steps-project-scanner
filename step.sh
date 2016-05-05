@@ -85,7 +85,7 @@ export GOARCH=amd64
 current_os=$(uname -s)
 if [[ "$current_os" == "Darwin" ]] ; then
   export GOOS=darwin
-elif [[ "$current_os" == "Darwin" ]]; then
+elif [[ "$current_os" == "Linux" ]]; then
   export GOOS=linux
 else
   echo_fail "step runs on unsupported os: $current_os"
