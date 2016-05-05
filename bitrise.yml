@@ -5,6 +5,7 @@ app:
   envs:
   # define these in your .bitrise.secrets.yml
   - BITRISE_SCAN_RESULT_POST_URL: $BITRISE_SCAN_RESULT_POST_URL
+  - BITRISE_APP_API_TOKEN: $BITRISE_APP_API_TOKEN
   - SCAN_DIR: "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-ios-cocoapods"
   - SCAN_DIR: "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-android"
   - SCAN_DIR: "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-xamarin-uitest"

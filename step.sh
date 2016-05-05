@@ -62,6 +62,7 @@ echo_info "Configs:"
 echo_details "* scan_dir: $scan_dir"
 echo_details "* output_dir: $output_dir"
 echo_details "* scan_result_submit_url: $scan_result_submit_url"
+echo_details "* scan_result_submit_api_token: $scan_result_submit_api_token"
 
 echo
 
@@ -125,7 +126,7 @@ if [ ! -z "${scan_result_submit_url}" ] ; then
 
 	curl --fail -H "Content-Type: application/json" \
 		--data-binary @${output_dir}/result.json \
-		"${scan_result_submit_url}"
+		"${scan_result_submit_url}?api_token=${scan_result_submit_api_token}"
 
 	echo
 	echo_done "submitted"
