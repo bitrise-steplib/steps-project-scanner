@@ -7,9 +7,8 @@ import (
 )
 
 func TestNewOptionModel(t *testing.T) {
-	actual := NewOptionModel("project_path", "Project (or Workspace) path", "BITRISE_PROJECT_PATH")
+	actual := NewOptionModel("Project (or Workspace) path", "BITRISE_PROJECT_PATH")
 	expected := OptionModel{
-		Key:      "project_path",
 		Title:    "Project (or Workspace) path",
 		EnvKey:   "BITRISE_PROJECT_PATH",
 		ValueMap: OptionValueMap{},
@@ -27,49 +26,11 @@ func TestNewEmptyOptionModel(t *testing.T) {
 	require.Equal(t, expected, actual)
 }
 
-func TestAddValueMapItems(t *testing.T) {
-	t.Log("Without nested options")
-	{
-		actual := NewEmptyOptionModel()
-		actual.AddValueMapItems("assembleAndroidTest")
-		actual.AddValueMapItems("assembleDebug")
-		actual.AddValueMapItems("assembleRelease")
-
-		expected := NewEmptyOptionModel()
-		expected.ValueMap = OptionValueMap{
-			"assembleAndroidTest": nil,
-			"assembleDebug":       nil,
-			"assembleRelease":     nil,
-		}
-
-		require.Equal(t, expected, actual)
-	}
-
-	t.Log("With nested options")
-	{
-		actual := NewEmptyOptionModel()
-		actual.AddValueMapItems("assembleAndroidTest", OptionModel{ValueMap: OptionValueMap{"bitrise.json": nil}})
-
-		expected := NewEmptyOptionModel()
-		expected.ValueMap = OptionValueMap{
-			"assembleAndroidTest": []OptionModel{
-				OptionModel{
-					ValueMap: OptionValueMap{
-						"bitrise.json": nil,
-					},
-				},
-			},
-		}
-
-		require.Equal(t, expected, actual)
-	}
-}
-
 func TestGetValues(t *testing.T) {
 	option := NewEmptyOptionModel()
-	option.AddValueMapItems("assembleAndroidTest")
-	option.AddValueMapItems("assembleDebug")
-	option.AddValueMapItems("assembleRelease")
+	option.ValueMap["assembleAndroidTest"] = OptionModel{}
+	option.ValueMap["assembleDebug"] = OptionModel{}
+	option.ValueMap["assembleRelease"] = OptionModel{}
 
 	values := option.GetValues()
 

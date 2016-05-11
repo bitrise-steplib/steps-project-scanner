@@ -36,8 +36,8 @@ func TestFilterSolutionFiles(t *testing.T) {
 }
 
 func TestXamarinConfigName(t *testing.T) {
-	require.Equal(t, "xamarin-config.json", xamarinConfigName(false, false))
-	require.Equal(t, "xamarin-nuget-config.json", xamarinConfigName(true, false))
-	require.Equal(t, "xamarin-components-config.json", xamarinConfigName(false, true))
-	require.Equal(t, "xamarin-nuget-components-config.json", xamarinConfigName(true, true))
+	require.Equal(t, "xamarin-config", xamarinConfigName(false, false))
+	require.Equal(t, "xamarin-nuget-config", xamarinConfigName(true, false))
+	require.Equal(t, "xamarin-components-config", xamarinConfigName(false, true))
+	require.Equal(t, "xamarin-nuget-components-config", xamarinConfigName(true, true))
 }

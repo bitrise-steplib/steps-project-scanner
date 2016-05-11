@@ -215,7 +215,7 @@ func (detector *Xamarin) DetectPlatform() (bool, error) {
 }
 
 // Analyze ...
-func (detector *Xamarin) Analyze() ([]models.OptionModel, error) {
+func (detector *Xamarin) Analyze() (models.OptionModel, error) {
 	for _, file := range detector.FileList {
 		baseName := filepath.Base(file)
 		if baseName == "packages.config" {
@@ -237,7 +237,7 @@ func (detector *Xamarin) Analyze() ([]models.OptionModel, error) {
 	for _, solutionFile := range detector.SolutionFiles {
 		configs, err := getSolutionConfigs(solutionFile)
 		if err != nil {
-			return nil, err
+			return models.OptionModel{}, err
 		}
 
 		if len(configs) > 0 {
@@ -248,11 +248,12 @@ func (detector *Xamarin) Analyze() ([]models.OptionModel, error) {
 	}
 
 	// Check for solution projects
-	xamarinProjectOption := models.NewOptionModel(xamarinProjectKey, xamarinProjectTitle, xamarinProjectEnvKey)
+	xamarinProjectOption := models.NewOptionModel(xamarinProjectTitle, xamarinProjectEnvKey)
+
 	for solutionFile, configMap := range validSolutionMap {
 		projects, err := getProjects(solutionFile)
 		if err != nil {
-			return nil, err
+			return models.OptionModel{}, err
 		}
 
 		// Inspect projects
@@ -262,7 +263,7 @@ func (detector *Xamarin) Analyze() ([]models.OptionModel, error) {
 
 			api, err := getProjectPlatformAPI(project)
 			if err != nil {
-				return nil, err
+				return models.OptionModel{}, err
 			}
 
 			if api == "" {
@@ -272,26 +273,24 @@ func (detector *Xamarin) Analyze() ([]models.OptionModel, error) {
 			apis = append(apis, api)
 		}
 
-		xamarinConfigurationOption := models.NewOptionModel(xamarinConfigurationKey, xamarinConfigurationTitle, xamarinConfigurationEnvKey)
-		for config, platforms := range configMap {
+		xamarinConfigurationOption := models.NewOptionModel(xamarinConfigurationTitle, xamarinConfigurationEnvKey)
 
-			xamarinPlatformOption := models.NewOptionModel(xamarinPlatformKey, xamarinPlatformTitle, xamarinPlatformEnvKey)
+		for config, platforms := range configMap {
+			xamarinPlatformOption := models.NewOptionModel(xamarinPlatformTitle, xamarinPlatformEnvKey)
 			for _, platform := range platforms {
 				configOption := models.NewEmptyOptionModel()
 				configOption.Config = xamarinConfigName(detector.HasNugetPackages, detector.HasXamarinComponents)
 
-				xamarinPlatformOption.AddValueMapItems(platform, configOption)
+				xamarinPlatformOption.ValueMap[platform] = configOption
 			}
 
-			xamarinConfigurationOption.AddValueMapItems(config, xamarinPlatformOption)
+			xamarinConfigurationOption.ValueMap[config] = xamarinPlatformOption
 		}
 
-		xamarinProjectOption.AddValueMapItems(solutionFile, xamarinConfigurationOption)
+		xamarinProjectOption.ValueMap[solutionFile] = xamarinConfigurationOption
 	}
 
-	options := []models.OptionModel{xamarinProjectOption}
-
-	return options, nil
+	return xamarinProjectOption, nil
 }
 
 // Configs ...

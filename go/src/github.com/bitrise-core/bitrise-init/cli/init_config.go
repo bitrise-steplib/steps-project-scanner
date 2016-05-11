@@ -13,7 +13,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/scanners"
-	"github.com/bitrise-core/bitrise-init/version"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/colorstring"
@@ -30,7 +29,7 @@ func askForValue(option models.OptionModel) (string, string, error) {
 	if len(optionValues) == 1 {
 		selectedValue = optionValues[0]
 	} else {
-		question := fmt.Sprintf("Select: %s (%s)", option.Title, option.Key)
+		question := fmt.Sprintf("Select: %s", option.Title)
 		answer, err := goinp.SelectFromStrings(question, optionValues)
 		if err != nil {
 			return "", "", err
@@ -63,12 +62,25 @@ func initConfig(c *cli.Context) {
 		// searchDir = "/Users/godrei/Develop/bitrise/sample-apps/fastlane-example"
 	}
 
+	if searchDir != currentDir {
+		log.Infof("Change work dir to (%s)", searchDir)
+		if err := os.Chdir(searchDir); err != nil {
+			log.Fatalf("Failed to change dir, to (%s), error: %s", searchDir, err)
+		}
+		defer func() {
+			log.Infof("Change work dir to (%s)", currentDir)
+			if err := os.Chdir(currentDir); err != nil {
+				log.Warnf("Failed to change dir, to (%s), error: %s", searchDir, err)
+			}
+		}()
+	}
+
 	if outputDir == "" {
 		outputDir = filepath.Join(currentDir, "scan_result")
 	}
 
 	fmt.Println()
-	log.Info(colorstring.Greenf("Running scanner v%s", version.VERSION))
+	log.Info(colorstring.Greenf("Running %s v%s", c.App.Name, c.App.Version))
 	fmt.Println()
 
 	if isCI {
@@ -89,7 +101,7 @@ func initConfig(c *cli.Context) {
 		new(scanners.Ios),
 		new(scanners.Fastlane),
 	}
-	optionsMap := map[string][]models.OptionModel{}
+	optionsMap := map[string]models.OptionModel{}
 	configsMap := map[string]map[string]bitriseModels.BitriseDataModel{}
 
 	log.Infof(colorstring.Blue("Running scanners:"))
@@ -113,20 +125,20 @@ func initConfig(c *cli.Context) {
 		log.Info("  +------------------------------------------------------------------------------+")
 		log.Info("  |                                                                              |")
 
-		options, err := detector.Analyze()
+		option, err := detector.Analyze()
 		if err != nil {
 			log.Fatalf("Analyzer failed, error: %s", err)
 		}
 
 		log.Debug()
 		log.Debug("Analyze result:")
-		bytes, err := yaml.Marshal(options)
+		bytes, err := yaml.Marshal(option)
 		if err != nil {
-			log.Fatalf("Failed to marshal options, err: %s", err)
+			log.Fatalf("Failed to marshal option, err: %s", err)
 		}
 		log.Debugf("\n%v", string(bytes))
 
-		optionsMap[detectorName] = options
+		optionsMap[detectorName] = option
 
 		// Generate configs
 		log.Debug()
@@ -137,7 +149,7 @@ func initConfig(c *cli.Context) {
 
 			bytes, err := yaml.Marshal(config)
 			if err != nil {
-				log.Fatalf("Failed to marshal options, err: %s", err)
+				log.Fatalf("Failed to marshal option, err: %s", err)
 			}
 			log.Debugf("\n%v", string(bytes))
 		}
@@ -155,7 +167,7 @@ func initConfig(c *cli.Context) {
 		log.Infof(colorstring.Blue("Saving outputs:"))
 
 		scanResult := models.ScanResultModel{
-			OptionsMap: optionsMap,
+			OptionMap:  optionsMap,
 			ConfigsMap: configsMap,
 		}
 
@@ -179,10 +191,10 @@ func initConfig(c *cli.Context) {
 	}
 
 	//
-	// Select options
+	// Select option
 	log.Infof(colorstring.Blue("Collecting inputs:"))
 
-	for detectorName, options := range optionsMap {
+	for detectorName, option := range optionsMap {
 		log.Infof("  Scanner: %s", colorstring.Blue(detectorName))
 
 		// Init
@@ -203,12 +215,12 @@ func initConfig(c *cli.Context) {
 		configPth := ""
 		appEnvs := []envmanModels.EnvironmentItemModel{}
 
-		var walkWidth func(options []models.OptionModel)
+		var walkDepth func(option models.OptionModel)
 
-		walkDepth := func(option models.OptionModel) {
+		walkDepth = func(option models.OptionModel) {
 			optionEnvKey, selectedValue, err := askForValue(option)
 			if err != nil {
-				log.Fatalf("Failed to ask for vale of key (%s), error: %s", option.Key, err)
+				log.Fatalf("Failed to ask for vale, error: %s", err)
 			}
 
 			if optionEnvKey == "" {
@@ -219,21 +231,15 @@ func initConfig(c *cli.Context) {
 				})
 			}
 
-			nestedOptions := option.ValueMap[selectedValue]
-			if len(nestedOptions) == 0 {
+			nestedOptions, found := option.ValueMap[selectedValue]
+			if !found {
 				return
 			}
 
-			walkWidth(nestedOptions)
+			walkDepth(nestedOptions)
 		}
 
-		walkWidth = func(options []models.OptionModel) {
-			for _, option := range options {
-				walkDepth(option)
-			}
-		}
-
-		walkWidth(options)
+		walkDepth(option)
 
 		log.Debug()
 		log.Debug("Selected app envs:")

@@ -76,6 +76,9 @@ func inspectFastFile(fastFile string) ([]string, error) {
 		if expectedLinesStart {
 			expectedLines = append(expectedLines, line)
 		}
+		if line == "}" {
+			expectedLinesStart = false
+		}
 	}
 
 	expectedLinesStr := strings.Join(expectedLines, "\n")
@@ -96,11 +99,8 @@ func inspectFastFile(fastFile string) ([]string, error) {
 	return lanes, nil
 }
 
-func fastlaneConfigName(isWorkDirSet bool) string {
+func fastlaneConfigName() string {
 	name := "fastlane-"
-	if isWorkDirSet {
-		name = name + "workdir-"
-	}
 	return name + "config"
 }
 
@@ -112,8 +112,6 @@ func fastlaneConfigName(isWorkDirSet bool) string {
 type Fastlane struct {
 	SearchDir string
 	FastFiles []string
-
-	IsWorkDirSet bool
 }
 
 // Name ...
@@ -140,8 +138,8 @@ func (detector *Fastlane) DetectPlatform() (bool, error) {
 }
 
 // Analyze ...
-func (detector *Fastlane) Analyze() ([]models.OptionModel, error) {
-	options := []models.OptionModel{}
+func (detector *Fastlane) Analyze() (models.OptionModel, error) {
+	workDirOption := models.NewOptionModel(workDirTitle, workDirEnvKey)
 
 	// Inspect Fastfiles
 	for _, fastFile := range detector.FastFiles {
@@ -149,49 +147,29 @@ func (detector *Fastlane) Analyze() ([]models.OptionModel, error) {
 
 		lanes, err := inspectFastFile(fastFile)
 		if err != nil {
-			return []models.OptionModel{}, err
+			return models.OptionModel{}, err
 		}
 
-		// Check if `Fastfile` is in `PROJECT_ROOT/fastlane/Fastfile`
+		// Check if `Fastfile` is in `./fastlane/Fastfile`
 		// If no - generated fastlane step will require `work_dir` input too
-		relFastfile, err := filepath.Rel(detector.SearchDir, fastFile)
-		if err != nil {
-			return []models.OptionModel{}, err
-		}
-
-		relFastlaneDir := filepath.Dir(relFastfile)
-
+		workDir := "./"
+		relFastlaneDir := filepath.Dir(fastFile)
 		if relFastlaneDir != "fastlane" {
-			detector.IsWorkDirSet = true
-
-			configOption := models.NewEmptyOptionModel()
-			configOption.Config = fastlaneConfigName(true)
-
-			laneOption := models.NewOptionModel(laneKey, laneTitle, laneEnvKey)
-			for _, lane := range lanes {
-				laneOption.AddValueMapItems(lane, configOption)
-			}
-
-			fastFileDir := filepath.Dir(fastFile)
-
-			workDirOption := models.NewOptionModel(workDirKey, workDirTitle, workDirEnvKey)
-			workDirOption.AddValueMapItems(fastFileDir, laneOption)
-
-			options = append(options, workDirOption)
-		} else {
-			configOption := models.NewEmptyOptionModel()
-			configOption.Config = fastlaneConfigName(false)
-
-			laneOption := models.NewOptionModel(laneKey, laneTitle, laneEnvKey)
-			for _, lane := range lanes {
-				laneOption.AddValueMapItems(lane, configOption)
-			}
-
-			options = append(options, laneOption)
+			workDir = relFastlaneDir
 		}
+
+		configOption := models.NewEmptyOptionModel()
+		configOption.Config = fastlaneConfigName()
+
+		laneOption := models.NewOptionModel(laneTitle, laneEnvKey)
+		for _, lane := range lanes {
+			laneOption.ValueMap[lane] = configOption
+		}
+
+		workDirOption.ValueMap[workDir] = laneOption
 	}
 
-	return options, nil
+	return workDirOption, nil
 }
 
 // Configs ...
@@ -216,36 +194,13 @@ func (detector *Fastlane) Configs(isPrivate bool) map[string]bitriseModels.Bitri
 		stepCertificateAndProfileInstallerIDComposite: stepmanModels.StepModel{},
 	})
 
-	inputs := []envmanModels.EnvironmentItemModel{envmanModels.EnvironmentItemModel{laneKey: "$" + laneEnvKey}}
-
-	if detector.IsWorkDirSet {
-		workDirInputs := append(inputs, envmanModels.EnvironmentItemModel{workDirKey: "$" + workDirEnvKey})
-
-		// Fastlane
-		workDirSteps := append(steps, bitriseModels.StepListItemModel{
-			stepFastlaneIDComposite: stepmanModels.StepModel{
-				Inputs: workDirInputs,
-			},
-		})
-
-		workflows := map[string]bitriseModels.WorkflowModel{
-			"primary": bitriseModels.WorkflowModel{
-				Steps: workDirSteps,
-			},
-		}
-
-		bitriseData := bitriseModels.BitriseDataModel{
-			Workflows:            workflows,
-			FormatVersion:        "1.1.0",
-			DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
-		}
-
-		configName := fastlaneConfigName(true)
-		bitriseDataMap[configName] = bitriseData
+	inputs := []envmanModels.EnvironmentItemModel{
+		envmanModels.EnvironmentItemModel{laneKey: "$" + laneEnvKey},
+		envmanModels.EnvironmentItemModel{workDirKey: "$" + workDirEnvKey},
 	}
 
 	// Fastlane
-	steps = append(steps, bitriseModels.StepListItemModel{
+	workDirSteps := append(steps, bitriseModels.StepListItemModel{
 		stepFastlaneIDComposite: stepmanModels.StepModel{
 			Inputs: inputs,
 		},
@@ -253,7 +208,7 @@ func (detector *Fastlane) Configs(isPrivate bool) map[string]bitriseModels.Bitri
 
 	workflows := map[string]bitriseModels.WorkflowModel{
 		"primary": bitriseModels.WorkflowModel{
-			Steps: steps,
+			Steps: workDirSteps,
 		},
 	}
 
@@ -263,7 +218,7 @@ func (detector *Fastlane) Configs(isPrivate bool) map[string]bitriseModels.Bitri
 		DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
 	}
 
-	configName := fastlaneConfigName(false)
+	configName := fastlaneConfigName()
 	bitriseDataMap[configName] = bitriseData
 
 	return bitriseDataMap

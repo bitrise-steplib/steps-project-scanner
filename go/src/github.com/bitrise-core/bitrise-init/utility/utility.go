@@ -22,7 +22,17 @@ func FileList(searchDir string) ([]string, error) {
 	fileList := []string{}
 
 	if err := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
-		fileList = append(fileList, path)
+		rel, err := filepath.Rel(searchDir, path)
+		if err != nil {
+			return err
+		}
+
+		rel = filepath.Join("./", rel)
+
+		// fmt.Println(rel)
+
+		fileList = append(fileList, rel)
+		// fileList = append(fileList, path)
 
 		return nil
 	}); err != nil {

@@ -60,6 +60,10 @@ func filterGradlewFiles(fileList []string) []string {
 }
 
 func inspectGradleFile(gradleFile string, gradleBin string) ([]string, error) {
+	if !strings.HasPrefix(gradleBin, "./") {
+		gradleBin = "./" + gradleBin
+	}
+
 	out, err := cmdex.RunCommandAndReturnCombinedStdoutAndStderr(gradleBin, "tasks", "--build-file", gradleFile)
 	if err != nil {
 		return []string{}, fmt.Errorf("output: %s, error: %s", out, err)
@@ -144,7 +148,7 @@ func (detector *Android) DetectPlatform() (bool, error) {
 }
 
 // Analyze ...
-func (detector *Android) Analyze() ([]models.OptionModel, error) {
+func (detector *Android) Analyze() (models.OptionModel, error) {
 	//
 	// Search for gradlew_path input
 	gradlewFiles := filterGradlewFiles(detector.FileList)
@@ -155,51 +159,48 @@ func (detector *Android) Analyze() ([]models.OptionModel, error) {
 		detector.HasGradlewFile = true
 	}
 
-	var gradlewPathOption models.OptionModel
 	gradleBin := "gradle"
 	if detector.HasGradlewFile {
 		err := os.Chmod(rootGradlewPath, 0770)
 		if err != nil {
-			return []models.OptionModel{}, fmt.Errorf("failed to add executable permission on gradlew file (%s), error: %s", rootGradlewPath, err)
+			return models.OptionModel{}, fmt.Errorf("failed to add executable permission on gradlew file (%s), error: %s", rootGradlewPath, err)
 		}
 
 		gradleBin = rootGradlewPath
-
-		gradlewPathOption = models.NewOptionModel(gradlewPathKey, gradlewPathTitle, gradlewPathEnvKey)
-		gradlewPathOption.AddValueMapItems(rootGradlewPath)
 	}
 
 	// Inspect Gradle files
-	gradleFileOption := models.NewOptionModel(gradleFileKey, gradleFileTitle, gradleFileEnvKey)
+	gradleFileOption := models.NewOptionModel(gradleFileTitle, gradleFileEnvKey)
+
 	for _, gradleFile := range detector.GradleFiles {
 		log.Infof("Inspecting gradle file: %s", gradleFile)
 		log.Infof(" $ %s tasks --build-file %s", gradleBin, gradleFile)
 
 		configs, err := inspectGradleFile(gradleFile, gradleBin)
 		if err != nil {
-			return []models.OptionModel{}, fmt.Errorf("failed to inspect gradle files, error: %s", err)
+			return models.OptionModel{}, fmt.Errorf("failed to inspect gradle files, error: %s", err)
 		}
 
-		gradleTaskOption := models.NewOptionModel(gradleTaskKey, gradleTaskTitle, gradleTaskEnvKey)
+		gradleTaskOption := models.NewOptionModel(gradleTaskTitle, gradleTaskEnvKey)
 		for _, config := range configs {
+
 			configOption := models.NewEmptyOptionModel()
 			configOption.Config = androidConfigName(detector.HasGradlewFile)
 
-			gradleTaskOption.AddValueMapItems(config, configOption)
+			if detector.HasGradlewFile {
+				gradlewPathOption := models.NewOptionModel(gradlewPathTitle, gradlewPathEnvKey)
+				gradlewPathOption.ValueMap[rootGradlewPath] = configOption
+
+				gradleTaskOption.ValueMap[config] = gradlewPathOption
+			} else {
+				gradleTaskOption.ValueMap[config] = configOption
+			}
 		}
 
-		gradleFileOption.AddValueMapItems(gradleFile, gradleTaskOption)
+		gradleFileOption.ValueMap[gradleFile] = gradleTaskOption
 	}
 
-	options := []models.OptionModel{
-		gradleFileOption,
-	}
-
-	if rootGradlewPath != "" {
-		options = append(options, gradlewPathOption)
-	}
-
-	return options, nil
+	return gradleFileOption, nil
 }
 
 // Configs ...

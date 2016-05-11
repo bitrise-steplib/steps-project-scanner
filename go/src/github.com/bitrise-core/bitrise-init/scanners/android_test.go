@@ -67,6 +67,6 @@ func TestFilterGradlewFiles(t *testing.T) {
 }
 
 func TestAndroidConfigName(t *testing.T) {
-	require.Equal(t, "android-config.json", androidConfigName(false))
-	require.Equal(t, "android-gradlew-config.json", androidConfigName(true))
+	require.Equal(t, "android-config", androidConfigName(false))
+	require.Equal(t, "android-gradlew-config", androidConfigName(true))
 }

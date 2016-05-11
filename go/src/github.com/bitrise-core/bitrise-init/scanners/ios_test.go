@@ -69,8 +69,8 @@ func TestFilterPodFiles(t *testing.T) {
 }
 
 func TestIOSConfigName(t *testing.T) {
-	require.Equal(t, "ios-config.json", iOSConfigName(false, false))
-	require.Equal(t, "ios-pod-config.json", iOSConfigName(true, false))
-	require.Equal(t, "ios-test-config.json", iOSConfigName(false, true))
-	require.Equal(t, "ios-pod-test-config.json", iOSConfigName(true, true))
+	require.Equal(t, "ios-config", iOSConfigName(false, false))
+	require.Equal(t, "ios-pod-config", iOSConfigName(true, false))
+	require.Equal(t, "ios-test-config", iOSConfigName(false, true))
+	require.Equal(t, "ios-pod-test-config", iOSConfigName(true, true))
 }

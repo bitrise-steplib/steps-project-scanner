@@ -38,6 +38,6 @@ func TestFilterFastFiles(t *testing.T) {
 }
 
 func TestFastlaneConfigName(t *testing.T) {
-	require.Equal(t, "fastlane-config.json", fastlaneConfigName(false))
-	require.Equal(t, "fastlane-workdir-config.json", fastlaneConfigName(true))
+	require.Equal(t, "fastlane-config", fastlaneConfigName(false))
+	require.Equal(t, "fastlane-workdir-config", fastlaneConfigName(true))
 }

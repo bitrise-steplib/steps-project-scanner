@@ -75,10 +75,6 @@ echo_info "Create scanner bin..."
 
 export GO15VENDOREXPERIMENT="1"
 export GOPATH="$GOPATH:$THIS_SCRIPTDIR/go/"
-
-tmp_dir=$(mktemp -d)
-current_dir=$(pwd)
-
 export ARCH=x86_64
 export GOARCH=amd64
 
@@ -91,6 +87,8 @@ else
   echo_fail "step runs on unsupported os: $current_os"
 fi
 
+tmp_dir=$(mktemp -d)
+current_dir=$(pwd)
 bin_pth="$tmp_dir/scanner"
 scanner_go_path="$THIS_SCRIPTDIR/go/src/github.com/bitrise-core/bitrise-init"
 
