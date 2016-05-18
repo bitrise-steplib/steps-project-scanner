@@ -200,23 +200,13 @@ func (detector *Fastlane) Configs(isPrivate bool) map[string]bitriseModels.Bitri
 	}
 
 	// Fastlane
-	workDirSteps := append(steps, bitriseModels.StepListItemModel{
+	steps = append(steps, bitriseModels.StepListItemModel{
 		stepFastlaneIDComposite: stepmanModels.StepModel{
 			Inputs: inputs,
 		},
 	})
 
-	workflows := map[string]bitriseModels.WorkflowModel{
-		"primary": bitriseModels.WorkflowModel{
-			Steps: workDirSteps,
-		},
-	}
-
-	bitriseData := bitriseModels.BitriseDataModel{
-		Workflows:            workflows,
-		FormatVersion:        "1.1.0",
-		DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
-	}
+	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
 
 	configName := fastlaneConfigName()
 	bitriseDataMap[configName] = bitriseData

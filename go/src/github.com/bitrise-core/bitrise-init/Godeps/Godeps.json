@@ -1,9 +1,6 @@
 {
 	"ImportPath": "github.com/bitrise-core/bitrise-init",
 	"GoVersion": "go1.6",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
@@ -57,24 +54,6 @@
 			"ImportPath": "github.com/codegangsta/cli",
 			"Comment": "1.2.0-219-ga294348",
 			"Rev": "a2943485b110df8842045ae0600047f88a3a56a1"
-		},
-		{
-			"ImportPath": "github.com/davecgh/go-spew/spew",
-			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
-		},
-		{
-			"ImportPath": "github.com/pmezard/go-difflib/difflib",
-			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/assert",
-			"Comment": "v1.1.3-4-g1f4a164",
-			"Rev": "1f4a1643a57e798696635ea4c126e9127adb7d3c"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/require",
-			"Comment": "v1.1.3-4-g1f4a164",
-			"Rev": "1f4a1643a57e798696635ea4c126e9127adb7d3c"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",

@@ -243,17 +243,7 @@ func (detector *Android) Configs(isPrivate bool) map[string]bitriseModels.Bitris
 		stepDeployToBitriseIoIDComposite: stepmanModels.StepModel{},
 	})
 
-	workflows := map[string]bitriseModels.WorkflowModel{
-		"primary": bitriseModels.WorkflowModel{
-			Steps: steps,
-		},
-	}
-
-	bitriseData := bitriseModels.BitriseDataModel{
-		Workflows:            workflows,
-		FormatVersion:        "1.1.0",
-		DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
-	}
+	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
 
 	configName := androidConfigName(detector.HasGradlewFile)
 	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{

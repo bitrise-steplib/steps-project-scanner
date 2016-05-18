@@ -1,0 +1,78 @@
+format_version: 1.2.0
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+trigger_map:
+- pattern: "*"
+  is_pull_request_allowed: true
+  workflow: ci
+
+workflows:
+  ci:
+    title: Bitrise Init CI
+    description: ""
+    before_run:
+    - _prepare_and_setup
+    steps:
+    - script:
+        title: Print go environment
+        inputs:
+        - content: |-
+            set -x
+            go version
+            echo $GO15VENDOREXPERIMENT
+    - script:
+        title: Export go files to test
+        inputs:
+        - content: |-
+            set -e
+            set -x
+            no_vendor_paths="$(go list ./... | grep -v vendor)"
+            envman add --key GOLIST_WITHOUT_VENDOR --value "$no_vendor_paths"
+    - script:
+        title: Err check
+        inputs:
+        - content: errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
+    - script:
+        title: Go lint
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -e
+            while read -r line; do
+              echo "-> Linting: $line"
+              golint_out="$(golint $line)"
+              if [[ "${golint_out}" != "" ]] ; then
+                echo "=> Golint issues found:"
+                echo "${golint_out}"
+                exit 1
+              fi
+            done <<< "$GOLIST_WITHOUT_VENDOR"
+    - script:
+        title: Go test
+        inputs:
+        - content: go test ./...
+
+  _prepare_and_setup:
+    title: Prepare bitrise and install testing tools
+    description: |
+        Prepares the environment for testing
+    steps:
+    - script:
+        title: Install testing tools
+        run_if: ".IsCI"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -e
+            set -x
+
+            brew update
+
+            # Install dependencies
+            go get -u github.com/tools/godep
+
+            # Check for unhandled errors
+            go get -u github.com/kisielk/errcheck
+
+            # Go lint
+            go get -u github.com/golang/lint/golint
