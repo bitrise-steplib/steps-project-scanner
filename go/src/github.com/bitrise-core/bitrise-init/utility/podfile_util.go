@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"path/filepath"
 
 	"github.com/bitrise-io/go-utils/cmdex"
 	"github.com/bitrise-io/go-utils/fileutil"
@@ -170,7 +171,7 @@ puts workspaces.to_json
 `
 
 // GetWorkspaces ...
-func GetWorkspaces() (map[string]string, error) {
+func GetWorkspaces(searchDir string) (map[string]string, error) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("bitrise-plugin-init")
 	if err != nil {
 		return map[string]string{}, err
@@ -196,5 +197,20 @@ func GetWorkspaces() (map[string]string, error) {
 		return map[string]string{}, err
 	}
 
-	return workspaceMap, nil
+	normalizedWorkspaceMap := map[string]string{}
+	for workspace, project := range workspaceMap {
+		relWorkspacePath, err := filepath.Rel(searchDir, workspace)
+		if err != nil {
+			return map[string]string{}, err
+		}
+
+		relProjectPath, err := filepath.Rel(searchDir, project)
+		if err != nil {
+			return map[string]string{}, err
+		}
+
+		normalizedWorkspaceMap[relWorkspacePath] = relProjectPath
+	}
+
+	return normalizedWorkspaceMap, nil
 }
