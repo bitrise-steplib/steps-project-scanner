@@ -109,6 +109,9 @@ func initConfig(c *cli.Context) {
 		detectorName := detector.Name()
 		log.Infof("  Scanner: %s", colorstring.Blue(detectorName))
 
+		log.Info("+------------------------------------------------------------------------------+")
+		log.Info("|                                                                              |")
+
 		detector.Configure(searchDir)
 		detected, err := detector.DetectPlatform()
 		if err != nil {
@@ -116,14 +119,11 @@ func initConfig(c *cli.Context) {
 		}
 
 		if !detected {
-			log.Info("  Platform not detected")
+			log.Info("|                                                                              |")
+			log.Info("+------------------------------------------------------------------------------+")
 			fmt.Println()
 			continue
 		}
-
-		log.Info("  Platform detected")
-		log.Info("  +------------------------------------------------------------------------------+")
-		log.Info("  |                                                                              |")
 
 		option, err := detector.Analyze()
 		if err != nil {
@@ -156,8 +156,8 @@ func initConfig(c *cli.Context) {
 
 		configsMap[detectorName] = configs
 
-		log.Info("  |                                                                              |")
-		log.Info("  +------------------------------------------------------------------------------+")
+		log.Info("|                                                                              |")
+		log.Info("+------------------------------------------------------------------------------+")
 		fmt.Println()
 	}
 

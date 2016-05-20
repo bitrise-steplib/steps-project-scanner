@@ -6,6 +6,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestFixedGradlewPath(t *testing.T) {
+	require.Equal(t, "./gradlew", fixedGradlewPath("gradlew"))
+	require.Equal(t, "./gradlew", fixedGradlewPath("./gradlew"))
+	require.Equal(t, "test/gradlew", fixedGradlewPath("test/gradlew"))
+}
+
 func TestFilterGradleFiles(t *testing.T) {
 	t.Log(`Contains "build.gradle" files`)
 	{

@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/utility"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
@@ -41,9 +40,25 @@ const (
 	stepGradleRunnerIDComposite = "gradle-runner@1.3.1"
 )
 
+var (
+	logger = utility.NewLogger()
+)
+
 //--------------------------------------------------
 // Utility
 //--------------------------------------------------
+
+func fixedGradlewPath(gradlewPth string) string {
+	split := strings.Split(gradlewPth, "/")
+	if len(split) != 1 {
+		return gradlewPth
+	}
+
+	if !strings.HasPrefix(gradlewPth, "./") {
+		return "./" + gradlewPth
+	}
+	return gradlewPth
+}
 
 func filterGradleFiles(fileList []string) []string {
 	gradleFiles := utility.FilterFilesWithBasPaths(fileList, buildGradleBasePath)
@@ -54,16 +69,18 @@ func filterGradleFiles(fileList []string) []string {
 
 func filterGradlewFiles(fileList []string) []string {
 	gradlewFiles := utility.FilterFilesWithBasPaths(fileList, gradlewBasePath)
-	sort.Sort(utility.ByComponents(gradlewFiles))
 
-	return gradlewFiles
+	fixedGradlewFiles := []string{}
+	for _, gradlewFile := range gradlewFiles {
+		fixedGradlewFiles = append(fixedGradlewFiles, fixedGradlewPath(gradlewFile))
+	}
+
+	sort.Sort(utility.ByComponents(fixedGradlewFiles))
+
+	return fixedGradlewFiles
 }
 
 func inspectGradleFile(gradleFile string, gradleBin string) ([]string, error) {
-	if !strings.HasPrefix(gradleBin, "./") {
-		gradleBin = "./" + gradleBin
-	}
-
 	out, err := cmdex.RunCommandAndReturnCombinedStdoutAndStderr(gradleBin, "tasks", "--build-file", gradleFile)
 	if err != nil {
 		return []string{}, fmt.Errorf("output: %s, error: %s", out, err)
@@ -137,30 +154,44 @@ func (detector *Android) DetectPlatform() (bool, error) {
 	detector.FileList = fileList
 
 	// Search for gradle file
+	logger.InfoSection("Searching for gradle files")
+
 	gradleFiles := filterGradleFiles(fileList)
 	detector.GradleFiles = gradleFiles
 
+	logger.InfofDetails("%d gradle files detected", len(gradleFiles))
+
 	if len(gradleFiles) == 0 {
+		logger.InfofDetails("platform not detected")
 		return false, nil
 	}
+
+	logger.InfofReceipt("platform detected")
 
 	return true, nil
 }
 
 // Analyze ...
 func (detector *Android) Analyze() (models.OptionModel, error) {
-	//
 	// Search for gradlew_path input
+	logger.InfoSection("Searching for gradlew files")
+
 	gradlewFiles := filterGradlewFiles(detector.FileList)
+
+	logger.InfofDetails("%d gradlew file detected", len(gradlewFiles))
 
 	rootGradlewPath := ""
 	if len(gradlewFiles) > 0 {
 		rootGradlewPath = gradlewFiles[0]
 		detector.HasGradlewFile = true
+
+		logger.InfofDetails("root gradlew path: %s", rootGradlewPath)
 	}
 
 	gradleBin := "gradle"
 	if detector.HasGradlewFile {
+		logger.InfofDetails("adding executable permission to gradlew file")
+
 		err := os.Chmod(rootGradlewPath, 0770)
 		if err != nil {
 			return models.OptionModel{}, fmt.Errorf("failed to add executable permission on gradlew file (%s), error: %s", rootGradlewPath, err)
@@ -169,17 +200,21 @@ func (detector *Android) Analyze() (models.OptionModel, error) {
 		gradleBin = rootGradlewPath
 	}
 
+	logger.InfofReceipt("gradle bin to use by inspect: %s", gradleBin)
+
 	// Inspect Gradle files
 	gradleFileOption := models.NewOptionModel(gradleFileTitle, gradleFileEnvKey)
 
 	for _, gradleFile := range detector.GradleFiles {
-		log.Infof("Inspecting gradle file: %s", gradleFile)
-		log.Infof(" $ %s tasks --build-file %s", gradleBin, gradleFile)
+		logger.InfofSection("Inspecting gradle file: %s", gradleFile)
+		logger.InfofDetails("$ %s tasks --build-file %s", gradleBin, gradleFile)
 
 		configs, err := inspectGradleFile(gradleFile, gradleBin)
 		if err != nil {
 			return models.OptionModel{}, fmt.Errorf("failed to inspect gradle files, error: %s", err)
 		}
+
+		logger.InfofReceipt("found gradle tasks: %v", configs)
 
 		gradleTaskOption := models.NewOptionModel(gradleTaskTitle, gradleTaskEnvKey)
 		for _, config := range configs {
