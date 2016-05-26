@@ -16,7 +16,12 @@ const (
 type ScannerInterface interface {
 	Name() string
 	Configure(searchDir string)
+
 	DetectPlatform() (bool, error)
-	Analyze() (models.OptionModel, error)
-	Configs(isPrivate bool) map[string]bitriseModels.BitriseDataModel
+
+	Options() (models.OptionModel, error)
+	DefaultOptions() models.OptionModel
+
+	Configs() map[string]bitriseModels.BitriseDataModel
+	DefaultConfigs() map[string]bitriseModels.BitriseDataModel
 }

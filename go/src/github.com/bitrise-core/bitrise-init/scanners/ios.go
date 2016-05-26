@@ -15,6 +15,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/utility"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
+	"github.com/bitrise-io/go-utils/pointers"
 	stepmanModels "github.com/bitrise-io/stepman/models"
 )
 
@@ -165,6 +166,10 @@ func iOSConfigName(hasPodfile, hasTest bool) string {
 	return name + "config"
 }
 
+func iOSDefaultConfigName() string {
+	return "default-ios-config"
+}
+
 //--------------------------------------------------
 // Detector
 //--------------------------------------------------
@@ -198,12 +203,12 @@ func (detector *Ios) DetectPlatform() (bool, error) {
 	detector.FileList = fileList
 
 	// Search for xcodeproj/xcworkspace file
-	logger.InfoSection("Searching for xcodeproj/xcworkspace files")
+	logger.Info("Searching for xcodeproj/xcworkspace files")
 
 	xcodeProjectFiles := filterXcodeprojectFiles(fileList)
 	detector.XcodeProjectFiles = xcodeProjectFiles
 
-	logger.InfofDetails("%d xcodeproj/xcworkspace files detected", len(xcodeProjectFiles))
+	logger.InfofDetails("%d xcodeproj/xcworkspace file(s) detected", len(xcodeProjectFiles))
 
 	if len(xcodeProjectFiles) == 0 {
 		logger.InfofDetails("platform not detected")
@@ -216,15 +221,15 @@ func (detector *Ios) DetectPlatform() (bool, error) {
 	return true, nil
 }
 
-// Analyze ...
-func (detector *Ios) Analyze() (models.OptionModel, error) {
+// Options ...
+func (detector *Ios) Options() (models.OptionModel, error) {
 	// Check for Podfiles
 	logger.InfoSection("Searching for Podfiles")
 
 	podFiles := filterPodFiles(detector.FileList)
 	detector.HasPodFile = (len(podFiles) > 0)
 
-	logger.InfofDetails("%d Podfiles detected", len(podFiles))
+	logger.InfofDetails("%d Podfile(s) detected", len(podFiles))
 
 	workspaceMap := map[string]string{}
 	for _, podFile := range podFiles {
@@ -302,17 +307,33 @@ func (detector *Ios) Analyze() (models.OptionModel, error) {
 	return projectPathOption, nil
 }
 
+// DefaultOptions ...
+func (detector *Ios) DefaultOptions() models.OptionModel {
+	projectPathOption := models.NewOptionModel(projectPathTitle, projectPathEnvKey)
+
+	schemeOption := models.NewOptionModel(schemeTitle, schemeEnvKey)
+
+	configOption := models.NewEmptyOptionModel()
+	configOption.Config = iOSDefaultConfigName()
+
+	schemeOption.ValueMap["_"] = configOption
+
+	projectPathOption.ValueMap["_"] = schemeOption
+
+	return projectPathOption
+}
+
 // Configs ...
-func (detector *Ios) Configs(isPrivate bool) map[string]bitriseModels.BitriseDataModel {
+func (detector *Ios) Configs() map[string]bitriseModels.BitriseDataModel {
 	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{}
 	steps := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
-	if isPrivate {
-		steps = append(steps, bitriseModels.StepListItemModel{
-			stepActivateSSHKeyIDComposite: stepmanModels.StepModel{},
-		})
-	}
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepActivateSSHKeyIDComposite: stepmanModels.StepModel{
+			RunIf: pointers.NewStringPtr(`{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`),
+		},
+	})
 
 	// GitClone
 	steps = append(steps, bitriseModels.StepListItemModel{
@@ -392,6 +413,58 @@ func (detector *Ios) Configs(isPrivate bool) map[string]bitriseModels.BitriseDat
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
 
 	configName := iOSConfigName(detector.HasPodFile, false)
+	bitriseDataMap[configName] = bitriseData
+
+	return bitriseDataMap
+}
+
+// DefaultConfigs ...
+func (detector *Ios) DefaultConfigs() map[string]bitriseModels.BitriseDataModel {
+	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{}
+	steps := []bitriseModels.StepListItemModel{}
+
+	// ActivateSSHKey
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepActivateSSHKeyIDComposite: stepmanModels.StepModel{
+			RunIf: pointers.NewStringPtr(`{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`),
+		},
+	})
+
+	// GitClone
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepGitCloneIDComposite: stepmanModels.StepModel{},
+	})
+
+	// CertificateAndProfileInstaller
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepCertificateAndProfileInstallerIDComposite: stepmanModels.StepModel{},
+	})
+
+	// CocoapodsInstall
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepCocoapodsInstallIDComposite: stepmanModels.StepModel{},
+	})
+
+	// XcodeArchive
+	inputs := []envmanModels.EnvironmentItemModel{
+		envmanModels.EnvironmentItemModel{projectPathKey: "$" + projectPathEnvKey},
+		envmanModels.EnvironmentItemModel{schemeKey: "$" + schemeEnvKey},
+	}
+
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepXcodeArchiveIDComposite: stepmanModels.StepModel{
+			Inputs: inputs,
+		},
+	})
+
+	// DeployToBitriseIo
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepDeployToBitriseIoIDComposite: stepmanModels.StepModel{},
+	})
+
+	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
+
+	configName := iOSDefaultConfigName()
 	bitriseDataMap[configName] = bitriseData
 
 	return bitriseDataMap

@@ -74,7 +74,7 @@ func Run() {
 	app.Commands = []cli.Command{
 		cli.Command{
 			Name:   "config",
-			Usage:  "Generates a bitrise config files.",
+			Usage:  "Generates a bitrise config files based on your project.",
 			Action: initConfig,
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -85,9 +85,16 @@ func Run() {
 					Name:  "output-dir",
 					Usage: "Directory to save scan results.",
 				},
-				cli.BoolFlag{
-					Name:  "private",
-					Usage: "If true it indicates that source repository is private!",
+			},
+		},
+		cli.Command{
+			Name:   "default-config",
+			Usage:  "Generates default bitrise config files.",
+			Action: manualInitConfig,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "output-dir",
+					Usage: "Directory to save scan results.",
 				},
 			},
 		},

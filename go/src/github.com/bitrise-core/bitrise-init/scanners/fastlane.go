@@ -10,11 +10,11 @@ import (
 	"sort"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/utility"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
+	"github.com/bitrise-io/go-utils/pointers"
 	stepmanModels "github.com/bitrise-io/stepman/models"
 )
 
@@ -104,6 +104,10 @@ func fastlaneConfigName() string {
 	return name + "config"
 }
 
+func fastlaneDefaultConfigName() string {
+	return "default-fastlane-config"
+}
+
 //--------------------------------------------------
 // Detector
 //--------------------------------------------------
@@ -126,29 +130,44 @@ func (detector *Fastlane) Configure(searchDir string) {
 
 // DetectPlatform ...
 func (detector *Fastlane) DetectPlatform() (bool, error) {
-	// Search for Fastfile
 	fileList, err := utility.FileList(detector.SearchDir)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for files in (%s), error: %s", detector.SearchDir, err)
 	}
 
+	// Search for Fastfile
+	logger.Info("Searching for Fastfiles")
+
 	fastFiles := filterFastFiles(fileList)
 	detector.FastFiles = fastFiles
-	return len(fastFiles) > 0, nil
+
+	logger.InfofDetails("%d Fastfile(s) detected", len(fastFiles))
+
+	if len(fastFiles) == 0 {
+		logger.InfofDetails("platform not detected")
+		return false, nil
+	}
+
+	logger.InfofReceipt("platform detected")
+
+	return true, nil
 }
 
-// Analyze ...
-func (detector *Fastlane) Analyze() (models.OptionModel, error) {
+// Options ...
+func (detector *Fastlane) Options() (models.OptionModel, error) {
 	workDirOption := models.NewOptionModel(workDirTitle, workDirEnvKey)
 
 	// Inspect Fastfiles
 	for _, fastFile := range detector.FastFiles {
-		log.Infof("Inspecting Fastfile: %s", fastFile)
+		logger.InfofSection("Inspecting Fastfile: %s", fastFile)
+		logger.InfoDetails("$ fastlane lanes --json")
 
 		lanes, err := inspectFastFile(fastFile)
 		if err != nil {
 			return models.OptionModel{}, err
 		}
+
+		logger.InfofReceipt("found lanes: %v", lanes)
 
 		// Check if `Fastfile` is in `./fastlane/Fastfile`
 		// If no - generated fastlane step will require `work_dir` input too
@@ -157,6 +176,8 @@ func (detector *Fastlane) Analyze() (models.OptionModel, error) {
 		if relFastlaneDir != "fastlane" {
 			workDir = relFastlaneDir
 		}
+
+		logger.InfofReceipt("fastlane work dir: %s", workDir)
 
 		configOption := models.NewEmptyOptionModel()
 		configOption.Config = fastlaneConfigName()
@@ -172,17 +193,33 @@ func (detector *Fastlane) Analyze() (models.OptionModel, error) {
 	return workDirOption, nil
 }
 
+// DefaultOptions ...
+func (detector *Fastlane) DefaultOptions() models.OptionModel {
+	workDirOption := models.NewOptionModel(workDirTitle, workDirEnvKey)
+
+	configOption := models.NewEmptyOptionModel()
+	configOption.Config = fastlaneDefaultConfigName()
+
+	laneOption := models.NewOptionModel(laneTitle, laneEnvKey)
+
+	laneOption.ValueMap["_"] = configOption
+
+	workDirOption.ValueMap["_"] = laneOption
+
+	return workDirOption
+}
+
 // Configs ...
-func (detector *Fastlane) Configs(isPrivate bool) map[string]bitriseModels.BitriseDataModel {
+func (detector *Fastlane) Configs() map[string]bitriseModels.BitriseDataModel {
 	steps := []bitriseModels.StepListItemModel{}
 	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{}
 
 	// ActivateSSHKey
-	if isPrivate {
-		steps = append(steps, bitriseModels.StepListItemModel{
-			stepActivateSSHKeyIDComposite: stepmanModels.StepModel{},
-		})
-	}
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepActivateSSHKeyIDComposite: stepmanModels.StepModel{
+			RunIf: pointers.NewStringPtr(`{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`),
+		},
+	})
 
 	// GitClone
 	steps = append(steps, bitriseModels.StepListItemModel{
@@ -209,6 +246,48 @@ func (detector *Fastlane) Configs(isPrivate bool) map[string]bitriseModels.Bitri
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
 
 	configName := fastlaneConfigName()
+	bitriseDataMap[configName] = bitriseData
+
+	return bitriseDataMap
+}
+
+// DefaultConfigs ...
+func (detector *Fastlane) DefaultConfigs() map[string]bitriseModels.BitriseDataModel {
+	steps := []bitriseModels.StepListItemModel{}
+	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{}
+
+	// ActivateSSHKey
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepActivateSSHKeyIDComposite: stepmanModels.StepModel{
+			RunIf: pointers.NewStringPtr(`{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`),
+		},
+	})
+
+	// GitClone
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepGitCloneIDComposite: stepmanModels.StepModel{},
+	})
+
+	// CertificateAndProfileInstaller
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepCertificateAndProfileInstallerIDComposite: stepmanModels.StepModel{},
+	})
+
+	inputs := []envmanModels.EnvironmentItemModel{
+		envmanModels.EnvironmentItemModel{laneKey: "$" + laneEnvKey},
+		envmanModels.EnvironmentItemModel{workDirKey: "$" + workDirEnvKey},
+	}
+
+	// Fastlane
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepFastlaneIDComposite: stepmanModels.StepModel{
+			Inputs: inputs,
+		},
+	})
+
+	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
+
+	configName := fastlaneDefaultConfigName()
 	bitriseDataMap[configName] = bitriseData
 
 	return bitriseDataMap

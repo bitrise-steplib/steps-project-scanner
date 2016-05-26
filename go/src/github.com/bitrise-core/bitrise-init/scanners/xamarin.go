@@ -1,6 +1,7 @@
 package scanners
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"path/filepath"
@@ -27,13 +28,21 @@ const (
 	solutionConfigurationStart = "GlobalSection(SolutionConfigurationPlatforms) = preSolution"
 	solutionConfigurationEnd   = "EndGlobalSection"
 
-	includemonoTouchAPIPattern   = `Include="monotouch"`
+	includeMonoTouchAPIPattern   = `Include="monotouch"`
 	includeXamarinIosAPIPattern  = `Include="Xamarin.iOS"`
 	includeMonoAndroidAPIPattern = `Include="Mono.Android"`
 
 	monoTouchAPI   = "monotouch"
 	xamarinIosAPI  = "Xamarin.iOS"
 	monoAndroidAPI = "Mono.Android"
+
+	includeXamarinUITestFrameworkPattern = `Include="Xamarin.UITest`
+	includeNunitFrameworkPattern         = `Include="nunit.framework`
+	includeNunitLiteFrameworkPattern     = `Include="MonoTouch.NUnitLite`
+
+	xamarinUITestType = "Xamarin UITest"
+	nunitTestType     = "NUnit test"
+	nunitLiteTestType = "NUnitLite test"
 )
 
 const (
@@ -128,10 +137,27 @@ func getProjectPlatformAPI(projectFile string) (string, error) {
 
 	if utility.CaseInsensitiveContains(content, includeMonoAndroidAPIPattern) {
 		return monoAndroidAPI, nil
-	} else if utility.CaseInsensitiveContains(content, includemonoTouchAPIPattern) {
+	} else if utility.CaseInsensitiveContains(content, includeMonoTouchAPIPattern) {
 		return monoTouchAPI, nil
 	} else if utility.CaseInsensitiveContains(content, includeXamarinIosAPIPattern) {
 		return xamarinIosAPI, nil
+	}
+
+	return "", nil
+}
+
+func getProjectTestType(projectFile string) (string, error) {
+	content, err := fileutil.ReadStringFromFile(projectFile)
+	if err != nil {
+		return "", err
+	}
+
+	if utility.CaseInsensitiveContains(content, includeXamarinUITestFrameworkPattern) {
+		return xamarinUITestType, nil
+	} else if utility.CaseInsensitiveContains(content, includeNunitLiteFrameworkPattern) {
+		return nunitLiteTestType, nil
+	} else if utility.CaseInsensitiveContains(content, includeNunitFrameworkPattern) {
+		return nunitTestType, nil
 	}
 
 	return "", nil
@@ -171,6 +197,10 @@ func xamarinConfigName(hasNugetPackages, hasXamarinComponents bool) string {
 	return name + "config"
 }
 
+func xamarinDefaultConfigName() string {
+	return "default-xamarin-config"
+}
+
 //--------------------------------------------------
 // Detector
 //--------------------------------------------------
@@ -204,47 +234,85 @@ func (detector *Xamarin) DetectPlatform() (bool, error) {
 	detector.FileList = fileList
 
 	// Search for solution file
+	logger.Info("Searching for solution files")
+
 	solutionFiles := filterSolutionFiles(fileList)
 	detector.SolutionFiles = solutionFiles
 
+	logger.InfofDetails("%d solution file(s) detected", len(solutionFiles))
+
 	if len(solutionFiles) == 0 {
+		logger.InfofDetails("platform not detected")
 		return false, nil
 	}
+
+	logger.InfofReceipt("platform detected")
 
 	return true, nil
 }
 
-// Analyze ...
-func (detector *Xamarin) Analyze() (models.OptionModel, error) {
+// Options ...
+func (detector *Xamarin) Options() (models.OptionModel, error) {
+	logger.InfoSection("Searching for Nuget packages & Xamarin Components")
+
 	for _, file := range detector.FileList {
-		baseName := filepath.Base(file)
-		if baseName == "packages.config" {
-			detector.HasNugetPackages = true
+		// Search for nuget packages
+		if detector.HasNugetPackages == false {
+			baseName := filepath.Base(file)
+			if baseName == "packages.config" {
+				detector.HasNugetPackages = true
+			}
 		}
 
 		// If adding a component:
 		// /Components/[COMPONENT_NAME]/ dir added
 		// ItemGroup/XamarinComponentReference added to the project
 		// packages.config added to the project's folder
-		componentsExp := regexp.MustCompile(".+/Components/.+")
-		if result := componentsExp.FindString(file); result != "" {
-			detector.HasXamarinComponents = true
+		if detector.HasXamarinComponents == false {
+			componentsExp := regexp.MustCompile(".+/Components/.+")
+			if result := componentsExp.FindString(file); result != "" {
+				detector.HasXamarinComponents = true
+			}
 		}
+
+		if detector.HasNugetPackages && detector.HasXamarinComponents {
+			break
+		}
+	}
+
+	if detector.HasNugetPackages {
+		logger.InfofReceipt("Nuget packages found")
+	} else {
+		logger.InfofDetails("NO Nuget packages found")
+	}
+
+	if detector.HasXamarinComponents {
+		logger.InfofReceipt("Xamarin Components found")
+	} else {
+		logger.InfofDetails("NO Xamarin Components found")
 	}
 
 	// Check for solution configs
 	validSolutionMap := map[string]map[string][]string{}
 	for _, solutionFile := range detector.SolutionFiles {
+		logger.InfofSection("Inspecting solution file: %s", solutionFile)
+
 		configs, err := getSolutionConfigs(solutionFile)
 		if err != nil {
 			return models.OptionModel{}, err
 		}
 
 		if len(configs) > 0 {
+			logger.InfofReceipt("found configs: %v", configs)
+
 			validSolutionMap[solutionFile] = configs
 		} else {
 			log.Warnf("No config found for %s", solutionFile)
 		}
+	}
+
+	if len(validSolutionMap) == 0 {
+		return models.OptionModel{}, errors.New("No valid solution file found")
 	}
 
 	// Check for solution projects
@@ -257,9 +325,8 @@ func (detector *Xamarin) Analyze() (models.OptionModel, error) {
 		}
 
 		// Inspect projects
-		apis := []string{}
 		for _, project := range projects {
-			log.Infof("Inspecting project file: %s", project)
+			logger.InfofSection("  Inspecting project file: %s", project)
 
 			api, err := getProjectPlatformAPI(project)
 			if err != nil {
@@ -267,10 +334,20 @@ func (detector *Xamarin) Analyze() (models.OptionModel, error) {
 			}
 
 			if api == "" {
-				continue
-			}
+				testType, err := getProjectTestType(project)
+				if err != nil {
+					return models.OptionModel{}, err
+				}
 
-			apis = append(apis, api)
+				if testType == "" {
+					log.Warn("    No platform api or test framework found")
+					continue
+				}
+
+				logger.InfofDetails("  %s test project", testType)
+			} else {
+				logger.InfofDetails("  %s project", api)
+			}
 		}
 
 		xamarinConfigurationOption := models.NewOptionModel(xamarinConfigurationTitle, xamarinConfigurationEnvKey)
@@ -293,16 +370,36 @@ func (detector *Xamarin) Analyze() (models.OptionModel, error) {
 	return xamarinProjectOption, nil
 }
 
+// DefaultOptions ...
+func (detector *Xamarin) DefaultOptions() models.OptionModel {
+	xamarinProjectOption := models.NewOptionModel(xamarinProjectTitle, xamarinProjectEnvKey)
+
+	xamarinConfigurationOption := models.NewOptionModel(xamarinConfigurationTitle, xamarinConfigurationEnvKey)
+
+	xamarinPlatformOption := models.NewOptionModel(xamarinPlatformTitle, xamarinPlatformEnvKey)
+
+	configOption := models.NewEmptyOptionModel()
+	configOption.Config = xamarinDefaultConfigName()
+
+	xamarinPlatformOption.ValueMap["_"] = configOption
+
+	xamarinConfigurationOption.ValueMap["_"] = xamarinPlatformOption
+
+	xamarinProjectOption.ValueMap["_"] = xamarinConfigurationOption
+
+	return xamarinProjectOption
+}
+
 // Configs ...
-func (detector *Xamarin) Configs(isPrivate bool) map[string]bitriseModels.BitriseDataModel {
+func (detector *Xamarin) Configs() map[string]bitriseModels.BitriseDataModel {
 	steps := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
-	if isPrivate {
-		steps = append(steps, bitriseModels.StepListItemModel{
-			stepActivateSSHKeyIDComposite: stepmanModels.StepModel{},
-		})
-	}
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepActivateSSHKeyIDComposite: stepmanModels.StepModel{
+			RunIf: pointers.NewStringPtr(`{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`),
+		},
+	})
 
 	// GitClone
 	steps = append(steps, bitriseModels.StepListItemModel{
@@ -362,6 +459,77 @@ func (detector *Xamarin) Configs(isPrivate bool) map[string]bitriseModels.Bitris
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
 
 	configName := xamarinConfigName(detector.HasNugetPackages, detector.HasXamarinComponents)
+	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{
+		configName: bitriseData,
+	}
+
+	return bitriseDataMap
+}
+
+// DefaultConfigs ...
+func (detector *Xamarin) DefaultConfigs() map[string]bitriseModels.BitriseDataModel {
+	steps := []bitriseModels.StepListItemModel{}
+
+	// ActivateSSHKey
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepActivateSSHKeyIDComposite: stepmanModels.StepModel{
+			RunIf: pointers.NewStringPtr(`{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`),
+		},
+	})
+	// GitClone
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepGitCloneIDComposite: stepmanModels.StepModel{},
+	})
+
+	// CertificateAndProfileInstaller
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepCertificateAndProfileInstallerIDComposite: stepmanModels.StepModel{},
+	})
+
+	// XamarinUserManagement
+	inputs := []envmanModels.EnvironmentItemModel{
+		envmanModels.EnvironmentItemModel{xamarinIosLicenceKey: "$" + xamarinIosLicenceEnvKey},
+		envmanModels.EnvironmentItemModel{xamarinAndroidLicenceKey: "$" + xamarinAndroidLicenceEnvKey},
+	}
+
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepXamarinUserManagementIDComposite: stepmanModels.StepModel{
+			Inputs: inputs,
+			RunIf:  pointers.NewStringPtr(".IsCI"),
+		},
+	})
+
+	// NugetRestore
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepNugetRestoreIDComposite: stepmanModels.StepModel{},
+	})
+
+	// XamarinComponentsRestore
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepXamarinComponentsRestoreIDComposite: stepmanModels.StepModel{},
+	})
+
+	// XamarinBuilder
+	inputs = []envmanModels.EnvironmentItemModel{
+		envmanModels.EnvironmentItemModel{xamarinProjectKey: "$" + xamarinProjectEnvKey},
+		envmanModels.EnvironmentItemModel{xamarinConfigurationKey: "$" + xamarinConfigurationEnvKey},
+		envmanModels.EnvironmentItemModel{xamarinPlatformKey: "$" + xamarinPlatformEnvKey},
+	}
+
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepXamarinBuilderIDComposite: stepmanModels.StepModel{
+			Inputs: inputs,
+		},
+	})
+
+	// DeployToBitriseIo
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepDeployToBitriseIoIDComposite: stepmanModels.StepModel{},
+	})
+
+	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
+
+	configName := xamarinDefaultConfigName()
 	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{
 		configName: bitriseData,
 	}

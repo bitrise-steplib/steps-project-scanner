@@ -25,21 +25,36 @@ func NewLogger() LoggerModel {
 	}
 }
 
+// Info ...
+func (logger *LoggerModel) Info(args ...interface{}) {
+	logger.Logger.Info(colorstring.Blue(args...))
+}
+
+// Infof ...
+func (logger *LoggerModel) Infof(format string, args ...interface{}) {
+	logger.Logger.Info(colorstring.Bluef(format, args...))
+}
+
 // InfoSection ...
 func (logger *LoggerModel) InfoSection(args ...interface{}) {
-	fmt.Println()
+	logger.Logger.Info()
 	logger.Logger.Info(colorstring.Blue(args...))
 }
 
 // InfofSection ...
 func (logger *LoggerModel) InfofSection(format string, args ...interface{}) {
-	fmt.Println()
+	logger.Logger.Info()
 	logger.Logger.Info(colorstring.Bluef(format, args...))
 }
 
 // InfofDetails ...
 func (logger *LoggerModel) InfofDetails(format string, args ...interface{}) {
 	logger.Logger.Infof("  " + fmt.Sprintf(format, args...))
+}
+
+// InfoDetails ...
+func (logger *LoggerModel) InfoDetails(args ...interface{}) {
+	logger.Logger.Info("  " + fmt.Sprint(args...))
 }
 
 // InfofReceipt ...

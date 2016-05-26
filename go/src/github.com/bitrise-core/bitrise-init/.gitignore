@@ -1,4 +1,3 @@
-scan_result/
-
-
+_scan_result/
+_defaults/
 .bitrise*
