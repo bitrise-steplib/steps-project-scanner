@@ -12,6 +12,7 @@ import (
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/cmdex"
+	"github.com/bitrise-io/go-utils/pointers"
 	stepmanModels "github.com/bitrise-io/stepman/models"
 )
 
@@ -122,6 +123,10 @@ func androidConfigName(hasGradlew bool) string {
 	return name + "config"
 }
 
+func androidDefaultConfigName() string {
+	return "default-android-config"
+}
+
 //--------------------------------------------------
 // Detector
 //--------------------------------------------------
@@ -154,12 +159,12 @@ func (detector *Android) DetectPlatform() (bool, error) {
 	detector.FileList = fileList
 
 	// Search for gradle file
-	logger.InfoSection("Searching for gradle files")
+	logger.Info("Searching for gradle files")
 
 	gradleFiles := filterGradleFiles(fileList)
 	detector.GradleFiles = gradleFiles
 
-	logger.InfofDetails("%d gradle files detected", len(gradleFiles))
+	logger.InfofDetails("%d gradle file(s) detected", len(gradleFiles))
 
 	if len(gradleFiles) == 0 {
 		logger.InfofDetails("platform not detected")
@@ -171,14 +176,14 @@ func (detector *Android) DetectPlatform() (bool, error) {
 	return true, nil
 }
 
-// Analyze ...
-func (detector *Android) Analyze() (models.OptionModel, error) {
+// Options ...
+func (detector *Android) Options() (models.OptionModel, error) {
 	// Search for gradlew_path input
 	logger.InfoSection("Searching for gradlew files")
 
 	gradlewFiles := filterGradlewFiles(detector.FileList)
 
-	logger.InfofDetails("%d gradlew file detected", len(gradlewFiles))
+	logger.InfofDetails("%d gradlew file(s) detected", len(gradlewFiles))
 
 	rootGradlewPath := ""
 	if len(gradlewFiles) > 0 {
@@ -238,16 +243,34 @@ func (detector *Android) Analyze() (models.OptionModel, error) {
 	return gradleFileOption, nil
 }
 
+// DefaultOptions ...
+func (detector *Android) DefaultOptions() models.OptionModel {
+	gradleFileOption := models.NewOptionModel(gradleFileTitle, gradleFileEnvKey)
+
+	gradleTaskOption := models.NewOptionModel(gradleTaskTitle, gradleTaskEnvKey)
+
+	configOption := models.NewEmptyOptionModel()
+	configOption.Config = androidDefaultConfigName()
+
+	gradlewPathOption := models.NewOptionModel(gradlewPathTitle, gradlewPathEnvKey)
+
+	gradlewPathOption.ValueMap["_"] = configOption
+	gradleTaskOption.ValueMap["_"] = gradlewPathOption
+	gradleFileOption.ValueMap["_"] = gradleTaskOption
+
+	return gradleFileOption
+}
+
 // Configs ...
-func (detector *Android) Configs(isPrivate bool) map[string]bitriseModels.BitriseDataModel {
+func (detector *Android) Configs() map[string]bitriseModels.BitriseDataModel {
 	steps := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
-	if isPrivate {
-		steps = append(steps, bitriseModels.StepListItemModel{
-			stepActivateSSHKeyIDComposite: stepmanModels.StepModel{},
-		})
-	}
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepActivateSSHKeyIDComposite: stepmanModels.StepModel{
+			RunIf: pointers.NewStringPtr(`{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`),
+		},
+	})
 
 	// GitClone
 	steps = append(steps, bitriseModels.StepListItemModel{
@@ -281,6 +304,54 @@ func (detector *Android) Configs(isPrivate bool) map[string]bitriseModels.Bitris
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
 
 	configName := androidConfigName(detector.HasGradlewFile)
+	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{
+		configName: bitriseData,
+	}
+
+	return bitriseDataMap
+}
+
+// DefaultConfigs ...
+func (detector *Android) DefaultConfigs() map[string]bitriseModels.BitriseDataModel {
+	steps := []bitriseModels.StepListItemModel{}
+
+	// ActivateSSHKey
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepActivateSSHKeyIDComposite: stepmanModels.StepModel{
+			RunIf: pointers.NewStringPtr(`{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`),
+		},
+	})
+
+	// GitClone
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepGitCloneIDComposite: stepmanModels.StepModel{},
+	})
+
+	// GradleRunner
+	inputs := []envmanModels.EnvironmentItemModel{
+		envmanModels.EnvironmentItemModel{gradleFileKey: "$" + gradleFileEnvKey},
+		envmanModels.EnvironmentItemModel{gradleTaskKey: "$" + gradleTaskEnvKey},
+	}
+
+	inputs = append(inputs, envmanModels.EnvironmentItemModel{
+		gradlewPathKey: "$" + gradlewPathEnvKey,
+	})
+
+	// GradleRunner
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepGradleRunnerIDComposite: stepmanModels.StepModel{
+			Inputs: inputs,
+		},
+	})
+
+	// DeployToBitriseIo
+	steps = append(steps, bitriseModels.StepListItemModel{
+		stepDeployToBitriseIoIDComposite: stepmanModels.StepModel{},
+	})
+
+	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
+
+	configName := androidDefaultConfigName()
 	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{
 		configName: bitriseData,
 	}

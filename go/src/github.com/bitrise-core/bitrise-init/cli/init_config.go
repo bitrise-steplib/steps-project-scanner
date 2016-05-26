@@ -22,6 +22,10 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+const (
+	defaultScanResultDir = "_scan_result"
+)
+
 func askForValue(option models.OptionModel) (string, string, error) {
 	optionValues := option.GetValues()
 
@@ -45,7 +49,6 @@ func initConfig(c *cli.Context) {
 	//
 	// Config
 	isCI := c.GlobalBool("ci")
-	isPrivate := c.Bool("private")
 	searchDir := c.String("dir")
 	outputDir := c.String("output-dir")
 
@@ -57,26 +60,13 @@ func initConfig(c *cli.Context) {
 	if searchDir == "" {
 		searchDir = currentDir
 		// searchDir = "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-ios-cocoapods"
-		searchDir = "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-android"
-		// searchDir = "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-xamarin-uitest"
+		// searchDir = "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-android"
+		searchDir = "/Users/godrei/Develop/bitrise/sample-apps/sample-apps-xamarin-uitest"
 		// searchDir = "/Users/godrei/Develop/bitrise/sample-apps/fastlane-example"
 	}
 
-	if searchDir != currentDir {
-		log.Infof("Change work dir to (%s)", searchDir)
-		if err := os.Chdir(searchDir); err != nil {
-			log.Fatalf("Failed to change dir, to (%s), error: %s", searchDir, err)
-		}
-		defer func() {
-			log.Infof("Change work dir to (%s)", currentDir)
-			if err := os.Chdir(currentDir); err != nil {
-				log.Warnf("Failed to change dir, to (%s), error: %s", searchDir, err)
-			}
-		}()
-	}
-
 	if outputDir == "" {
-		outputDir = filepath.Join(currentDir, "scan_result")
+		outputDir = filepath.Join(currentDir, defaultScanResultDir)
 	}
 
 	fmt.Println()
@@ -84,14 +74,27 @@ func initConfig(c *cli.Context) {
 	fmt.Println()
 
 	if isCI {
-		log.Info(colorstring.Yellow("plugin runs in CI mode"))
-	}
-	if isPrivate {
-		log.Info(colorstring.Yellow("scanning private repository"))
+		log.Info(colorstring.Yellow("CI mode"))
 	}
 	log.Info(colorstring.Yellowf("scan dir: %s", searchDir))
 	log.Info(colorstring.Yellowf("output dir: %s", outputDir))
 	fmt.Println()
+
+	if searchDir != currentDir {
+		log.Infof("Change work dir to (%s)", searchDir)
+		fmt.Println()
+		if err := os.Chdir(searchDir); err != nil {
+			log.Fatalf("Failed to change dir, to (%s), error: %s", searchDir, err)
+		}
+		defer func() {
+			fmt.Println()
+			log.Infof("Change work dir to (%s)", currentDir)
+			fmt.Println()
+			if err := os.Chdir(currentDir); err != nil {
+				log.Warnf("Failed to change dir, to (%s), error: %s", searchDir, err)
+			}
+		}()
+	}
 
 	//
 	// Scan
@@ -101,13 +104,16 @@ func initConfig(c *cli.Context) {
 		new(scanners.Ios),
 		new(scanners.Fastlane),
 	}
+
 	optionsMap := map[string]models.OptionModel{}
 	configsMap := map[string]map[string]bitriseModels.BitriseDataModel{}
 
 	log.Infof(colorstring.Blue("Running scanners:"))
+	fmt.Println()
+
 	for _, detector := range platformDetectors {
 		detectorName := detector.Name()
-		log.Infof("  Scanner: %s", colorstring.Blue(detectorName))
+		log.Infof("Scanner: %s", colorstring.Blue(detectorName))
 
 		log.Info("+------------------------------------------------------------------------------+")
 		log.Info("|                                                                              |")
@@ -125,7 +131,7 @@ func initConfig(c *cli.Context) {
 			continue
 		}
 
-		option, err := detector.Analyze()
+		option, err := detector.Options()
 		if err != nil {
 			log.Fatalf("Analyzer failed, error: %s", err)
 		}
@@ -143,7 +149,7 @@ func initConfig(c *cli.Context) {
 		// Generate configs
 		log.Debug()
 		log.Debug("Generated configs:")
-		configs := detector.Configs(isPrivate)
+		configs := detector.Configs()
 		for name, config := range configs {
 			log.Debugf("  name: %s", name)
 
