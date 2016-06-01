@@ -379,18 +379,7 @@ func (detector *Ios) Configs() (map[string]string, error) {
 			stepDeployToBitriseIoIDComposite: stepmanModels.StepModel{},
 		})
 
-		workflows := map[string]bitriseModels.WorkflowModel{
-			"primary": bitriseModels.WorkflowModel{
-				Steps: stepsWithTest,
-			},
-		}
-
-		bitriseData := bitriseModels.BitriseDataModel{
-			Workflows:            workflows,
-			FormatVersion:        "1.1.0",
-			DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
-		}
-
+		bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepsWithTest)
 		data, err := yaml.Marshal(bitriseData)
 		if err != nil {
 			return map[string]string{}, err
