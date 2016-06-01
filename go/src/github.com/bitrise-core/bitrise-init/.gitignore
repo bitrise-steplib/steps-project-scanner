@@ -1,3 +1,6 @@
 _scan_result/
 _defaults/
+_tmp/
 .bitrise*
+
+

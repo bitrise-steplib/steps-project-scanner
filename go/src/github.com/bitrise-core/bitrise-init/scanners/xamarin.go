@@ -60,7 +60,7 @@ const (
 	xamarinPlatformTitle  = "Xamarin platform"
 	xamarinPlatformEnvKey = "BITRISE_XAMARIN_PLATFORM"
 
-	stepXamarinBuilderIDComposite = "xamarin-builder@1.1.3"
+	stepXamarinBuilderIDComposite = "xamarin-builder@1.3.0"
 
 	xamarinIosLicenceKey    = "xamarin_ios_license"
 	xamarinIosLicenceTitle  = "Xamarin.iOS License"
@@ -285,7 +285,7 @@ func (detector *Xamarin) Options() (models.OptionModel, error) {
 		// ItemGroup/XamarinComponentReference added to the project
 		// packages.config added to the project's folder
 		if detector.HasXamarinComponents == false {
-			componentsExp := regexp.MustCompile(".+/Components/.+")
+			componentsExp := regexp.MustCompile(".*Components/.+")
 			if result := componentsExp.FindString(file); result != "" {
 				detector.HasXamarinComponents = true
 			}
