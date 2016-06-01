@@ -12,6 +12,8 @@ app:
   - SCAN_DIR: "/Users/godrei/Develop/bitrise/sample-apps/fastlane-example"
 
 workflows:
+  # ----------------------------------------------------------------
+  # --- workflow to Step Test
   test:
     envs:
     - CI: "true"
@@ -51,7 +53,35 @@ workflows:
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
 
   # ----------------------------------------------------------------
-  # --- workflows to Share this step into a Step Library
+  # --- workflows to create Release
+  create-release:
+    steps:
+    - script:
+        title:
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+
+            export CI=true
+            releaseman create --bump-version patch
+
+  create-release-version:
+    envs:
+    - RELEASE_VERSION: 0.9.0
+    steps:
+    - script:
+        title:
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+
+            export CI=true
+            releaseman create --version $RELEASE_VERSION
+
+  # ----------------------------------------------------------------
+  # --- workflow to Share this step into a Step Library
   share-this-step:
     envs:
       # if you want to share this step into a StepLib
