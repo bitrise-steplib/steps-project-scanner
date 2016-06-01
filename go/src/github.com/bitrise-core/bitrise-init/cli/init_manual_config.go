@@ -16,58 +16,29 @@ import (
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/goinp/goinp"
 	"github.com/codegangsta/cli"
 )
 
 const (
-	defaultScanResultDir = "_scan_result"
+	defaultOutputDir = "_defaults"
 )
 
-func askForValue(option models.OptionModel) (string, string, error) {
-	optionValues := option.GetValues()
-
-	selectedValue := ""
-	if len(optionValues) == 1 {
-		selectedValue = optionValues[0]
-	} else {
-		question := fmt.Sprintf("Select: %s", option.Title)
-		answer, err := goinp.SelectFromStrings(question, optionValues)
-		if err != nil {
-			return "", "", err
-		}
-
-		selectedValue = answer
-	}
-
-	return option.EnvKey, selectedValue, nil
-}
-
-func initConfig(c *cli.Context) {
+func initManualConfig(c *cli.Context) {
 	PrintHeader(c)
 
 	//
 	// Config
 	isCI := c.GlobalBool("ci")
-	searchDir := c.String("dir")
 	outputDir := c.String("output-dir")
 	formatStr := c.String("format")
 
 	currentDir, err := pathutil.AbsPath("./")
 	if err != nil {
-		log.Fatalf("Failed to get abs path (%s), error: %s", outputDir, err)
-	}
-
-	if searchDir == "" {
-		searchDir = currentDir
-	}
-	searchDir, err = pathutil.AbsPath(searchDir)
-	if err != nil {
-		log.Fatalf("Failed to get abs path (%s), error: %s", outputDir, err)
+		log.Fatalf("Failed to get current directory, error: %s", err)
 	}
 
 	if outputDir == "" {
-		outputDir = filepath.Join(currentDir, defaultScanResultDir)
+		outputDir = filepath.Join(currentDir, defaultOutputDir)
 	}
 	outputDir, err = pathutil.AbsPath(outputDir)
 	if err != nil {
@@ -79,7 +50,7 @@ func initConfig(c *cli.Context) {
 	}
 	format, err := output.ParseFormat(formatStr)
 	if err != nil {
-		log.Fatalf("Failed to parse format, error: %s", err)
+		log.Fatalf("Failed to parse format, err: %s", err)
 	}
 	if format != output.JSONFormat && format != output.YAMLFormat {
 		log.Fatalf("Not allowed output format (%v), options: [%s, %s]", format, output.YAMLFormat.String(), output.JSONFormat.String())
@@ -88,26 +59,9 @@ func initConfig(c *cli.Context) {
 	if isCI {
 		log.Info(colorstring.Yellow("CI mode"))
 	}
-	log.Info(colorstring.Yellowf("scan dir: %s", searchDir))
 	log.Info(colorstring.Yellowf("output dir: %s", outputDir))
 	log.Info(colorstring.Yellowf("output format: %s", format))
 	fmt.Println()
-
-	if searchDir != currentDir {
-		log.Infof("Change work dir to (%s)", searchDir)
-		fmt.Println()
-		if err := os.Chdir(searchDir); err != nil {
-			log.Fatalf("Failed to change dir, to (%s), error: %s", searchDir, err)
-		}
-		defer func() {
-			fmt.Println()
-			log.Infof("Change work dir to (%s)", currentDir)
-			fmt.Println()
-			if err := os.Chdir(currentDir); err != nil {
-				log.Warnf("Failed to change dir, to (%s), error: %s", searchDir, err)
-			}
-		}()
-	}
 
 	//
 	// Scan
@@ -121,50 +75,24 @@ func initConfig(c *cli.Context) {
 	optionsMap := map[string]models.OptionModel{}
 	configsMap := map[string]map[string]string{}
 
-	log.Infof(colorstring.Blue("Running scanners:"))
-	fmt.Println()
-
 	for _, detector := range platformDetectors {
 		detectorName := detector.Name()
-		log.Infof("Scanner: %s", colorstring.Blue(detectorName))
 
-		log.Info("+------------------------------------------------------------------------------+")
-		log.Info("|                                                                              |")
-
-		detector.Configure(searchDir)
-		detected, err := detector.DetectPlatform()
-		if err != nil {
-			log.Fatalf("Scanner failed, error: %s", err)
-		}
-
-		if !detected {
-			log.Info("|                                                                              |")
-			log.Info("+------------------------------------------------------------------------------+")
-			fmt.Println()
-			continue
-		}
-
-		option, err := detector.Options()
-		if err != nil {
-			log.Fatalf("Analyzer failed, error: %s", err)
-		}
+		option := detector.DefaultOptions()
 
 		log.Debug()
 		log.Debug("Analyze result:")
 		bytes, err := yaml.Marshal(option)
 		if err != nil {
-			log.Fatalf("Failed to marshal option, error: %s", err)
+			log.Fatalf("Failed to marshal option, err: %s", err)
 		}
 		log.Debugf("\n%v", string(bytes))
 
 		optionsMap[detectorName] = option
 
-		// Generate configs
-		log.Debug()
-		log.Debug("Generated configs:")
-		configs, err := detector.Configs()
+		configs, err := detector.DefaultConfigs()
 		if err != nil {
-			log.Fatalf("Failed create configs, error: %s", err)
+			log.Fatalf("Failed create default configs, error: %s", err)
 		}
 
 		for name, config := range configs {
@@ -172,16 +100,42 @@ func initConfig(c *cli.Context) {
 
 			bytes, err := yaml.Marshal(config)
 			if err != nil {
-				log.Fatalf("Failed to marshal option, error: %s", err)
+				log.Fatalf("Failed to marshal option, err: %s", err)
 			}
 			log.Debugf("\n%v", string(bytes))
 		}
 
 		configsMap[detectorName] = configs
+	}
 
-		log.Info("|                                                                              |")
-		log.Info("+------------------------------------------------------------------------------+")
-		fmt.Println()
+	customConfigs, err := scanners.CustomConfig()
+	if err != nil {
+		log.Fatalf("Failed create default custom configs, error: %s", err)
+	}
+
+	configsMap["custom"] = customConfigs
+
+	//
+	// Write output to files
+	if isCI {
+		log.Infof(colorstring.Blue("Saving outputs:"))
+
+		scanResult := models.ScanResultModel{
+			OptionMap:  optionsMap,
+			ConfigsMap: configsMap,
+		}
+
+		if err := os.MkdirAll(outputDir, 0700); err != nil {
+			log.Fatalf("Failed to create (%s), err: %s", outputDir, err)
+		}
+
+		pth := path.Join(outputDir, "result")
+		if err := output.Print(scanResult, format, pth); err != nil {
+			log.Fatalf("Failed to print result, error: %s", err)
+		}
+		log.Infof("  scan result: %s", colorstring.Blue(pth))
+
+		return
 	}
 
 	//

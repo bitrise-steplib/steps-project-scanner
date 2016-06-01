@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 
+	"gopkg.in/yaml.v2"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/utility"
@@ -39,9 +41,9 @@ const (
 	schemeTitle  = "Scheme name"
 	schemeEnvKey = "BITRISE_SCHEME"
 
-	stepCocoapodsInstallIDComposite = "cocoapods-install@1.1.0"
-	stepXcodeArchiveIDComposite     = "xcode-archive@1.7.0"
-	stepXcodeTestIDComposite        = "xcode-test@1.13.3"
+	stepCocoapodsInstallIDComposite = "cocoapods-install@1.4.0"
+	stepXcodeArchiveIDComposite     = "xcode-archive@1.7.3"
+	stepXcodeTestIDComposite        = "xcode-test@1.13.7"
 )
 
 // SchemeModel ...
@@ -324,8 +326,8 @@ func (detector *Ios) DefaultOptions() models.OptionModel {
 }
 
 // Configs ...
-func (detector *Ios) Configs() map[string]bitriseModels.BitriseDataModel {
-	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{}
+func (detector *Ios) Configs() (map[string]string, error) {
+	bitriseDataMap := map[string]string{}
 	steps := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
@@ -389,8 +391,13 @@ func (detector *Ios) Configs() map[string]bitriseModels.BitriseDataModel {
 			DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
 		}
 
+		data, err := yaml.Marshal(bitriseData)
+		if err != nil {
+			return map[string]string{}, err
+		}
+
 		configName := iOSConfigName(detector.HasPodFile, true)
-		bitriseDataMap[configName] = bitriseData
+		bitriseDataMap[configName] = string(data)
 	}
 
 	// XcodeArchive
@@ -411,16 +418,20 @@ func (detector *Ios) Configs() map[string]bitriseModels.BitriseDataModel {
 	})
 
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
+	data, err := yaml.Marshal(bitriseData)
+	if err != nil {
+		return map[string]string{}, err
+	}
 
 	configName := iOSConfigName(detector.HasPodFile, false)
-	bitriseDataMap[configName] = bitriseData
+	bitriseDataMap[configName] = string(data)
 
-	return bitriseDataMap
+	return bitriseDataMap, nil
 }
 
 // DefaultConfigs ...
-func (detector *Ios) DefaultConfigs() map[string]bitriseModels.BitriseDataModel {
-	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{}
+func (detector *Ios) DefaultConfigs() (map[string]string, error) {
+	bitriseDataMap := map[string]string{}
 	steps := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
@@ -463,9 +474,13 @@ func (detector *Ios) DefaultConfigs() map[string]bitriseModels.BitriseDataModel 
 	})
 
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
+	data, err := yaml.Marshal(bitriseData)
+	if err != nil {
+		return map[string]string{}, err
+	}
 
 	configName := iOSDefaultConfigName()
-	bitriseDataMap[configName] = bitriseData
+	bitriseDataMap[configName] = string(data)
 
-	return bitriseDataMap
+	return bitriseDataMap, nil
 }

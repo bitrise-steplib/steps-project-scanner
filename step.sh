@@ -102,7 +102,7 @@ echo_done "ceated at: ${bin_pth}"
 # Running scanner
 echo_info "Running scanner..."
 
-$bin_pth config --dir $scan_dir --output-dir $output_dir
+$bin_pth config --dir $scan_dir --output-dir $output_dir --format json
 
 echo
 echo_done "scan finished"

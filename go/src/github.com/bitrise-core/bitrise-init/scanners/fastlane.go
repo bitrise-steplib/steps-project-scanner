@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/utility"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
@@ -28,14 +30,14 @@ const (
 
 const (
 	laneKey    = "lane"
-	laneTitle  = "fastlane lane"
+	laneTitle  = "Fastlane lane"
 	laneEnvKey = "FASTLANE_LANE"
 
 	workDirKey    = "work_dir"
 	workDirTitle  = "Working directory"
 	workDirEnvKey = "FASTLANE_WORK_DIR"
 
-	stepFastlaneIDComposite = "fastlane@2.1.3"
+	stepFastlaneIDComposite = "fastlane@2.2.0"
 )
 
 //--------------------------------------------------
@@ -210,9 +212,9 @@ func (detector *Fastlane) DefaultOptions() models.OptionModel {
 }
 
 // Configs ...
-func (detector *Fastlane) Configs() map[string]bitriseModels.BitriseDataModel {
+func (detector *Fastlane) Configs() (map[string]string, error) {
 	steps := []bitriseModels.StepListItemModel{}
-	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{}
+	bitriseDataMap := map[string]string{}
 
 	// ActivateSSHKey
 	steps = append(steps, bitriseModels.StepListItemModel{
@@ -244,17 +246,21 @@ func (detector *Fastlane) Configs() map[string]bitriseModels.BitriseDataModel {
 	})
 
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
+	data, err := yaml.Marshal(bitriseData)
+	if err != nil {
+		return map[string]string{}, err
+	}
 
 	configName := fastlaneConfigName()
-	bitriseDataMap[configName] = bitriseData
+	bitriseDataMap[configName] = string(data)
 
-	return bitriseDataMap
+	return bitriseDataMap, nil
 }
 
 // DefaultConfigs ...
-func (detector *Fastlane) DefaultConfigs() map[string]bitriseModels.BitriseDataModel {
+func (detector *Fastlane) DefaultConfigs() (map[string]string, error) {
 	steps := []bitriseModels.StepListItemModel{}
-	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{}
+	bitriseDataMap := map[string]string{}
 
 	// ActivateSSHKey
 	steps = append(steps, bitriseModels.StepListItemModel{
@@ -286,9 +292,13 @@ func (detector *Fastlane) DefaultConfigs() map[string]bitriseModels.BitriseDataM
 	})
 
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
+	data, err := yaml.Marshal(bitriseData)
+	if err != nil {
+		return map[string]string{}, err
+	}
 
 	configName := fastlaneDefaultConfigName()
-	bitriseDataMap[configName] = bitriseData
+	bitriseDataMap[configName] = string(data)
 
-	return bitriseDataMap
+	return bitriseDataMap, nil
 }

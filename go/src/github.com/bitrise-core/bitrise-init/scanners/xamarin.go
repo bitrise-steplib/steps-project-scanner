@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 
+	"gopkg.in/yaml.v2"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/utility"
@@ -68,9 +70,8 @@ const (
 	xamarinAndroidLicenceTitle  = "Xamarin.Android License"
 	xamarinAndroidLicenceEnvKey = "__XAMARIN_ANDROID_LICENSE_VALUE__"
 
-	stepXamarinUserManagementIDComposite = "xamarin-user-management@1.0.1"
-
-	stepNugetRestoreIDComposite             = "nuget-restore@0.9.0"
+	stepXamarinUserManagementIDComposite    = "xamarin-user-management@1.0.2"
+	stepNugetRestoreIDComposite             = "nuget-restore@0.9.1"
 	stepXamarinComponentsRestoreIDComposite = "xamarin-components-restore@0.9.0"
 )
 
@@ -391,7 +392,7 @@ func (detector *Xamarin) DefaultOptions() models.OptionModel {
 }
 
 // Configs ...
-func (detector *Xamarin) Configs() map[string]bitriseModels.BitriseDataModel {
+func (detector *Xamarin) Configs() (map[string]string, error) {
 	steps := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
@@ -457,17 +458,21 @@ func (detector *Xamarin) Configs() map[string]bitriseModels.BitriseDataModel {
 	})
 
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
-
-	configName := xamarinConfigName(detector.HasNugetPackages, detector.HasXamarinComponents)
-	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{
-		configName: bitriseData,
+	data, err := yaml.Marshal(bitriseData)
+	if err != nil {
+		return map[string]string{}, err
 	}
 
-	return bitriseDataMap
+	configName := xamarinConfigName(detector.HasNugetPackages, detector.HasXamarinComponents)
+	bitriseDataMap := map[string]string{
+		configName: string(data),
+	}
+
+	return bitriseDataMap, nil
 }
 
 // DefaultConfigs ...
-func (detector *Xamarin) DefaultConfigs() map[string]bitriseModels.BitriseDataModel {
+func (detector *Xamarin) DefaultConfigs() (map[string]string, error) {
 	steps := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
@@ -528,11 +533,15 @@ func (detector *Xamarin) DefaultConfigs() map[string]bitriseModels.BitriseDataMo
 	})
 
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
-
-	configName := xamarinDefaultConfigName()
-	bitriseDataMap := map[string]bitriseModels.BitriseDataModel{
-		configName: bitriseData,
+	data, err := yaml.Marshal(bitriseData)
+	if err != nil {
+		return map[string]string{}, err
 	}
 
-	return bitriseDataMap
+	configName := xamarinDefaultConfigName()
+	bitriseDataMap := map[string]string{
+		configName: string(data),
+	}
+
+	return bitriseDataMap, nil
 }
