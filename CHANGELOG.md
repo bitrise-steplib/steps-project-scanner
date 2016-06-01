@@ -1,6 +1,12 @@
-## Changelog (Current version: 0.9.1)
+## Changelog (Current version: 0.9.2)
 
 -----------------
+
+### 0.9.2 (2016 Jun 01)
+
+* [7163547] version bump
+* [5903860] Merge pull request #5 from bitrise-steplib/xamarin_scanner_fix
+* [d181db5] bitrise-init update for xamarin scanner fix
 
 ### 0.9.1 (2016 Jun 01)
 
