@@ -81,8 +81,23 @@ const (
 
 func filterSolutionFiles(fileList []string) []string {
 	files := utility.FilterFilesWithExtensions(fileList, solutionExtension)
-	sort.Sort(utility.ByComponents(files))
-	return files
+
+	componentsProjectExp := regexp.MustCompile(`.*Components/.+.sln`)
+
+	relevantFiles := []string{}
+	for _, file := range files {
+		isComponentsSolution := false
+		if componentsProjectExp.FindString(file) != "" {
+			isComponentsSolution = true
+		}
+
+		if !isComponentsSolution {
+			relevantFiles = append(relevantFiles, file)
+		}
+	}
+
+	sort.Sort(utility.ByComponents(relevantFiles))
+	return relevantFiles
 }
 
 func getSolutionConfigs(solutionFile string) (map[string][]string, error) {
