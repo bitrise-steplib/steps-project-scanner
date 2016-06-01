@@ -9,6 +9,8 @@ description: |-
 
   For Xamarin projects checks the solution files and lists the configuration options,
   also checks for NuGet and Xamarin Components packages.
+
+  For Fastlane detects Fastfile and lists the available lanes.
 website: https://github.com/bitrise-steplib/steps-project-scanner
 source_code_url: https://github.com/bitrise-steplib/steps-project-scanner
 support_url: https://github.com/bitrise-steplib/steps-project-scanner/issues
