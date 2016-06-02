@@ -12,6 +12,10 @@ import (
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/output"
 	"github.com/bitrise-core/bitrise-init/scanners"
+	"github.com/bitrise-core/bitrise-init/scanners/android"
+	"github.com/bitrise-core/bitrise-init/scanners/fastlane"
+	"github.com/bitrise-core/bitrise-init/scanners/ios"
+	"github.com/bitrise-core/bitrise-init/scanners/xamarin"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/colorstring"
@@ -111,11 +115,11 @@ func initConfig(c *cli.Context) {
 
 	//
 	// Scan
-	platformDetectors := []scanners.ScannerInterface{
-		new(scanners.Android),
-		new(scanners.Xamarin),
-		new(scanners.Ios),
-		new(scanners.Fastlane),
+	projectScanners := []scanners.ScannerInterface{
+		new(android.Scanner),
+		new(xamarin.Scanner),
+		new(ios.Scanner),
+		new(fastlane.Scanner),
 	}
 
 	optionsMap := map[string]models.OptionModel{}
@@ -124,7 +128,7 @@ func initConfig(c *cli.Context) {
 	log.Infof(colorstring.Blue("Running scanners:"))
 	fmt.Println()
 
-	for _, detector := range platformDetectors {
+	for _, detector := range projectScanners {
 		detectorName := detector.Name()
 		log.Infof("Scanner: %s", colorstring.Blue(detectorName))
 

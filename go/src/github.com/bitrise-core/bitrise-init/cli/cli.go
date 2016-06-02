@@ -80,6 +80,22 @@ func Run() {
 	}
 	app.Before = before
 	app.Commands = []cli.Command{
+		{
+			Name:   "version",
+			Usage:  "Prints the version",
+			Action: printVersionCmd,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "format",
+					Usage: "Output format, options [raw, json, yaml].",
+					Value: "raw",
+				},
+				cli.BoolFlag{
+					Name:  "full",
+					Usage: "Prints the build number as well.",
+				},
+			},
+		},
 		cli.Command{
 			Name:   "config",
 			Usage:  "Generates a bitrise config files based on your project.",

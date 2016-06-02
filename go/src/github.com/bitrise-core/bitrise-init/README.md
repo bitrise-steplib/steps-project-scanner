@@ -1,3 +1,3 @@
-# Bitrise CLI Plugin - Init
+# Bitrise Init Tool
 
-### Initialize bitrise config, step template or plugin template
+Initialize bitrise config, step template or plugin template
