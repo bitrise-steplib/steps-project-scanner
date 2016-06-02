@@ -1,4 +1,4 @@
-package scanners
+package android
 
 import (
 	"testing"
@@ -73,6 +73,6 @@ func TestFilterGradlewFiles(t *testing.T) {
 }
 
 func TestAndroidConfigName(t *testing.T) {
-	require.Equal(t, "android-config", androidConfigName(false))
-	require.Equal(t, "android-gradlew-config", androidConfigName(true))
+	require.Equal(t, "android-config", configName(false))
+	require.Equal(t, "android-gradlew-config", configName(true))
 }

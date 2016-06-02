@@ -6,12 +6,20 @@ trigger_map:
   is_pull_request_allowed: true
   workflow: ci
 
+app:
+  envs:
+  - BIN_NAME: bitrise-init
+
 workflows:
+  # ----------------------------------------------------------------
+  # --- workflows for CI and testing
   ci:
     title: Bitrise Init CI
-    description: ""
+    description: Bitrise Init CI
     before_run:
     - _prepare_and_setup
+    after_run:
+    - test
     steps:
     - script:
         title: Print go environment
@@ -52,6 +60,236 @@ workflows:
         inputs:
         - content: go test ./...
 
+  test:
+    title: Bitrise Init Test
+    description: Bitrise Init Test
+    before_run:
+    - _install_init_tool
+    steps:
+    - script:
+        title: "Scane test: ios-no-shared-schemes"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/ios-no-shared-schemes.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    - script:
+        title: "Scane test: sample-apps-ios-simple-objc"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    - script:
+        title: "Scane test: sample-apps-android-sdk22"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/sample-apps-android-sdk22.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    - script:
+        title: "Scane test: xamarin-sample-app"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/xamarin-sample-app.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    - script:
+        title: "Scane test: sample-apps-ios-watchkit"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-watchkit.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    # - script:
+    #     title: "Scane test: android-sdk22-no-gradlew"
+    #     inputs:
+    #     - content: |-
+    #         #!/bin/bash
+    #         set -x
+    #
+    #         rm -rf ./_tmp
+    #         SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/android-sdk22-no-gradlew.git
+    #         git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+    #         $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    - script:
+        title: "Scane test: sample-apps-xamarin-ios"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-ios.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    - script:
+        title: "Scane test: android-non-executable-gradlew"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/android-non-executable-gradlew.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    - script:
+        title: "Scane test: sample-apps-xamarin-android"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-android.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+
+  # ----------------------------------------------------------------
+  # --- workflows for Releasing
+  create_release:
+    title: Create Release with auto version bump
+    description: |
+        Creates new version with auto patch version bump based on last git version tag
+
+        1, Create CHANGELOG and git release
+        2, Export RELEASE_VERSION
+        3, Create binaries
+    after_run:
+    - _export_release_version
+    - create_binaries
+    steps:
+    - script:
+        title: Create CHANGELOG and git release
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -e
+
+            export CI=true
+            releaseman create \
+              --bump-version patch \
+              --set-version-script "bash _scripts/set_version.sh version/version.go"
+
+  create_release_version:
+    title: Create Release version
+    description: |
+        Creates new version with specified RELEASE_VERSION environment
+
+        1, Create CHANGELOG and git release
+        2, Export RELEASE_VERSION
+        3, Create binaries
+    envs:
+    - RELEASE_VERSION: 0.9.1
+    after_run:
+    - _export_release_version
+    - create_binaries
+    steps:
+    - script:
+        title: Create CHANGELOG and git release
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -e
+
+            export CI=true
+            releaseman create \
+              --version $RELEASE_VERSION \
+              --set-version-script "bash _scripts/set_version.sh version/version.go"
+
+  _export_release_version:
+    title: Export release version
+    description: |
+        Exports RELEASE_VERSION from ./version/version.go
+    steps:
+    - script:
+        title: Export RELEASE_VERSION
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+
+            RELEASE_VERSION=$(go run _scripts/get_version.go -file ./version/version.go)
+            echo "RELEASE_VERSION: $RELEASE_VERSION"
+
+            envman add --key RELEASE_VERSION --value $RELEASE_VERSION
+
+  create_binaries:
+    title: Create binaries
+    description: |
+        Creates Linux and Darwin binaries
+    steps:
+    - script:
+        title: Create binaries
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+            set -x
+
+            echo
+            echo "Create final binaries"
+            echo "  Build number: $BITRISE_BUILD_NUMBER"
+
+            export ARCH=x86_64
+            export GOARCH=amd64
+
+            # Create Darwin bin
+            export OS=Darwin
+            export GOOS=darwin
+
+            DEPLOY_PATH="_bin/$BIN_NAME-$OS-$ARCH"
+            echo "  Create final Darwin binary at: $DEPLOY_PATH"
+
+            version_package="github.com/bitrise-core/bitrise-init/version"
+
+            go build \
+              -ldflags "-X $version_package.BuildNumber=$BITRISE_BUILD_NUMBER -X $version_package.Commit=$GIT_CLONE_COMMIT_HASH" \
+              -o "$DEPLOY_PATH"
+
+            envman add --key OSX_DEPLOY_PATH --value $DEPLOY_PATH
+            cp $DEPLOY_PATH $BITRISE_DEPLOY_DIR/$BIN_NAME-$OS-$ARCH
+            echo "  Copy final Darwin binary to: $BITRISE_DEPLOY_DIR/$BIN_NAME-$OS-$ARCH"
+
+
+            # Create Linux binary
+            export OS=Linux
+            export GOOS=linux
+
+            DEPLOY_PATH="_bin/$BIN_NAME-$OS-$ARCH"
+            echo "  Create final Linux binary at: $DEPLOY_PATH"
+
+            go build \
+              -ldflags "-X $version_package.BuildNumber=$BITRISE_BUILD_NUMBER -X $version_package.Commit=$GIT_CLONE_COMMIT_HASH" \
+              -o "$DEPLOY_PATH"
+
+            envman add --key LINUX_DEPLOY_PATH --value $DEPLOY_PATH
+            cp $DEPLOY_PATH $BITRISE_DEPLOY_DIR/$BIN_NAME-$OS-$ARCH
+            echo "  Copy final Linux binary to: $BITRISE_DEPLOY_DIR/$BIN_NAME-$OS-$ARCH"
+
+  # ----------------------------------------------------------------
+  # --- workflows for Utility
   _prepare_and_setup:
     title: Prepare bitrise and install testing tools
     description: |
@@ -66,8 +304,6 @@ workflows:
             set -e
             set -x
 
-            brew update
-
             # Install dependencies
             go get -u github.com/tools/godep
 
@@ -76,3 +312,41 @@ workflows:
 
             # Go lint
             go get -u github.com/golang/lint/golint
+
+  _install_init_tool:
+    title: Installs bitrise-init tool
+    description: |
+        Installs bitrise-init tool
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/bash
+
+            #
+            # Create scanner bin
+            echo "Create scanner bin..."
+
+            export GO15VENDOREXPERIMENT="1"
+            export GOPATH="$GOPATH:$THIS_SCRIPTDIR/go/"
+            export ARCH=x86_64
+            export GOARCH=amd64
+
+            current_os=$(uname -s)
+            if [[ "$current_os" == "Darwin" ]] ; then
+              export GOOS=darwin
+            elif [[ "$current_os" == "Linux" ]]; then
+              export GOOS=linux
+            else
+              echo "step runs on unsupported os: $current_os"
+              exit 1
+            fi
+
+            tmp_dir=$(mktemp -d)
+            current_dir=$(pwd)
+            bin_pth="$tmp_dir/scanner"
+
+            go build -o "$bin_pth"
+
+            echo "ceated at: ${bin_pth}"
+            envman add --key SCANNER_BIN --value $bin_pth

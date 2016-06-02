@@ -1,4 +1,4 @@
-package scanners
+package ios
 
 import (
 	"testing"
@@ -69,8 +69,8 @@ func TestFilterPodFiles(t *testing.T) {
 }
 
 func TestIOSConfigName(t *testing.T) {
-	require.Equal(t, "ios-config", iOSConfigName(false, false))
-	require.Equal(t, "ios-pod-config", iOSConfigName(true, false))
-	require.Equal(t, "ios-test-config", iOSConfigName(false, true))
-	require.Equal(t, "ios-pod-test-config", iOSConfigName(true, true))
+	require.Equal(t, "ios-config", configName(false, false))
+	require.Equal(t, "ios-pod-config", configName(true, false))
+	require.Equal(t, "ios-test-config", configName(false, true))
+	require.Equal(t, "ios-pod-test-config", configName(true, true))
 }

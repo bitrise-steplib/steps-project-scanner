@@ -2,17 +2,9 @@ package scanners
 
 import (
 	"github.com/bitrise-core/bitrise-init/models"
+	"github.com/bitrise-core/bitrise-init/steps"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
-	"github.com/bitrise-io/go-utils/pointers"
-	stepmanModels "github.com/bitrise-io/stepman/models"
 	"gopkg.in/yaml.v2"
-)
-
-const (
-	stepActivateSSHKeyIDComposite                 = "activate-ssh-key@3.1.0"
-	stepGitCloneIDComposite                       = "git-clone@3.2.0"
-	stepCertificateAndProfileInstallerIDComposite = "certificate-and-profile-installer@1.5.0"
-	stepDeployToBitriseIoIDComposite              = "deploy-to-bitrise-io@1.2.3"
 )
 
 // ScannerInterface ...
@@ -36,21 +28,15 @@ func customConfigName() string {
 // CustomConfig ...
 func CustomConfig() (map[string]string, error) {
 	bitriseDataMap := map[string]string{}
-	steps := []bitriseModels.StepListItemModel{}
+	stepList := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
-	steps = append(steps, bitriseModels.StepListItemModel{
-		stepActivateSSHKeyIDComposite: stepmanModels.StepModel{
-			RunIf: pointers.NewStringPtr(`{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`),
-		},
-	})
+	stepList = append(stepList, steps.ActivateSSHKeyStepListItem())
 
 	// GitClone
-	steps = append(steps, bitriseModels.StepListItemModel{
-		stepGitCloneIDComposite: stepmanModels.StepModel{},
-	})
+	stepList = append(stepList, steps.GitCloneStepListItem())
 
-	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(steps)
+	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
 		return map[string]string{}, err

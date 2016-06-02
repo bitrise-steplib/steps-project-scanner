@@ -1,6 +1,5 @@
 _scan_result/
 _defaults/
 _tmp/
+_bin/
 .bitrise*
-
-

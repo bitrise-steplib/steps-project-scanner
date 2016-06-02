@@ -1,4 +1,4 @@
-package scanners
+package xamarin
 
 import (
 	"testing"
@@ -36,8 +36,8 @@ func TestFilterSolutionFiles(t *testing.T) {
 }
 
 func TestXamarinConfigName(t *testing.T) {
-	require.Equal(t, "xamarin-config", xamarinConfigName(false, false))
-	require.Equal(t, "xamarin-nuget-config", xamarinConfigName(true, false))
-	require.Equal(t, "xamarin-components-config", xamarinConfigName(false, true))
-	require.Equal(t, "xamarin-nuget-components-config", xamarinConfigName(true, true))
+	require.Equal(t, "xamarin-config", configName(false, false))
+	require.Equal(t, "xamarin-nuget-config", configName(true, false))
+	require.Equal(t, "xamarin-components-config", configName(false, true))
+	require.Equal(t, "xamarin-nuget-components-config", configName(true, true))
 }
