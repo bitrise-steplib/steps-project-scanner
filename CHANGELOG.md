@@ -1,6 +1,12 @@
-## Changelog (Current version: 0.9.2)
+## Changelog (Current version: 0.9.3)
 
 -----------------
+
+### 0.9.3 (2016 Jun 02)
+
+* [05c9f8c] Merge pull request #6 from bitrise-steplib/builder_update
+* [31b1c10] ci updates, force bitrise-init tool ci mode
+* [7667ee6] builder update - step version updates
 
 ### 0.9.2 (2016 Jun 01)
 
@@ -16,4 +22,4 @@
 
 -----------------
 
-Updated: 2016 Jun 01
+Updated: 2016 Jun 02
