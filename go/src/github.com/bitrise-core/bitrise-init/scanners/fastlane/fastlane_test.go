@@ -1,6 +1,8 @@
 package fastlane
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -39,4 +41,38 @@ func TestFilterFastFiles(t *testing.T) {
 
 func TestFastlaneConfigName(t *testing.T) {
 	require.Equal(t, "fastlane-config", configName())
+}
+
+func TestInspectFastFileContent(t *testing.T) {
+	lines := []string{
+		" test ",
+		" lane ",
+		":xcode",
+
+		"  lane :xcode do",
+		"lane :deploy do",
+		"  lane :unit_tests do |params|",
+
+		"  private_lane :post_to_slack do |options|",
+		"  private_lane :verify_xcode_version do",
+	}
+	content := strings.Join(lines, "\n")
+
+	expectedMap := map[string]bool{
+		"xcode":      false,
+		"deploy":     false,
+		"unit_tests": false,
+	}
+
+	lanes, err := inspectFastfileContent(content)
+	require.NoError(t, err)
+	require.Equal(t, 3, len(lanes), strings.Join(lanes, "; "))
+
+	for _, lane := range lanes {
+		expectedMap[lane] = true
+	}
+
+	for lane, found := range expectedMap {
+		require.Equal(t, true, found, fmt.Sprintf("lane: %s not found", lane))
+	}
 }

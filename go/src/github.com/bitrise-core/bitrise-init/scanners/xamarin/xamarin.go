@@ -252,7 +252,10 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 	solutionFiles := filterSolutionFiles(fileList)
 	scanner.SolutionFiles = solutionFiles
 
-	logger.InfofDetails("%d solution file(s) detected", len(solutionFiles))
+	logger.InfofDetails("%d solution file(s) detected:", len(solutionFiles))
+	for _, file := range solutionFiles {
+		logger.InfofDetails("  - %s", file)
+	}
 
 	if len(solutionFiles) == 0 {
 		logger.InfofDetails("platform not detected")

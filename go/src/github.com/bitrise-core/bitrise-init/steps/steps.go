@@ -9,52 +9,48 @@ import (
 
 const (
 	// Common Step IDs
-	activateSSHKeyID                 = "activate-ssh-key"
-	gitCloneID                       = "git-clone"
-	certificateAndProfileInstallerID = "certificate-and-profile-installer"
-	deployToBitriseIoID              = "deploy-to-bitrise-io"
+	activateSSHKeyID      = "activate-ssh-key"
+	activateSSHKeyVersion = "3.1.0"
+
+	gitCloneID      = "git-clone"
+	gitCloneVersion = "3.2.0"
+
+	certificateAndProfileInstallerID      = "certificate-and-profile-installer"
+	certificateAndProfileInstallerVersion = "1.5.2"
+
+	deployToBitriseIoID      = "deploy-to-bitrise-io"
+	deployToBitriseIoVersion = "1.2.3"
 
 	// Android Step IDs
-	gradleRunnerID = "gradle-runner"
-
-	// Fastlane Step IDs
-	fastlaneID = "fastlane"
-
-	// iOS Step IDs
-	cocoapodsInstallID = "cocoapods-install"
-	xcodeArchiveID     = "xcode-archive"
-	xcodeTestID        = "xcode-test"
-
-	// Xamarin Step IDs
-	xamarinUserManagementID    = "xamarin-user-management"
-	nugetRestoreID             = "nuget-restore"
-	xamarinComponentsRestoreID = "xamarin-components-restore"
-	xamarinBuilderID           = "xamarin-builder"
-)
-
-const (
-	// Common Step Versions
-	activateSSHKeyVersion                 = "3.1.0"
-	gitCloneVersion                       = "3.2.0"
-	certificateAndProfileInstallerVersion = "1.5.0"
-	deployToBitriseIoVersion              = "1.2.3"
-
-	// Android Step Versions
+	gradleRunnerID      = "gradle-runner"
 	gradleRunnerVersion = "1.3.1"
 
-	// Fatslane Step Versions
+	// Fastlane Step IDs
+	fastlaneID      = "fastlane"
 	fastlaneVersion = "2.2.0"
 
-	// iOS Step Versions
+	// iOS Step IDs
+	cocoapodsInstallID      = "cocoapods-install"
 	cocoapodsInstallVersion = "1.4.0"
-	xcodeArchiveVersion     = "1.7.3"
-	xcodeTestVersion        = "1.13.7"
 
-	// Xamarin Step Versions
-	xamarinUserManagementVersion    = "1.0.2"
-	nugetRestoreVersion             = "0.9.1"
+	xcodeArchiveID      = "xcode-archive"
+	xcodeArchiveVersion = "1.8.0"
+
+	xcodeTestID      = "xcode-test"
+	xcodeTestVersion = "1.13.7"
+
+	// Xamarin Step IDs
+	xamarinUserManagementID      = "xamarin-user-management"
+	xamarinUserManagementVersion = "1.0.2"
+
+	nugetRestoreID      = "nuget-restore"
+	nugetRestoreVersion = "0.9.1"
+
+	xamarinComponentsRestoreID      = "xamarin-components-restore"
 	xamarinComponentsRestoreVersion = "0.9.0"
-	xamarinBuilderVersion           = "1.3.0"
+
+	xamarinBuilderID      = "xamarin-builder"
+	xamarinBuilderVersion = "1.3.0"
 )
 
 func setpIDComposite(ID, version string) string {

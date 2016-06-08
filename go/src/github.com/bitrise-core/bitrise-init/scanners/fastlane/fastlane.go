@@ -1,12 +1,9 @@
 package fastlane
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
-	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -17,6 +14,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/utility"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
+	"github.com/bitrise-io/go-utils/fileutil"
 )
 
 const (
@@ -52,54 +50,31 @@ func filterFastFiles(fileList []string) []string {
 	return fastFiles
 }
 
-func inspectFastFile(fastFile string) ([]string, error) {
-	dir := filepath.Dir(fastFile)
-
-	var outBuffer bytes.Buffer
-	var errBuffer bytes.Buffer
-
-	cmd := exec.Command("fastlane", "lanes", "--json")
-	cmd.Dir = dir
-	cmd.Stdout = io.Writer(&outBuffer)
-	cmd.Stderr = io.Writer(&errBuffer)
-
-	if err := cmd.Run(); err != nil {
-		return []string{}, err
-	}
-
-	linesStr := outBuffer.String()
-	lines := strings.Split(linesStr, "\n")
-
-	expectedLines := []string{}
-	expectedLinesStart := false
-	for _, line := range lines {
-		if line == "{" {
-			expectedLinesStart = true
-		}
-		if expectedLinesStart {
-			expectedLines = append(expectedLines, line)
-		}
-		if line == "}" {
-			expectedLinesStart = false
-		}
-	}
-
-	expectedLinesStr := strings.Join(expectedLines, "\n")
-
-	laneMap := map[string]map[string]interface{}{}
-
-	if err := json.Unmarshal([]byte(expectedLinesStr), &laneMap); err != nil {
-		return []string{}, err
-	}
-
+func inspectFastfileContent(content string) ([]string, error) {
 	lanes := []string{}
-	for _, laneConfig := range laneMap {
-		for name := range laneConfig {
-			lanes = append(lanes, name)
+
+	// lane :test_and_snapshot do
+	regexp := regexp.MustCompile(`^ *lane :(.+) do`)
+
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		matches := regexp.FindStringSubmatch(line)
+		if len(matches) == 2 {
+			lane := matches[1]
+			lanes = append(lanes, lane)
 		}
 	}
 
 	return lanes, nil
+}
+
+func inspectFastFile(fastFile string) ([]string, error) {
+	content, err := fileutil.ReadStringFromFile(fastFile)
+	if err != nil {
+		return []string{}, err
+	}
+
+	return inspectFastfileContent(content)
 }
 
 func configName() string {
@@ -143,7 +118,10 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 	fastFiles := filterFastFiles(fileList)
 	scanner.FastFiles = fastFiles
 
-	logger.InfofDetails("%d Fastfile(s) detected", len(fastFiles))
+	logger.InfofDetails("%d Fastfile(s) detected:", len(fastFiles))
+	for _, file := range fastFiles {
+		logger.InfofDetails("  - %s", file)
+	}
 
 	if len(fastFiles) == 0 {
 		logger.InfofDetails("platform not detected")

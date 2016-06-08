@@ -1,6 +1,20 @@
-## Changelog (Current version: 0.9.1)
+## Changelog (Current version: 0.9.2)
 
 -----------------
+
+### 0.9.2 (2016 Jun 08)
+
+* [01b88cb] prepare for 0.9.2
+* [9ee2bf5] Merge pull request #13 from bitrise-core/workspace_fix
+* [4ba0814] step version updates
+* [dc3b8c3] inspect fastfile updates
+* [ca427db] cocoapods workspace fix
+* [c94001c] standalone workspace fix
+* [f00b3b7] Merge pull request #12 from bitrise-core/build_gradle_fix
+* [9edb298] inspect only top-level build.gradle
+* [e128c6e] Merge pull request #11 from bitrise-core/gradlew_fix
+* [e9cba9f] root gradlew path fix
+* [b77126b] gitignore
 
 ### 0.9.1 (2016 Jun 02)
 
@@ -15,4 +29,4 @@
 
 -----------------
 
-Updated: 2016 Jun 02
+Updated: 2016 Jun 08
