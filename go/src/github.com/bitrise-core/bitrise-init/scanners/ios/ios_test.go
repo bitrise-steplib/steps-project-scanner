@@ -26,7 +26,7 @@ func TestFilterXcodeprojectFiles(t *testing.T) {
 		require.Equal(t, "/Users/bitrise/Develop/bitrise/sample-apps/sample-apps-ios-cocoapods/SampleAppWithCocoapods/SampleAppWithCocoapods.xcodeproj", files[1])
 	}
 
-	t.Log(`Do not contains ".xcodeproj" | ".xcworkspace" file`)
+	t.Log(`Do not contains ".xcodeproj" file`)
 	{
 		fileList := []string{
 			"path/to/my/gradlew/build.",

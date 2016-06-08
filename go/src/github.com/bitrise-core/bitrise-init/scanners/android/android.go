@@ -60,22 +60,43 @@ func fixedGradlewPath(gradlewPth string) string {
 	return gradlewPth
 }
 
-func filterGradleFiles(fileList []string) []string {
+func filterRootBuildGradleFiles(fileList []string) ([]string, error) {
 	gradleFiles := utility.FilterFilesWithBasPaths(fileList, buildGradleBasePath)
 	sort.Sort(utility.ByComponents(gradleFiles))
 
-	return gradleFiles
+	if len(gradleFiles) == 0 {
+		return []string{}, nil
+	}
+
+	mindDepth, err := utility.PathDept(gradleFiles[0])
+	if err != nil {
+		return []string{}, nil
+	}
+
+	rootGradleFiles := []string{}
+	for _, gradleFile := range gradleFiles {
+		depth, err := utility.PathDept(gradleFile)
+		if err != nil {
+			return []string{}, nil
+		}
+
+		if depth == mindDepth {
+			rootGradleFiles = append(rootGradleFiles, gradleFile)
+		}
+	}
+
+	return rootGradleFiles, nil
 }
 
 func filterGradlewFiles(fileList []string) []string {
 	gradlewFiles := utility.FilterFilesWithBasPaths(fileList, gradlewBasePath)
+	sort.Sort(utility.ByComponents(gradlewFiles))
 
 	fixedGradlewFiles := []string{}
 	for _, gradlewFile := range gradlewFiles {
-		fixedGradlewFiles = append(fixedGradlewFiles, fixedGradlewPath(gradlewFile))
+		fixed := fixedGradlewPath(gradlewFile)
+		fixedGradlewFiles = append(fixedGradlewFiles, fixed)
 	}
-
-	sort.Sort(utility.ByComponents(fixedGradlewFiles))
 
 	return fixedGradlewFiles
 }
@@ -158,12 +179,18 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 	scanner.FileList = fileList
 
 	// Search for gradle file
-	logger.Info("Searching for gradle files")
+	logger.Info("Searching for build.gradle files")
 
-	gradleFiles := filterGradleFiles(fileList)
+	gradleFiles, err := filterRootBuildGradleFiles(fileList)
+	if err != nil {
+		return false, fmt.Errorf("failed to search for build.gradle files, error: %s", err)
+	}
 	scanner.GradleFiles = gradleFiles
 
-	logger.InfofDetails("%d gradle file(s) detected", len(gradleFiles))
+	logger.InfofDetails("%d build.gradle file(s) detected:", len(gradleFiles))
+	for _, file := range gradleFiles {
+		logger.InfofDetails("  - %s", file)
+	}
 
 	if len(gradleFiles) == 0 {
 		logger.InfofDetails("platform not detected")
@@ -182,7 +209,10 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 
 	gradlewFiles := filterGradlewFiles(scanner.FileList)
 
-	logger.InfofDetails("%d gradlew file(s) detected", len(gradlewFiles))
+	logger.InfofDetails("%d gradlew file(s) detected:", len(gradlewFiles))
+	for _, file := range gradlewFiles {
+		logger.InfofDetails("  - %s", file)
+	}
 
 	rootGradlewPath := ""
 	if len(gradlewFiles) > 0 {
