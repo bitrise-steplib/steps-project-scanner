@@ -1,6 +1,12 @@
-## Changelog (Current version: 0.9.3)
+## Changelog (Current version: 0.9.4)
 
 -----------------
+
+### 0.9.4 (2016 Jun 08)
+
+* [463b11a] prepare for 0.9.4
+* [78d9ef1] Merge pull request #8 from bitrise-steplib/scanner_fixes
+* [58f1451] bitrise-init update
 
 ### 0.9.3 (2016 Jun 02)
 
@@ -22,4 +28,4 @@
 
 -----------------
 
-Updated: 2016 Jun 02
+Updated: 2016 Jun 08
