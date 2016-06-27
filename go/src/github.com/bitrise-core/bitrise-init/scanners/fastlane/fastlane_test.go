@@ -19,7 +19,7 @@ func TestFilterFastFiles(t *testing.T) {
 			"path/to/my",
 		}
 
-		files := filterFastFiles(fileList)
+		files := filterFastfiles(fileList)
 		require.Equal(t, 2, len(files))
 
 		// Also sorts "Fastfile" files by path components length
@@ -34,7 +34,7 @@ func TestFilterFastFiles(t *testing.T) {
 			"path/to/my/gradle",
 		}
 
-		files := filterFastFiles(fileList)
+		files := filterFastfiles(fileList)
 		require.Equal(t, 0, len(files))
 	}
 }
@@ -74,5 +74,49 @@ func TestInspectFastFileContent(t *testing.T) {
 
 	for lane, found := range expectedMap {
 		require.Equal(t, true, found, fmt.Sprintf("lane: %s not found", lane))
+	}
+}
+
+func TestFastlaneWorkDir(t *testing.T) {
+	t.Log("Fastfile's dir, if Fastfile is NOT in fastlane dir")
+	{
+		expected := "."
+		actual := fastlaneWorkDir("Fastfile")
+		require.Equal(t, expected, actual)
+	}
+
+	t.Log("fastlane dir's parent, if Fastfile is in fastlane dir")
+	{
+		expected := "."
+		actual := fastlaneWorkDir("fastlane/Fastfile")
+		require.Equal(t, expected, actual)
+	}
+
+	t.Log("Fastfile's dir, if Fastfile is NOT in fastlane dir")
+	{
+		expected := "test"
+		actual := fastlaneWorkDir("test/Fastfile")
+		require.Equal(t, expected, actual)
+	}
+
+	t.Log("fastlane dir's parent, if Fastfile is in fastlane dir")
+	{
+		expected := "test"
+		actual := fastlaneWorkDir("test/fastlane/Fastfile")
+		require.Equal(t, expected, actual)
+	}
+
+	t.Log("Fastfile's dir, if Fastfile is NOT in fastlane dir")
+	{
+		expected := "my/app/test"
+		actual := fastlaneWorkDir("my/app/test/Fastfile")
+		require.Equal(t, expected, actual)
+	}
+
+	t.Log("fastlane dir's parent, if Fastfile is in fastlane dir")
+	{
+		expected := "my/app/test"
+		actual := fastlaneWorkDir("my/app/test/fastlane/Fastfile")
+		require.Equal(t, expected, actual)
 	}
 }

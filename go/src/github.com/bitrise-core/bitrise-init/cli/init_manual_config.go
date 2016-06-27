@@ -76,8 +76,8 @@ func initManualConfig(c *cli.Context) {
 		new(fastlane.Scanner),
 	}
 
-	optionsMap := map[string]models.OptionModel{}
-	configsMap := map[string]map[string]string{}
+	projectTypeOptionMap := map[string]models.OptionModel{}
+	projectTypeConfigMap := map[string]models.BitriseConfigMap{}
 
 	for _, detector := range projectScanners {
 		detectorName := detector.Name()
@@ -92,7 +92,7 @@ func initManualConfig(c *cli.Context) {
 		}
 		log.Debugf("\n%v", string(bytes))
 
-		optionsMap[detectorName] = option
+		projectTypeOptionMap[detectorName] = option
 
 		configs, err := detector.DefaultConfigs()
 		if err != nil {
@@ -109,7 +109,7 @@ func initManualConfig(c *cli.Context) {
 			log.Debugf("\n%v", string(bytes))
 		}
 
-		configsMap[detectorName] = configs
+		projectTypeConfigMap[detectorName] = configs
 	}
 
 	customConfigs, err := scanners.CustomConfig()
@@ -117,7 +117,7 @@ func initManualConfig(c *cli.Context) {
 		log.Fatalf("Failed create default custom configs, error: %s", err)
 	}
 
-	configsMap["custom"] = customConfigs
+	projectTypeConfigMap["custom"] = customConfigs
 
 	//
 	// Write output to files
@@ -125,8 +125,8 @@ func initManualConfig(c *cli.Context) {
 		log.Infof(colorstring.Blue("Saving outputs:"))
 
 		scanResult := models.ScanResultModel{
-			OptionMap:  optionsMap,
-			ConfigsMap: configsMap,
+			OptionsMap: projectTypeOptionMap,
+			ConfigsMap: projectTypeConfigMap,
 		}
 
 		if err := os.MkdirAll(outputDir, 0700); err != nil {
@@ -148,8 +148,8 @@ func initManualConfig(c *cli.Context) {
 		log.Infof(colorstring.Blue("Saving outputs:"))
 
 		scanResult := models.ScanResultModel{
-			OptionMap:  optionsMap,
-			ConfigsMap: configsMap,
+			OptionsMap: projectTypeOptionMap,
+			ConfigsMap: projectTypeConfigMap,
 		}
 
 		if err := os.MkdirAll(outputDir, 0700); err != nil {
@@ -169,7 +169,7 @@ func initManualConfig(c *cli.Context) {
 	// Select option
 	log.Infof(colorstring.Blue("Collecting inputs:"))
 
-	for detectorName, option := range optionsMap {
+	for detectorName, option := range projectTypeOptionMap {
 		log.Infof("  Scanner: %s", colorstring.Blue(detectorName))
 
 		// Init
@@ -224,7 +224,7 @@ func initManualConfig(c *cli.Context) {
 		}
 		log.Debugf("\n%v", string(aBytes))
 
-		configMap := configsMap[detectorName]
+		configMap := projectTypeConfigMap[detectorName]
 		configStr := configMap[configPth]
 
 		var config bitriseModels.BitriseDataModel

@@ -67,7 +67,7 @@ workflows:
     - _install_init_tool
     steps:
     - script:
-        title: "Scane test: ios-no-shared-schemes"
+        title: "Scanner test: ios-no-shared-schemes"
         inputs:
         - content: |-
             #!/bin/bash
@@ -78,7 +78,18 @@ workflows:
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
             $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
     - script:
-        title: "Scane test: sample-apps-ios-simple-objc"
+        title: "Scanner test: ios-cocoapods-at-root"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/ios-cocoapods-at-root.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    - script:
+        title: "Scanner test: sample-apps-ios-simple-objc"
         inputs:
         - content: |-
             #!/bin/bash
@@ -89,7 +100,7 @@ workflows:
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
             $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
     - script:
-        title: "Scane test: sample-apps-android-sdk22"
+        title: "Scanner test: sample-apps-android-sdk22"
         inputs:
         - content: |-
             #!/bin/bash
@@ -100,7 +111,7 @@ workflows:
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
             $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
     - script:
-        title: "Scane test: xamarin-sample-app"
+        title: "Scanner test: xamarin-sample-app"
         inputs:
         - content: |-
             #!/bin/bash
@@ -111,7 +122,7 @@ workflows:
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
             $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
     - script:
-        title: "Scane test: sample-apps-ios-watchkit"
+        title: "Scanner test: sample-apps-ios-watchkit"
         inputs:
         - content: |-
             #!/bin/bash
@@ -122,7 +133,7 @@ workflows:
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
             $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
     # - script:
-    #     title: "Scane test: android-sdk22-no-gradlew"
+    #     title: "Scanner test: android-sdk22-no-gradlew"
     #     inputs:
     #     - content: |-
     #         #!/bin/bash
@@ -133,7 +144,7 @@ workflows:
     #         git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
     #         $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
     - script:
-        title: "Scane test: sample-apps-xamarin-ios"
+        title: "Scanner test: sample-apps-xamarin-ios"
         inputs:
         - content: |-
             #!/bin/bash
@@ -144,7 +155,7 @@ workflows:
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
             $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
     - script:
-        title: "Scane test: android-non-executable-gradlew"
+        title: "Scanner test: android-non-executable-gradlew"
         inputs:
         - content: |-
             #!/bin/bash
@@ -155,7 +166,7 @@ workflows:
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
             $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
     - script:
-        title: "Scane test: sample-apps-xamarin-android"
+        title: "Scanner test: sample-apps-xamarin-android"
         inputs:
         - content: |-
             #!/bin/bash

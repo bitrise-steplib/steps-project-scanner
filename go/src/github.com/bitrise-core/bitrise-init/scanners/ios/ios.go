@@ -44,6 +44,10 @@ const (
 )
 
 var (
+	embeddedWorkspaceExp = regexp.MustCompile(`.+\.xcodeproj/.+\.xcworkspace`)
+)
+
+var (
 	logger = utility.NewLogger()
 )
 
@@ -57,27 +61,49 @@ type SchemeModel struct {
 // Utility
 //--------------------------------------------------
 
+func isEmbededWorkspace(file string) bool {
+	return (embeddedWorkspaceExp.FindString(file) != "")
+}
+
+func isPodProject(file string) bool {
+	pathComponents := strings.Split(file, string(filepath.Separator))
+	for _, component := range pathComponents {
+		if component == "Pods" {
+			return true
+		}
+	}
+	return false
+}
+
+func isCarthageProject(file string) bool {
+	pathComponents := strings.Split(file, string(filepath.Separator))
+	for _, component := range pathComponents {
+		if component == "Carthage" {
+			return true
+		}
+	}
+	return false
+}
+
 func filterXcodeprojectFiles(fileList []string) []string {
 	filteredFiles := utility.FilterFilesWithExtensions(fileList, xcodeprojExtension, xcworkspaceExtension)
 
 	relevantFiles := []string{}
-	workspaceEmbeddedInProjectExp := regexp.MustCompile(`.+.xcodeproj/.+.xcworkspace`)
-	podProjectExp := regexp.MustCompile(`.*/Pods/.+.xcodeproj`)
 
 	for _, file := range filteredFiles {
-		isWorkspaceEmbeddedInProject := false
-		if workspaceEmbeddedInProjectExp.FindString(file) != "" {
-			isWorkspaceEmbeddedInProject = true
+		if isEmbededWorkspace(file) {
+			continue
 		}
 
-		isPodProject := false
-		if podProjectExp.FindString(file) != "" {
-			isPodProject = true
+		if isPodProject(file) {
+			continue
 		}
 
-		if !isWorkspaceEmbeddedInProject && !isPodProject {
-			relevantFiles = append(relevantFiles, file)
+		if isCarthageProject(file) {
+			continue
 		}
+
+		relevantFiles = append(relevantFiles, file)
 	}
 
 	sort.Sort(utility.ByComponents(relevantFiles))
@@ -270,9 +296,10 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 }
 
 // Options ...
-func (scanner *Scanner) Options() (models.OptionModel, error) {
+func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	// Check for Podfiles
 	logger.InfoSection("Searching for Podfiles")
+	warnings := models.Warnings{}
 
 	podFiles := filterPodFiles(scanner.FileList)
 	scanner.HasPodFile = (len(podFiles) > 0)
@@ -287,13 +314,13 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 		logger.InfofSection("Inspecting Podfile: %s", podFile)
 
 		if err := os.Setenv("pod_file_path", podFile); err != nil {
-			return models.OptionModel{}, err
+			return models.OptionModel{}, models.Warnings{}, err
 		}
 
 		var err error
 		podfileWorkspaceProjectMap, err = utility.GetWorkspaces(scanner.SearchDir)
 		if err != nil {
-			return models.OptionModel{}, err
+			return models.OptionModel{}, models.Warnings{}, err
 		}
 
 		logger.InfoDetails("workspace mapping:")
@@ -314,6 +341,7 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 
 	// Inspect Projects
 	projectPathOption := models.NewOptionModel(projectPathTitle, projectPathEnvKey)
+	isValidProjectFound := false
 
 	for _, project := range cleanProjectFiles {
 		isWorkspace := isWorkspace(project)
@@ -335,21 +363,21 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 			// Collect workspace shared scehemes
 			workspaceSchemes, err := filterProjectOrWorkspaceSharedSchemes(scanner.FileList, project)
 			if err != nil {
-				return models.OptionModel{}, err
+				return models.OptionModel{}, models.Warnings{}, err
 			}
 			logger.InfofDetails("workspace own shared schemes: %v", workspaceSchemes)
 
 			// Collect referred project shared scehemes
 			workspaceProjects, err := workspaceProjects(project)
 			if err != nil {
-				return models.OptionModel{}, err
+				return models.OptionModel{}, models.Warnings{}, err
 			}
 
 			for _, workspaceProject := range workspaceProjects {
 				logger.InfofDetails("inspecting referred project: %s", workspaceProject)
 				workspaceProjectSchemes, err := filterProjectOrWorkspaceSharedSchemes(scanner.FileList, workspaceProject)
 				if err != nil {
-					return models.OptionModel{}, err
+					return models.OptionModel{}, models.Warnings{}, err
 				}
 
 				workspaceSchemes = append(workspaceSchemes, workspaceProjectSchemes...)
@@ -381,7 +409,7 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 
 			projectSchemes, err := filterProjectOrWorkspaceSharedSchemes(scanner.FileList, project)
 			if err != nil {
-				return models.OptionModel{}, err
+				return models.OptionModel{}, models.Warnings{}, err
 			}
 
 			schemes = projectSchemes
@@ -393,8 +421,11 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 
 		if len(schemes) == 0 {
 			log.Warn("No shared scheme found")
+			warnings = append(warnings, fmt.Sprintf("no shared scheme found for project: %s", project))
 			continue
 		}
+
+		isValidProjectFound = true
 
 		for _, validProject := range validProjects {
 			schemeOption := models.NewOptionModel(schemeTitle, schemeEnvKey)
@@ -414,7 +445,11 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 		}
 	}
 
-	return projectPathOption, nil
+	if !isValidProjectFound {
+		projectPathOption = models.NewEmptyOptionModel()
+	}
+
+	return projectPathOption, warnings, nil
 }
 
 // DefaultOptions ...
@@ -432,8 +467,8 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (map[string]string, error) {
-	bitriseDataMap := map[string]string{}
+func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
+	bitriseDataMap := models.BitriseConfigMap{}
 	stepList := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
@@ -441,6 +476,9 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 
 	// GitClone
 	stepList = append(stepList, steps.GitCloneStepListItem())
+
+	// Script
+	stepList = append(stepList, steps.ScriptSteplistItem())
 
 	// CertificateAndProfileInstaller
 	stepList = append(stepList, steps.CertificateAndProfileInstallerStepListItem())
@@ -468,7 +506,7 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 		bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepListWithTest)
 		data, err := yaml.Marshal(bitriseData)
 		if err != nil {
-			return map[string]string{}, err
+			return models.BitriseConfigMap{}, err
 		}
 
 		configName := configName(scanner.HasPodFile, true)
@@ -489,7 +527,7 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
-		return map[string]string{}, err
+		return models.BitriseConfigMap{}, err
 	}
 
 	configName := configName(scanner.HasPodFile, false)
@@ -499,8 +537,8 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 }
 
 // DefaultConfigs ...
-func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
-	bitriseDataMap := map[string]string{}
+func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+	bitriseDataMap := models.BitriseConfigMap{}
 	stepList := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
@@ -508,6 +546,9 @@ func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
 
 	// GitClone
 	stepList = append(stepList, steps.GitCloneStepListItem())
+
+	// Script
+	stepList = append(stepList, steps.ScriptSteplistItem())
 
 	// CertificateAndProfileInstaller
 	stepList = append(stepList, steps.CertificateAndProfileInstallerStepListItem())
@@ -529,7 +570,7 @@ func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
-		return map[string]string{}, err
+		return models.BitriseConfigMap{}, err
 	}
 
 	configName := defaultConfigName()
