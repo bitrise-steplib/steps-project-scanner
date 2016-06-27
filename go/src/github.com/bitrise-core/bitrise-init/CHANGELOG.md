@@ -1,6 +1,28 @@
-## Changelog (Current version: 0.9.2)
+## Changelog (Current version: 0.9.3)
 
 -----------------
+
+### 0.9.3 (2016 Jun 27)
+
+* [2d256d2] Merge pull request #21 from bitrise-core/step_version_updates
+* [9db4d29] step version updates
+* [7fc6581] Merge pull request #20 from bitrise-core/script_step
+* [030f85f] Merge pull request #19 from bitrise-core/warnings
+* [08665a9] script step added to workflows
+* [7dd2b53] test updates
+* [5cb4737] warnings: android, ios, fastlane
+* [cf0da59] Merge pull request #18 from bitrise-core/chartage_fix
+* [9847d3f] Merge pull request #17 from bitrise-core/cocoapods
+* [84bf99d] PR fix
+* [21c1810] embedded, pod, carthage project filters
+* [3f61190] podfile quotation fix
+* [39d8991] Merge pull request #16 from bitrise-core/gradle_tasks
+* [530b353] default gradle tasks instead of calling gradle tasks cmd
+* [65694f1] Merge pull request #15 from bitrise-core/refactor
+* [57d5975] refactors
+* [a48a969] Merge pull request #14 from bitrise-core/fastlane_work_dir
+* [2b60954] fastlane workdir update
+* [ce84fbc] fastlane work dir fix
 
 ### 0.9.2 (2016 Jun 08)
 
@@ -29,4 +51,4 @@
 
 -----------------
 
-Updated: 2016 Jun 08
+Updated: 2016 Jun 27

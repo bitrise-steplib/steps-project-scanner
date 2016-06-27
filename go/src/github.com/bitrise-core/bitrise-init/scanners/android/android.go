@@ -3,18 +3,17 @@ package android
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v2"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-core/bitrise-init/utility"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
-	"github.com/bitrise-io/go-utils/cmdex"
 )
 
 const (
@@ -39,6 +38,12 @@ const (
 	gradlewPathTitle  = "Gradlew file path"
 	gradlewPathEnvKey = "GRADLEW_PATH"
 )
+
+var defaultGradleTasks = []string{
+	"assemble",
+	"assembleDebug",
+	"assembleRelease",
+}
 
 var (
 	logger = utility.NewLogger()
@@ -99,40 +104,6 @@ func filterGradlewFiles(fileList []string) []string {
 	}
 
 	return fixedGradlewFiles
-}
-
-func inspectGradleFile(gradleFile string, gradleBin string) ([]string, error) {
-	out, err := cmdex.RunCommandAndReturnCombinedStdoutAndStderr(gradleBin, "tasks", "--build-file", gradleFile)
-	if err != nil {
-		return []string{}, fmt.Errorf("output: %s, error: %s", out, err)
-	}
-
-	lines := strings.Split(out, "\n")
-	isBuildTaskSection := false
-	buildTasksExp := regexp.MustCompile(`^Build tasks`)
-	configurationExp := regexp.MustCompile(`^(assemble\S+)(\s*-\s*.*)*`)
-
-	configurations := []string{}
-	for _, line := range lines {
-		if !isBuildTaskSection && buildTasksExp.FindString(line) != "" {
-			isBuildTaskSection = true
-			continue
-		} else if line == "" {
-			isBuildTaskSection = false
-			continue
-		}
-
-		if !isBuildTaskSection {
-			continue
-		}
-
-		match := configurationExp.FindStringSubmatch(line)
-		if len(match) > 1 {
-			configurations = append(configurations, match[1])
-		}
-	}
-
-	return configurations, nil
 }
 
 func configName(hasGradlew bool) string {
@@ -203,10 +174,11 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 }
 
 // Options ...
-func (scanner *Scanner) Options() (models.OptionModel, error) {
+func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	// Search for gradlew_path input
 	logger.InfoSection("Searching for gradlew files")
 
+	warnings := models.Warnings{}
 	gradlewFiles := filterGradlewFiles(scanner.FileList)
 
 	logger.InfofDetails("%d gradlew file(s) detected:", len(gradlewFiles))
@@ -220,6 +192,9 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 		scanner.HasGradlewFile = true
 
 		logger.InfofDetails("root gradlew path: %s", rootGradlewPath)
+	} else {
+		log.Warn("No gradlew file found")
+		warnings = append(warnings, "no gradlew file found")
 	}
 
 	gradleBin := "gradle"
@@ -228,7 +203,7 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 
 		err := os.Chmod(rootGradlewPath, 0770)
 		if err != nil {
-			return models.OptionModel{}, fmt.Errorf("failed to add executable permission on gradlew file (%s), error: %s", rootGradlewPath, err)
+			return models.OptionModel{}, models.Warnings{}, fmt.Errorf("failed to add executable permission on gradlew file (%s), error: %s", rootGradlewPath, err)
 		}
 
 		gradleBin = rootGradlewPath
@@ -240,15 +215,11 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 	gradleFileOption := models.NewOptionModel(gradleFileTitle, gradleFileEnvKey)
 
 	for _, gradleFile := range scanner.GradleFiles {
-		logger.InfofSection("Inspecting gradle file: %s", gradleFile)
-		logger.InfofDetails("$ %s tasks --build-file %s", gradleBin, gradleFile)
+		logger.InfofSection("Gradle file: %s", gradleFile)
 
-		configs, err := inspectGradleFile(gradleFile, gradleBin)
-		if err != nil {
-			return models.OptionModel{}, fmt.Errorf("failed to inspect gradle files, error: %s", err)
-		}
+		configs := defaultGradleTasks
 
-		logger.InfofReceipt("found gradle tasks: %v", configs)
+		logger.InfofReceipt("gradle tasks: %v", configs)
 
 		gradleTaskOption := models.NewOptionModel(gradleTaskTitle, gradleTaskEnvKey)
 		for _, config := range configs {
@@ -269,7 +240,7 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 		gradleFileOption.ValueMap[gradleFile] = gradleTaskOption
 	}
 
-	return gradleFileOption, nil
+	return gradleFileOption, warnings, nil
 }
 
 // DefaultOptions ...
@@ -289,7 +260,7 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (map[string]string, error) {
+func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	stepList := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
@@ -297,6 +268,9 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 
 	// GitClone
 	stepList = append(stepList, steps.GitCloneStepListItem())
+
+	// Script
+	stepList = append(stepList, steps.ScriptSteplistItem())
 
 	// GradleRunner
 	inputs := []envmanModels.EnvironmentItemModel{
@@ -318,11 +292,11 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
-		return map[string]string{}, err
+		return models.BitriseConfigMap{}, err
 	}
 
 	configName := configName(scanner.HasGradlewFile)
-	bitriseDataMap := map[string]string{
+	bitriseDataMap := models.BitriseConfigMap{
 		configName: string(data),
 	}
 
@@ -330,7 +304,7 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 }
 
 // DefaultConfigs ...
-func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
+func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	stepList := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
@@ -338,6 +312,9 @@ func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
 
 	// GitClone
 	stepList = append(stepList, steps.GitCloneStepListItem())
+
+	// Script
+	stepList = append(stepList, steps.ScriptSteplistItem())
 
 	// GradleRunner
 	inputs := []envmanModels.EnvironmentItemModel{
@@ -357,11 +334,11 @@ func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
-		return map[string]string{}, err
+		return models.BitriseConfigMap{}, err
 	}
 
 	configName := defaultConfigName()
-	bitriseDataMap := map[string]string{
+	bitriseDataMap := models.BitriseConfigMap{
 		configName: string(data),
 	}
 

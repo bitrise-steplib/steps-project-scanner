@@ -9,6 +9,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-core/bitrise-init/utility"
@@ -22,7 +23,7 @@ const (
 )
 
 const (
-	fastFileBasePath = "Fastfile"
+	fastfileBasePath = "Fastfile"
 )
 
 const (
@@ -43,11 +44,11 @@ var (
 // Utility
 //--------------------------------------------------
 
-func filterFastFiles(fileList []string) []string {
-	fastFiles := utility.FilterFilesWithBasPaths(fileList, fastFileBasePath)
-	sort.Sort(utility.ByComponents(fastFiles))
+func filterFastfiles(fileList []string) []string {
+	fastfiles := utility.FilterFilesWithBasPaths(fileList, fastfileBasePath)
+	sort.Sort(utility.ByComponents(fastfiles))
 
-	return fastFiles
+	return fastfiles
 }
 
 func inspectFastfileContent(content string) ([]string, error) {
@@ -68,13 +69,25 @@ func inspectFastfileContent(content string) ([]string, error) {
 	return lanes, nil
 }
 
-func inspectFastFile(fastFile string) ([]string, error) {
+func inspectFastfile(fastFile string) ([]string, error) {
 	content, err := fileutil.ReadStringFromFile(fastFile)
 	if err != nil {
 		return []string{}, err
 	}
 
 	return inspectFastfileContent(content)
+}
+
+// Returns:
+//  - fastlane dir's parent, if Fastfile is in fastlane dir (test/fastlane/Fastfile)
+//  - Fastfile's dir, if Fastfile is NOT in fastlane dir (test/Fastfile)
+func fastlaneWorkDir(fastfilePth string) string {
+	dirPth := filepath.Dir(fastfilePth)
+	dirName := filepath.Base(dirPth)
+	if dirName == "fastlane" {
+		return filepath.Dir(dirPth)
+	}
+	return dirPth
 }
 
 func configName() string {
@@ -92,7 +105,7 @@ func defaultConfigName() string {
 // Scanner ...
 type Scanner struct {
 	SearchDir string
-	FastFiles []string
+	Fastfiles []string
 }
 
 // Name ...
@@ -115,15 +128,15 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 	// Search for Fastfile
 	logger.Info("Searching for Fastfiles")
 
-	fastFiles := filterFastFiles(fileList)
-	scanner.FastFiles = fastFiles
+	fastfiles := filterFastfiles(fileList)
+	scanner.Fastfiles = fastfiles
 
-	logger.InfofDetails("%d Fastfile(s) detected:", len(fastFiles))
-	for _, file := range fastFiles {
+	logger.InfofDetails("%d Fastfile(s) detected:", len(fastfiles))
+	for _, file := range fastfiles {
 		logger.InfofDetails("  - %s", file)
 	}
 
-	if len(fastFiles) == 0 {
+	if len(fastfiles) == 0 {
 		logger.InfofDetails("platform not detected")
 		return false, nil
 	}
@@ -134,28 +147,32 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 }
 
 // Options ...
-func (scanner *Scanner) Options() (models.OptionModel, error) {
+func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	workDirOption := models.NewOptionModel(workDirTitle, workDirEnvKey)
+	warnings := models.Warnings{}
+
+	isValidFastfileFound := false
 
 	// Inspect Fastfiles
-	for _, fastFile := range scanner.FastFiles {
-		logger.InfofSection("Inspecting Fastfile: %s", fastFile)
-		logger.InfoDetails("$ fastlane lanes --json")
+	for _, fastfile := range scanner.Fastfiles {
+		logger.InfofSection("Inspecting Fastfile: %s", fastfile)
 
-		lanes, err := inspectFastFile(fastFile)
+		lanes, err := inspectFastfile(fastfile)
 		if err != nil {
-			return models.OptionModel{}, err
+			return models.OptionModel{}, models.Warnings{}, err
 		}
 
 		logger.InfofReceipt("found lanes: %v", lanes)
 
-		// Check if `Fastfile` is in `./fastlane/Fastfile`
-		// If no - generated fastlane step will require `work_dir` input too
-		workDir := "./"
-		relFastlaneDir := filepath.Dir(fastFile)
-		if relFastlaneDir != "fastlane" {
-			workDir = relFastlaneDir
+		if len(lanes) == 0 {
+			log.Warn("No lanes found")
+			warnings = append(warnings, fmt.Sprintf("no lanes found for Fastfile: %s", fastfile))
+			continue
 		}
+
+		isValidFastfileFound = true
+
+		workDir := fastlaneWorkDir(fastfile)
 
 		logger.InfofReceipt("fastlane work dir: %s", workDir)
 
@@ -170,7 +187,11 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 		workDirOption.ValueMap[workDir] = laneOption
 	}
 
-	return workDirOption, nil
+	if !isValidFastfileFound {
+		workDirOption = models.NewEmptyOptionModel()
+	}
+
+	return workDirOption, warnings, nil
 }
 
 // DefaultOptions ...
@@ -188,15 +209,18 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (map[string]string, error) {
+func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	stepList := []bitriseModels.StepListItemModel{}
-	bitriseDataMap := map[string]string{}
+	bitriseDataMap := models.BitriseConfigMap{}
 
 	// ActivateSSHKey
 	stepList = append(stepList, steps.ActivateSSHKeyStepListItem())
 
 	// GitClone
 	stepList = append(stepList, steps.GitCloneStepListItem())
+
+	// Script
+	stepList = append(stepList, steps.ScriptSteplistItem())
 
 	// CertificateAndProfileInstaller
 	stepList = append(stepList, steps.CertificateAndProfileInstallerStepListItem())
@@ -212,7 +236,7 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
-		return map[string]string{}, err
+		return models.BitriseConfigMap{}, err
 	}
 
 	configName := configName()
@@ -222,15 +246,18 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 }
 
 // DefaultConfigs ...
-func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
+func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	stepList := []bitriseModels.StepListItemModel{}
-	bitriseDataMap := map[string]string{}
+	bitriseDataMap := models.BitriseConfigMap{}
 
 	// ActivateSSHKey
 	stepList = append(stepList, steps.ActivateSSHKeyStepListItem())
 
 	// GitClone
 	stepList = append(stepList, steps.GitCloneStepListItem())
+
+	// Script
+	stepList = append(stepList, steps.ScriptSteplistItem())
 
 	// CertificateAndProfileInstaller
 	stepList = append(stepList, steps.CertificateAndProfileInstallerStepListItem())
@@ -246,7 +273,7 @@ func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
-		return map[string]string{}, err
+		return models.BitriseConfigMap{}, err
 	}
 
 	configName := defaultConfigName()

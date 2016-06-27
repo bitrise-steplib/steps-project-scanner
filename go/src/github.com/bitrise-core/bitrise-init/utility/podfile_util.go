@@ -12,150 +12,162 @@ import (
 )
 
 const podfileRubyFileContent = `class Podfile
-	def method_missing symbol, *args
-	end
+  def method_missing symbol, *args
+  end
 
-	def Object.const_missing const, *args
-	end
+  def Object.const_missing const, *args
+  end
 
-	def uninitialized_constant constant, *args
-		puts "Unitialized Constant: #{constant}"
-		puts args
-	end
+  def uninitialized_constant constant, *args
+    puts "Unitialized Constant: #{constant}"
+    puts args
+  end
 
-	def self.from_file(path)
-	  Podfile.new do
-	  	@full_path = File.expand_path(path)
-	  	@base_dir = File.dirname(@full_path)
-	  	eval(File.open(@full_path).read, nil, path)
-	  end
-	end
+  def apply_quotation_fix(str)
+    fixed = str.tr('‘', "'")
+    fixed = fixed.tr('’', "'")
+    fixed = fixed.tr('“', '"')
+    fixed = fixed.tr('”', '"')
+    return fixed
+  end
 
-	def initialize(&block)
-	  @dependencies = []
-	  instance_eval(&block)
-	end
+  def self.from_file(path)
+    Podfile.new do
+      @full_path = File.expand_path(path)
+      @base_dir = File.dirname(@full_path)
 
-	def target(target_name, *args, &block)
-		target_dict = {
-			target: target_name,
-			project: nil,
-			workspace: nil,
-			targets: []
-		}
+      original = File.open(@full_path).read
+      fixed = apply_quotation_fix(original)
 
-		parent_target = @current_target
-		@current_target = target_dict
+      eval(fixed, nil, path)
+    end
+  end
 
-		block.call(self) if block
+  def initialize(&block)
+    @dependencies = []
+    instance_eval(&block)
+  end
 
-		if parent_target
-			parent_target[:targets] << @current_target
-		else
-			(@targets ||= []) << @current_target
-		end
-		@current_target = parent_target
-	end
+  def target(target_name, *args, &block)
+    target_dict = {
+      target: target_name,
+      project: nil,
+      workspace: nil,
+      targets: []
+    }
 
-	def project(project, *args)
-		project = File.join(File.dirname(project), File.basename(project, File.extname(project)))
+    parent_target = @current_target
+    @current_target = target_dict
 
-		if @current_target
-			@current_target[:project] = project
-		else
-			@base_project = project
-		end
-	end
+    block.call(self) if block
 
-	def xcodeproj(project, *args)
-		project(project, args)
-	end
+    if parent_target
+      parent_target[:targets] << @current_target
+    else
+      (@targets ||= []) << @current_target
+    end
+    @current_target = parent_target
+  end
 
-	def workspace(workspace, *args)
-		workspace = File.join(File.dirname(workspace), File.basename(workspace, File.extname(workspace)))
+  def project(project, *args)
+    project = File.join(File.dirname(project), File.basename(project, File.extname(project)))
 
-		if @current_target
-			@current_target.workspace = workspace
-		else
-			@base_workspace = workspace
-		end
-	end
+    if @current_target
+      @current_target[:project] = project
+    else
+      @base_project = project
+    end
+  end
 
-	# Helper
+  def xcodeproj(project, *args)
+    project(project, args)
+  end
 
-	def fix_targets(dict, parent)
-		# If no explicit project is specified, it will use the Xcode project of the parent target.
-		if parent != nil
-			dict[:project] = parent[:project] unless dict[:project]
-		end
+  def workspace(workspace, *args)
+    workspace = File.join(File.dirname(workspace), File.basename(workspace, File.extname(workspace)))
 
-		if dict[:project] == nil
-			# If none of the target definitions specify an explicit project and there is only one project in the same directory
-			# as the Podfile then that project will be used.
-			projects = Dir[File.join(@base_dir, "*.xcodeproj")]
+    if @current_target
+      @current_target.workspace = workspace
+    else
+      @base_workspace = workspace
+    end
+  end
 
-			if projects.count == 0
-				dict[:error] = "No project found for Podfile at path: #{@base_dir}"
-			end
+  # Helper
 
-			if projects.count > 1
-				dict[:error] = "Multiple projects found for Podfile at path: #{@base_dir}. Check this reference for help: https://guides.cocoapods.org/syntax/podfile.html#xcodeproj"
-			end
+  def fix_targets(dict, parent)
+    # If no explicit project is specified, it will use the Xcode project of the parent target.
+    if parent != nil
+      dict[:project] = parent[:project] unless dict[:project]
+    end
 
-			dict[:project] = File.basename(projects.first, ".*")
-		end
+    if dict[:project] == nil
+      # If none of the target definitions specify an explicit project and there is only one project in the same directory
+      # as the Podfile then that project will be used.
+      projects = Dir[File.join(@base_dir, "*.xcodeproj")]
 
-		# Check if the file exists
-		project_path = File.join(@base_dir, "#{dict[:project]}.xcodeproj")
-		unless File.exists?(project_path)
-			dict[:error] = "No project found at path: #{project_path}"
-		end
+      if projects.count == 0
+        dict[:error] = "No project found for Podfile at path: #{@base_dir}"
+      end
 
-		# If no explicit Xcode workspace is specified and only one project exists in the same directory as the Podfile,
-		# then the name of that project is used as the workspace’s name.
-		if dict[:workspace] == nil
-			if dict[:project] != nil
-				dict[:workspace] = File.basename(dict[:project], '.*')
-			end
-		end
+      if projects.count > 1
+        dict[:error] = "Multiple projects found for Podfile at path: #{@base_dir}. Check this reference for help: https://guides.cocoapods.org/syntax/podfile.html#xcodeproj"
+      end
 
-		dict[:targets].each do |t|
-			fix_targets(t, dict)
-		end
+      dict[:project] = File.basename(projects.first, ".*")
+    end
 
-		dict
-	end
+    # Check if the file exists
+    project_path = File.join(@base_dir, "#{dict[:project]}.xcodeproj")
+    unless File.exists?(project_path)
+      dict[:error] = "No project found at path: #{project_path}"
+    end
 
-	def list_targets
-		base_target = {
-			target: "",
-			project: @base_project,
-			workspace: @base_workspace,
-			targets: @targets || []
-		}
+    # If no explicit Xcode workspace is specified and only one project exists in the same directory as the Podfile,
+    # then the name of that project is used as the workspace’s name.
+    if dict[:workspace] == nil
+      if dict[:project] != nil
+        dict[:workspace] = File.basename(dict[:project], '.*')
+      end
+    end
 
-		[fix_targets(base_target, nil)]
-	end
+    dict[:targets].each do |t|
+      fix_targets(t, dict)
+    end
 
-	def get_workspaces(dict)
-		@workspaces ||= {}
+    dict
+  end
 
-		if dict[:error] == nil
-			project_path = File.expand_path(File.join(@base_dir, "#{dict[:project]}.xcodeproj"))
-			dir = File.dirname(project_path)
-			workspace_path = File.join(dir, "#{dict[:workspace]}.xcworkspace")
+  def list_targets
+    base_target = {
+      target: "",
+      project: @base_project,
+      workspace: @base_workspace,
+      targets: @targets || []
+    }
 
-			@workspaces[workspace_path] = project_path
-		else
-			puts "\e[31m#{dict[:error]}\e[0m"
-		end
+    [fix_targets(base_target, nil)]
+  end
 
-		dict[:targets].each do |target|
-			get_workspaces(target)
-		end
+  def get_workspaces(dict)
+    @workspaces ||= {}
 
-		@workspaces
-	end
+    if dict[:error] == nil
+      project_path = File.expand_path(File.join(@base_dir, "#{dict[:project]}.xcodeproj"))
+      dir = File.dirname(project_path)
+      workspace_path = File.join(dir, "#{dict[:workspace]}.xcworkspace")
+
+      @workspaces[workspace_path] = project_path
+    else
+      puts "\e[31m#{dict[:error]}\e[0m"
+    end
+
+    dict[:targets].each do |target|
+      get_workspaces(target)
+    end
+
+    @workspaces
+  end
 end
 `
 

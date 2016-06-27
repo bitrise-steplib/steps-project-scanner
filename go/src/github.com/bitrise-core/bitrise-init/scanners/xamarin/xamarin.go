@@ -268,8 +268,10 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 }
 
 // Options ...
-func (scanner *Scanner) Options() (models.OptionModel, error) {
+func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	logger.InfoSection("Searching for Nuget packages & Xamarin Components")
+
+	warnings := models.Warnings{}
 
 	for _, file := range scanner.FileList {
 		// Search for nuget packages
@@ -315,7 +317,7 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 
 		configs, err := getSolutionConfigs(solutionFile)
 		if err != nil {
-			return models.OptionModel{}, err
+			return models.OptionModel{}, models.Warnings{}, err
 		}
 
 		if len(configs) > 0 {
@@ -328,7 +330,7 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 	}
 
 	if len(validSolutionMap) == 0 {
-		return models.OptionModel{}, errors.New("No valid solution file found")
+		return models.OptionModel{}, models.Warnings{}, errors.New("No valid solution file found")
 	}
 
 	// Check for solution projects
@@ -337,7 +339,7 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 	for solutionFile, configMap := range validSolutionMap {
 		projects, err := getProjects(solutionFile)
 		if err != nil {
-			return models.OptionModel{}, err
+			return models.OptionModel{}, models.Warnings{}, err
 		}
 
 		// Inspect projects
@@ -346,13 +348,13 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 
 			api, err := getProjectPlatformAPI(project)
 			if err != nil {
-				return models.OptionModel{}, err
+				return models.OptionModel{}, models.Warnings{}, err
 			}
 
 			if api == "" {
 				testType, err := getProjectTestType(project)
 				if err != nil {
-					return models.OptionModel{}, err
+					return models.OptionModel{}, models.Warnings{}, err
 				}
 
 				if testType == "" {
@@ -383,7 +385,7 @@ func (scanner *Scanner) Options() (models.OptionModel, error) {
 		xamarinProjectOption.ValueMap[solutionFile] = xamarinConfigurationOption
 	}
 
-	return xamarinProjectOption, nil
+	return xamarinProjectOption, warnings, nil
 }
 
 // DefaultOptions ...
@@ -403,7 +405,7 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (map[string]string, error) {
+func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	stepList := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
@@ -411,6 +413,9 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 
 	// GitClone
 	stepList = append(stepList, steps.GitCloneStepListItem())
+
+	// Script
+	stepList = append(stepList, steps.ScriptSteplistItem())
 
 	// CertificateAndProfileInstaller
 	stepList = append(stepList, steps.CertificateAndProfileInstallerStepListItem())
@@ -448,11 +453,11 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
-		return map[string]string{}, err
+		return models.BitriseConfigMap{}, err
 	}
 
 	configName := configName(scanner.HasNugetPackages, scanner.HasXamarinComponents)
-	bitriseDataMap := map[string]string{
+	bitriseDataMap := models.BitriseConfigMap{
 		configName: string(data),
 	}
 
@@ -460,7 +465,7 @@ func (scanner *Scanner) Configs() (map[string]string, error) {
 }
 
 // DefaultConfigs ...
-func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
+func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	stepList := []bitriseModels.StepListItemModel{}
 
 	// ActivateSSHKey
@@ -468,6 +473,9 @@ func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
 
 	// GitClone
 	stepList = append(stepList, steps.GitCloneStepListItem())
+
+	// Script
+	stepList = append(stepList, steps.ScriptSteplistItem())
 
 	// CertificateAndProfileInstaller
 	stepList = append(stepList, steps.CertificateAndProfileInstallerStepListItem())
@@ -501,11 +509,11 @@ func (scanner *Scanner) DefaultConfigs() (map[string]string, error) {
 	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
-		return map[string]string{}, err
+		return models.BitriseConfigMap{}, err
 	}
 
 	configName := defaultConfigName()
-	bitriseDataMap := map[string]string{
+	bitriseDataMap := models.BitriseConfigMap{
 		configName: string(data),
 	}
 
