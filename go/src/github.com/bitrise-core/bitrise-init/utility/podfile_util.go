@@ -2,11 +2,16 @@ package utility
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
 	"path"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/bitrise-io/go-utils/cmdex"
+	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 )
@@ -108,26 +113,28 @@ const podfileRubyFileContent = `class Podfile
 
       if projects.count == 0
         dict[:error] = "No project found for Podfile at path: #{@base_dir}"
-      end
+      else
+        if projects.count > 1
+          dict[:error] = "Multiple projects found for Podfile at path: #{@base_dir}. Check this reference for help: https://guides.cocoapods.org/syntax/podfile.html#xcodeproj"
+        end
 
-      if projects.count > 1
-        dict[:error] = "Multiple projects found for Podfile at path: #{@base_dir}. Check this reference for help: https://guides.cocoapods.org/syntax/podfile.html#xcodeproj"
+        dict[:project] = File.basename(projects.first, ".*")
       end
-
-      dict[:project] = File.basename(projects.first, ".*")
     end
 
-    # Check if the file exists
-    project_path = File.join(@base_dir, "#{dict[:project]}.xcodeproj")
-    unless File.exists?(project_path)
-      dict[:error] = "No project found at path: #{project_path}"
-    end
+    if dict[:project] != nil
+      # Check if the file exists
+      project_path = File.join(@base_dir, "#{dict[:project]}.xcodeproj")
+      unless File.exists?(project_path)
+        dict[:error] = "No project found at path: #{project_path}"
+      end
 
-    # If no explicit Xcode workspace is specified and only one project exists in the same directory as the Podfile,
-    # then the name of that project is used as the workspace’s name.
-    if dict[:workspace] == nil
-      if dict[:project] != nil
-        dict[:workspace] = File.basename(dict[:project], '.*')
+      # If no explicit Xcode workspace is specified and only one project exists in the same directory as the Podfile,
+      # then the name of that project is used as the workspace’s name.
+      if dict[:workspace] == nil
+        if dict[:project] != nil
+          dict[:workspace] = File.basename(dict[:project], '.*')
+        end
       end
     end
 
@@ -159,7 +166,8 @@ const podfileRubyFileContent = `class Podfile
 
       @workspaces[workspace_path] = project_path
     else
-      puts "\e[31m#{dict[:error]}\e[0m"
+      puts dict[:error].to_s
+      exit(1)
     end
 
     dict[:targets].each do |target|
@@ -182,9 +190,58 @@ workspaces = podfile.get_workspaces(podfile.list_targets.first)
 puts workspaces.to_json
 `
 
-// GetWorkspaces ...
-func GetWorkspaces(searchDir string) (map[string]string, error) {
-	tmpDir, err := pathutil.NormalizedOSTempDirPath("bitrise-plugin-init")
+func isWorkspaceSpecified(podfileContent string) bool {
+	re := regexp.MustCompile(`\s*workspace (.+)`)
+	lines := strings.Split(podfileContent, "\n")
+	for _, line := range lines {
+		if re.FindString(line) != "" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func getWorkspaceProjectMap(podfilePth string) (map[string]string, error) {
+	// Run simply Podfile anaylzer
+	podfileContent, err := fileutil.ReadStringFromFile(podfilePth)
+	if err != nil {
+		return map[string]string{}, err
+	}
+
+	if !isWorkspaceSpecified(podfileContent) {
+		// If no explicit Xcode workspace is specified and
+		// only one project exists in the same directory as the Podfile,
+		// then the name of that project is used as the workspace’s name.
+		podfileDir := filepath.Dir(podfilePth)
+		pattern := filepath.Join(podfileDir, "*.xcodeproj")
+		projects, err := filepath.Glob(pattern)
+		if err != nil {
+			return map[string]string{}, err
+		}
+
+		if len(projects) > 1 {
+			return map[string]string{}, fmt.Errorf("failed to determin workspace name: no workspace specified in the Podfile and more then one xcodeproj exist in Podfile's dir")
+		}
+
+		if len(projects) == 1 {
+			project := projects[0]
+			projectBasename := filepath.Base(project)
+			projectName := strings.TrimSuffix(projectBasename, ".xcodeproj")
+			workspace := filepath.Join(podfileDir, projectName+".xcworkspace")
+
+			return map[string]string{
+				workspace: project,
+			}, nil
+		}
+	}
+
+	// Analyze Podfile as a ruby file
+	if err := os.Setenv("pod_file_path", podfilePth); err != nil {
+		return map[string]string{}, err
+	}
+
+	tmpDir, err := pathutil.NormalizedOSTempDirPath("bitrise-init")
 	if err != nil {
 		return map[string]string{}, err
 	}
@@ -201,7 +258,10 @@ func GetWorkspaces(searchDir string) (map[string]string, error) {
 
 	out, err := cmdex.RunCommandAndReturnCombinedStdoutAndStderr("ruby", getWorkspacesRubyFilePath)
 	if err != nil {
-		return map[string]string{}, fmt.Errorf("out: %s, err: %s", out, err)
+		if errorutil.IsExitStatusError(err) {
+			return map[string]string{}, errors.New(out)
+		}
+		return map[string]string{}, err
 	}
 
 	workspaceMap := map[string]string{}
@@ -209,14 +269,29 @@ func GetWorkspaces(searchDir string) (map[string]string, error) {
 		return map[string]string{}, err
 	}
 
+	return workspaceMap, nil
+}
+
+// GetRelativeWorkspaceProjectPathMap ...
+func GetRelativeWorkspaceProjectPathMap(podfilePth, baseDir string) (map[string]string, error) {
+	absPodfilePth, err := pathutil.AbsPath(podfilePth)
+	if err != nil {
+		return map[string]string{}, err
+	}
+
+	workspaceMap, err := getWorkspaceProjectMap(absPodfilePth)
+	if err != nil {
+		return map[string]string{}, err
+	}
+
 	normalizedWorkspaceMap := map[string]string{}
 	for workspace, project := range workspaceMap {
-		relWorkspacePath, err := filepath.Rel(searchDir, workspace)
+		relWorkspacePath, err := filepath.Rel(baseDir, workspace)
 		if err != nil {
 			return map[string]string{}, err
 		}
 
-		relProjectPath, err := filepath.Rel(searchDir, project)
+		relProjectPath, err := filepath.Rel(baseDir, project)
 		if err != nil {
 			return map[string]string{}, err
 		}

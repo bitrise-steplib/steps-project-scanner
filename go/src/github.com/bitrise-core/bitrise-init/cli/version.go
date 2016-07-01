@@ -2,11 +2,10 @@ package cli
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/bitrise-core/bitrise-init/output"
 	"github.com/bitrise-core/bitrise-init/version"
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 )
 
 // VersionOutputModel ...
@@ -16,7 +15,7 @@ type VersionOutputModel struct {
 	Commit      string `json:"commit" yaml:"commit"`
 }
 
-func printVersionCmd(c *cli.Context) {
+func printVersionCmd(c *cli.Context) error {
 	fullVersion := c.Bool("full")
 	formatStr := c.String("format")
 
@@ -25,7 +24,7 @@ func printVersionCmd(c *cli.Context) {
 	}
 	format, err := output.ParseFormat(formatStr)
 	if err != nil {
-		log.Fatalf("Failed to parse format, error: %s", err)
+		return fmt.Errorf("Failed to parse format, error: %s", err)
 	}
 
 	versionOutput := VersionOutputModel{
@@ -50,6 +49,8 @@ func printVersionCmd(c *cli.Context) {
 	}
 
 	if err := output.Print(out, format, ""); err != nil {
-		log.Fatalf("Failed to print version, error: %s", err)
+		return fmt.Errorf("Failed to print version, error: %s", err)
 	}
+
+	return nil
 }

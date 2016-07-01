@@ -313,12 +313,8 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	for _, podFile := range podFiles {
 		logger.InfofSection("Inspecting Podfile: %s", podFile)
 
-		if err := os.Setenv("pod_file_path", podFile); err != nil {
-			return models.OptionModel{}, models.Warnings{}, err
-		}
-
 		var err error
-		podfileWorkspaceProjectMap, err = utility.GetWorkspaces(scanner.SearchDir)
+		podfileWorkspaceProjectMap, err = utility.GetRelativeWorkspaceProjectPathMap(podFile, scanner.SearchDir)
 		if err != nil {
 			return models.OptionModel{}, models.Warnings{}, err
 		}
