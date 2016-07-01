@@ -1,6 +1,22 @@
-## Changelog (Current version: 0.9.3)
+## Changelog (Current version: 0.9.5)
 
 -----------------
+
+### 0.9.5 (2016 Jul 01)
+
+* [5e014cd] prepare for 0.9.5
+* [9833ab0] Merge pull request #25 from bitrise-core/step_versions
+* [132b4bf] Merge pull request #24 from bitrise-core/cli_package_deprecation_fix
+* [75ba9d6] step version updates
+* [21ff98c] cli package updates
+
+### 0.9.4 (2016 Jul 01)
+
+* [5a5c7a7] prepare for 0.9.4
+* [261c144] Merge pull request #22 from bitrise-core/pod_fix
+* [61c62dd] workspace regexp fix, test updates, smart quotes test, godep update, pod defined workspace-project mapping fix, pod analyzer fix
+* [5672cfb] Merge pull request #23 from bitrise-core/script_step
+* [69a7c4c] add title to script step
 
 ### 0.9.3 (2016 Jun 27)
 
@@ -51,4 +67,4 @@
 
 -----------------
 
-Updated: 2016 Jun 27
+Updated: 2016 Jul 01

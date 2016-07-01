@@ -21,7 +21,7 @@ import (
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/goinp/goinp"
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 )
 
 const (
@@ -47,7 +47,7 @@ func askForValue(option models.OptionModel) (string, string, error) {
 	return option.EnvKey, selectedValue, nil
 }
 
-func initConfig(c *cli.Context) {
+func initConfig(c *cli.Context) error {
 	PrintHeader(c)
 
 	//
@@ -59,7 +59,7 @@ func initConfig(c *cli.Context) {
 
 	currentDir, err := pathutil.AbsPath("./")
 	if err != nil {
-		log.Fatalf("Failed to get abs path (%s), error: %s", outputDir, err)
+		return fmt.Errorf("Failed to expand path (%s), error: %s", outputDir, err)
 	}
 
 	if searchDir == "" {
@@ -67,7 +67,7 @@ func initConfig(c *cli.Context) {
 	}
 	searchDir, err = pathutil.AbsPath(searchDir)
 	if err != nil {
-		log.Fatalf("Failed to get abs path (%s), error: %s", outputDir, err)
+		return fmt.Errorf("Failed to expand path (%s), error: %s", outputDir, err)
 	}
 
 	if outputDir == "" {
@@ -75,7 +75,7 @@ func initConfig(c *cli.Context) {
 	}
 	outputDir, err = pathutil.AbsPath(outputDir)
 	if err != nil {
-		log.Fatalf("Failed to get abs path (%s), error: %s", outputDir, err)
+		return fmt.Errorf("Failed to expand path (%s), error: %s", outputDir, err)
 	}
 
 	if formatStr == "" {
@@ -83,10 +83,10 @@ func initConfig(c *cli.Context) {
 	}
 	format, err := output.ParseFormat(formatStr)
 	if err != nil {
-		log.Fatalf("Failed to parse format, error: %s", err)
+		return fmt.Errorf("Failed to parse format (%s), error: %s", formatStr, err)
 	}
 	if format != output.JSONFormat && format != output.YAMLFormat {
-		log.Fatalf("Not allowed output format (%v), options: [%s, %s]", format, output.YAMLFormat.String(), output.JSONFormat.String())
+		return fmt.Errorf("Not allowed output format (%s), options: [%s, %s]", format.String(), output.YAMLFormat.String(), output.JSONFormat.String())
 	}
 
 	if isCI {
@@ -101,7 +101,7 @@ func initConfig(c *cli.Context) {
 		log.Infof("Change work dir to (%s)", searchDir)
 		fmt.Println()
 		if err := os.Chdir(searchDir); err != nil {
-			log.Fatalf("Failed to change dir, to (%s), error: %s", searchDir, err)
+			return fmt.Errorf("Failed to change dir, to (%s), error: %s", searchDir, err)
 		}
 		defer func() {
 			fmt.Println()
@@ -139,7 +139,7 @@ func initConfig(c *cli.Context) {
 		detector.Configure(searchDir)
 		detected, err := detector.DetectPlatform()
 		if err != nil {
-			log.Fatalf("Scanner failed, error: %s", err)
+			return fmt.Errorf("Scanner failed, error: %s", err)
 		}
 
 		if !detected {
@@ -151,7 +151,7 @@ func initConfig(c *cli.Context) {
 
 		option, warnings, err := detector.Options()
 		if err != nil {
-			log.Fatalf("Analyzer failed, error: %s", err)
+			return fmt.Errorf("Analyzer failed, error: %s", err)
 		}
 
 		projectTypeWarningMap[detectorName] = warnings
@@ -160,7 +160,7 @@ func initConfig(c *cli.Context) {
 		log.Debug("Analyze result:")
 		bytes, err := yaml.Marshal(option)
 		if err != nil {
-			log.Fatalf("Failed to marshal option, error: %s", err)
+			return fmt.Errorf("Failed to marshal option, error: %s", err)
 		}
 		log.Debugf("\n%v", string(bytes))
 
@@ -171,7 +171,7 @@ func initConfig(c *cli.Context) {
 		log.Debug("Generated configs:")
 		configs, err := detector.Configs()
 		if err != nil {
-			log.Fatalf("Failed create configs, error: %s", err)
+			return fmt.Errorf("Failed create configs, error: %s", err)
 		}
 
 		for name, config := range configs {
@@ -179,7 +179,7 @@ func initConfig(c *cli.Context) {
 
 			bytes, err := yaml.Marshal(config)
 			if err != nil {
-				log.Fatalf("Failed to marshal option, error: %s", err)
+				return fmt.Errorf("Failed to marshal option, error: %s", err)
 			}
 			log.Debugf("\n%v", string(bytes))
 		}
@@ -203,16 +203,16 @@ func initConfig(c *cli.Context) {
 		}
 
 		if err := os.MkdirAll(outputDir, 0700); err != nil {
-			log.Fatalf("Failed to create (%s), error: %s", outputDir, err)
+			return fmt.Errorf("Failed to create (%s), error: %s", outputDir, err)
 		}
 
 		pth := path.Join(outputDir, "result")
 		if err := output.Print(scanResult, format, pth); err != nil {
-			log.Fatalf("Failed to print result, error: %s", err)
+			return fmt.Errorf("Failed to print result, error: %s", err)
 		}
 		log.Infof("  scan result: %s", colorstring.Blue(pth))
 
-		return
+		return nil
 	}
 
 	//
@@ -225,27 +225,27 @@ func initConfig(c *cli.Context) {
 		// Init
 		platformOutputDir := path.Join(outputDir, detectorName)
 		if exist, err := pathutil.IsDirExists(platformOutputDir); err != nil {
-			log.Fatalf("Failed to check if path (%s) exis, error: %s", platformOutputDir, err)
+			return fmt.Errorf("Failed to check if path (%s) exis, error: %s", platformOutputDir, err)
 		} else if exist {
 			if err := os.RemoveAll(platformOutputDir); err != nil {
-				log.Fatalf("Failed to cleanup (%s), error: %s", platformOutputDir, err)
+				return fmt.Errorf("Failed to cleanup (%s), error: %s", platformOutputDir, err)
 			}
 		}
 
 		if err := os.MkdirAll(platformOutputDir, 0700); err != nil {
-			log.Fatalf("Failed to create (%s), error: %s", platformOutputDir, err)
+			return fmt.Errorf("Failed to create (%s), error: %s", platformOutputDir, err)
 		}
 
 		// Collect inputs
 		configPth := ""
 		appEnvs := []envmanModels.EnvironmentItemModel{}
 
-		var walkDepth func(option models.OptionModel)
+		var walkDepth func(option models.OptionModel) error
 
-		walkDepth = func(option models.OptionModel) {
+		walkDepth = func(option models.OptionModel) error {
 			optionEnvKey, selectedValue, err := askForValue(option)
 			if err != nil {
-				log.Fatalf("Failed to ask for vale, error: %s", err)
+				return fmt.Errorf("Failed to ask for vale, error: %s", err)
 			}
 
 			if optionEnvKey == "" {
@@ -258,19 +258,21 @@ func initConfig(c *cli.Context) {
 
 			nestedOptions, found := option.ValueMap[selectedValue]
 			if !found {
-				return
+				return nil
 			}
 
-			walkDepth(nestedOptions)
+			return walkDepth(nestedOptions)
 		}
 
-		walkDepth(option)
+		if err := walkDepth(option); err != nil {
+			return err
+		}
 
 		log.Debug()
 		log.Debug("Selected app envs:")
 		aBytes, err := yaml.Marshal(appEnvs)
 		if err != nil {
-			log.Fatalf("Failed to marshal appEnvs, error: %s", err)
+			return fmt.Errorf("Failed to marshal appEnvs, error: %s", err)
 		}
 		log.Debugf("\n%v", string(aBytes))
 
@@ -279,7 +281,7 @@ func initConfig(c *cli.Context) {
 
 		var config bitriseModels.BitriseDataModel
 		if err := yaml.Unmarshal([]byte(configStr), &config); err != nil {
-			log.Fatalf("Failed to unmarshal config, error: %s", err)
+			return fmt.Errorf("Failed to unmarshal config, error: %s", err)
 		}
 
 		config.App.Environments = appEnvs
@@ -289,16 +291,18 @@ func initConfig(c *cli.Context) {
 		log.Debugf("  name: %s", configPth)
 		aBytes, err = yaml.Marshal(config)
 		if err != nil {
-			log.Fatalf("Failed to marshal config, error: %s", err)
+			return fmt.Errorf("Failed to marshal config, error: %s", err)
 		}
 		log.Debugf("\n%v", string(aBytes))
 
 		// Write config to file
 		pth := path.Join(platformOutputDir, configPth)
 		if err := output.Print(config, format, pth); err != nil {
-			log.Fatalf("Failed to print result, error: %s", err)
+			return fmt.Errorf("Failed to print result, error: %s", err)
 		}
 		log.Infof("  bitrise.yml template: %s", colorstring.Blue(pth))
 		fmt.Println()
 	}
+
+	return nil
 }

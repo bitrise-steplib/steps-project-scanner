@@ -34,10 +34,10 @@ const (
 
 	// iOS Step IDs
 	cocoapodsInstallID      = "cocoapods-install"
-	cocoapodsInstallVersion = "1.4.2"
+	cocoapodsInstallVersion = "1.5.2"
 
 	xcodeArchiveID      = "xcode-archive"
-	xcodeArchiveVersion = "1.8.1"
+	xcodeArchiveVersion = "1.8.2"
 
 	xcodeTestID      = "xcode-test"
 	xcodeTestVersion = "1.13.7"
@@ -53,15 +53,18 @@ const (
 	xamarinComponentsRestoreVersion = "0.9.0"
 
 	xamarinBuilderID      = "xamarin-builder"
-	xamarinBuilderVersion = "1.3.3"
+	xamarinBuilderVersion = "1.3.4"
 )
 
 func stepIDComposite(ID, version string) string {
 	return ID + "@" + version
 }
 
-func stepListItem(stepIDComposite, runIf string, inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
+func stepListItem(stepIDComposite, title, runIf string, inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
 	step := stepman.StepModel{}
+	if title != "" {
+		step.Title = pointers.NewStringPtr(title)
+	}
 	if runIf != "" {
 		step.RunIf = pointers.NewStringPtr(runIf)
 	}
@@ -82,31 +85,31 @@ func stepListItem(stepIDComposite, runIf string, inputs []envman.EnvironmentItem
 func ActivateSSHKeyStepListItem() bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(activateSSHKeyID, activateSSHKeyVersion)
 	runIf := `{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`
-	return stepListItem(stepIDComposite, runIf, nil)
+	return stepListItem(stepIDComposite, "", runIf, nil)
 }
 
 // GitCloneStepListItem ...
 func GitCloneStepListItem() bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(gitCloneID, gitCloneVersion)
-	return stepListItem(stepIDComposite, "", nil)
+	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // CertificateAndProfileInstallerStepListItem ...
 func CertificateAndProfileInstallerStepListItem() bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(certificateAndProfileInstallerID, certificateAndProfileInstallerVersion)
-	return stepListItem(stepIDComposite, "", nil)
+	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // DeployToBitriseIoStepListItem ...
 func DeployToBitriseIoStepListItem() bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(deployToBitriseIoID, deployToBitriseIoVersion)
-	return stepListItem(stepIDComposite, "", nil)
+	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // ScriptSteplistItem ...
 func ScriptSteplistItem() bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(scriptID, scriptVersion)
-	return stepListItem(stepIDComposite, "", nil)
+	return stepListItem(stepIDComposite, "Do anything with script step", "", nil)
 }
 
 //------------------------
@@ -116,7 +119,7 @@ func ScriptSteplistItem() bitrise.StepListItemModel {
 // GradleRunnerStepListItem ...
 func GradleRunnerStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(gradleRunnerID, gradleRunnerVersion)
-	return stepListItem(stepIDComposite, "", inputs)
+	return stepListItem(stepIDComposite, "", "", inputs)
 }
 
 //------------------------
@@ -126,7 +129,7 @@ func GradleRunnerStepListItem(inputs []envman.EnvironmentItemModel) bitrise.Step
 // FastlaneStepListItem ...
 func FastlaneStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(fastlaneID, fastlaneVersion)
-	return stepListItem(stepIDComposite, "", inputs)
+	return stepListItem(stepIDComposite, "", "", inputs)
 }
 
 //------------------------
@@ -136,19 +139,19 @@ func FastlaneStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepList
 // CocoapodsInstallStepListItem ...
 func CocoapodsInstallStepListItem() bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(cocoapodsInstallID, cocoapodsInstallVersion)
-	return stepListItem(stepIDComposite, "", nil)
+	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // XcodeArchiveStepListItem ...
 func XcodeArchiveStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(xcodeArchiveID, xcodeArchiveVersion)
-	return stepListItem(stepIDComposite, "", inputs)
+	return stepListItem(stepIDComposite, "", "", inputs)
 }
 
 // XcodeTestStepListItem ...
 func XcodeTestStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(xcodeTestID, xcodeTestVersion)
-	return stepListItem(stepIDComposite, "", inputs)
+	return stepListItem(stepIDComposite, "", "", inputs)
 }
 
 //------------------------
@@ -159,23 +162,23 @@ func XcodeTestStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepLis
 func XamarinUserManagementStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(xamarinUserManagementID, xamarinUserManagementVersion)
 	runIf := ".IsCI"
-	return stepListItem(stepIDComposite, runIf, inputs)
+	return stepListItem(stepIDComposite, "", runIf, inputs)
 }
 
 // NugetRestoreStepListItem ...
 func NugetRestoreStepListItem() bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(nugetRestoreID, nugetRestoreVersion)
-	return stepListItem(stepIDComposite, "", nil)
+	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // XamarinComponentsRestoreStepListItem ...
 func XamarinComponentsRestoreStepListItem() bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(xamarinComponentsRestoreID, xamarinComponentsRestoreVersion)
-	return stepListItem(stepIDComposite, "", nil)
+	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // XamarinBuilderStepListItem ...
 func XamarinBuilderStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(xamarinBuilderID, xamarinBuilderVersion)
-	return stepListItem(stepIDComposite, "", inputs)
+	return stepListItem(stepIDComposite, "", "", inputs)
 }

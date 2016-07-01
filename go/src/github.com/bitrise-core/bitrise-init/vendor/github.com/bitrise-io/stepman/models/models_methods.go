@@ -100,8 +100,8 @@ func (step StepModel) ValidateInputAndOutputEnvs(checkRequiredFields bool) error
 	return nil
 }
 
-// Validate ...
-func (step StepModel) Validate() error {
+// AuditBeforeShare ...
+func (step StepModel) AuditBeforeShare() error {
 	if step.Title == nil || *step.Title == "" {
 		return errors.New("Invalid step: missing or empty required 'title' property")
 	}
@@ -121,7 +121,7 @@ func (step StepModel) Validate() error {
 
 // Audit ...
 func (step StepModel) Audit() error {
-	if err := step.Validate(); err != nil {
+	if err := step.AuditBeforeShare(); err != nil {
 		return err
 	}
 

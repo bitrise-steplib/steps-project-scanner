@@ -8,7 +8,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/version"
 	"github.com/bitrise-io/go-utils/colorstring"
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 )
 
 //=======================================
@@ -138,6 +138,6 @@ func Run() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal("Finished with Error:", err)
+		log.Fatal(err)
 	}
 }
