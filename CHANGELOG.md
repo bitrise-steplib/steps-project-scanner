@@ -1,6 +1,12 @@
-## Changelog (Current version: 0.9.5)
+## Changelog (Current version: 0.9.6)
 
 -----------------
+
+### 0.9.6 (2016 Jul 01)
+
+* [2e5197b] Merge pull request #10 from bitrise-steplib/bitrise_init_update
+* [8a9e04b] bitrise-init tool update, prepare for 0.9.6
+* [da2b955] prepare for 0.9.5
 
 ### 0.9.5 (2016 Jun 27)
 
@@ -33,4 +39,4 @@
 
 -----------------
 
-Updated: 2016 Jun 27
+Updated: 2016 Jul 01
