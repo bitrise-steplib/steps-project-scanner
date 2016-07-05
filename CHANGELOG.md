@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.9.6)
+## Changelog (Current version: 0.9.7)
 
 -----------------
+
+### 0.9.7 (2016 Jul 05)
+
+* [b313a02] prepare for 0.9.7
+* [bdd2ff8] depman update
 
 ### 0.9.6 (2016 Jul 01)
 
@@ -39,4 +44,4 @@
 
 -----------------
 
-Updated: 2016 Jul 01
+Updated: 2016 Jul 05
