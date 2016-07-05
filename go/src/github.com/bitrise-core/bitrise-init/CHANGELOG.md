@@ -1,6 +1,14 @@
-## Changelog (Current version: 0.9.5)
+## Changelog (Current version: 0.9.6)
 
 -----------------
+
+### 0.9.6 (2016 Jul 05)
+
+* [4bbabbb] prepare for 0.9.6
+* [6ca209a] Merge pull request #26 from bitrise-core/framework_filter
+* [4037f78] frameworks filter
+* [3c31b91] Merge pull request #27 from bitrise-core/script
+* [1651bd2] capitalize script step
 
 ### 0.9.5 (2016 Jul 01)
 
@@ -67,4 +75,4 @@
 
 -----------------
 
-Updated: 2016 Jul 01
+Updated: 2016 Jul 05

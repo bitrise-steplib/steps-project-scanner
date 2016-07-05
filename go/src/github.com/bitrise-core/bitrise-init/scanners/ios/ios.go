@@ -44,7 +44,16 @@ const (
 )
 
 var (
-	embeddedWorkspaceExp = regexp.MustCompile(`.+\.xcodeproj/.+\.xcworkspace`)
+	embeddedWorkspacePathRegexp    = regexp.MustCompile(`.+\.xcodeproj/.+\.xcworkspace`)
+	scanProjectPathRegexpBlackList = []*regexp.Regexp{embeddedWorkspacePathRegexp}
+
+	gitFolderName           = ".git"
+	podsFolderName          = "Pods"
+	carthageFolderName      = "Carthage"
+	scanFolderNameBlackList = []string{gitFolderName, podsFolderName, carthageFolderName}
+
+	frameworkExt           = ".framework"
+	scanFolderExtBlackList = []string{frameworkExt}
 )
 
 var (
@@ -61,45 +70,59 @@ type SchemeModel struct {
 // Utility
 //--------------------------------------------------
 
-func isEmbededWorkspace(file string) bool {
-	return (embeddedWorkspaceExp.FindString(file) != "")
+func isPathMatchRegexp(pth string, regexp *regexp.Regexp) bool {
+	return (regexp.FindString(pth) != "")
 }
 
-func isPodProject(file string) bool {
-	pathComponents := strings.Split(file, string(filepath.Separator))
-	for _, component := range pathComponents {
-		if component == "Pods" {
+func isPathContainsComponent(pth, component string) bool {
+	pathComponents := strings.Split(pth, string(filepath.Separator))
+	for _, c := range pathComponents {
+		if c == component {
 			return true
 		}
 	}
 	return false
 }
 
-func isCarthageProject(file string) bool {
-	pathComponents := strings.Split(file, string(filepath.Separator))
-	for _, component := range pathComponents {
-		if component == "Carthage" {
+func isPathContainsComponentWithExtension(pth, ext string) bool {
+	pathComponents := strings.Split(pth, string(filepath.Separator))
+	for _, c := range pathComponents {
+		e := filepath.Ext(c)
+		if e == ext {
 			return true
 		}
 	}
 	return false
+}
+
+func isRelevantProject(pth string) bool {
+	for _, regexp := range scanProjectPathRegexpBlackList {
+		if isPathMatchRegexp(pth, regexp) {
+			return false
+		}
+	}
+
+	for _, folderName := range scanFolderNameBlackList {
+		if isPathContainsComponent(pth, folderName) {
+			return false
+		}
+	}
+
+	for _, folderExt := range scanFolderExtBlackList {
+		if isPathContainsComponentWithExtension(pth, folderExt) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func filterXcodeprojectFiles(fileList []string) []string {
 	filteredFiles := utility.FilterFilesWithExtensions(fileList, xcodeprojExtension, xcworkspaceExtension)
-
 	relevantFiles := []string{}
 
 	for _, file := range filteredFiles {
-		if isEmbededWorkspace(file) {
-			continue
-		}
-
-		if isPodProject(file) {
-			continue
-		}
-
-		if isCarthageProject(file) {
+		if !isRelevantProject(file) {
 			continue
 		}
 
@@ -111,14 +134,32 @@ func filterXcodeprojectFiles(fileList []string) []string {
 	return relevantFiles
 }
 
+func isRelevantPodfile(pth string) bool {
+	for _, folderName := range scanFolderNameBlackList {
+		if isPathContainsComponent(pth, folderName) {
+			return false
+		}
+	}
+
+	for _, folderExt := range scanFolderExtBlackList {
+		if isPathContainsComponentWithExtension(pth, folderExt) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func filterPodFiles(fileList []string) []string {
 	filteredFiles := utility.FilterFilesWithBasPaths(fileList, podFileBasePath)
 	relevantFiles := []string{}
 
 	for _, file := range filteredFiles {
-		if !strings.Contains(file, ".git/") {
-			relevantFiles = append(relevantFiles, file)
+		if !isRelevantPodfile(file) {
+			continue
 		}
+
+		relevantFiles = append(relevantFiles, file)
 	}
 
 	sort.Sort(utility.ByComponents(relevantFiles))

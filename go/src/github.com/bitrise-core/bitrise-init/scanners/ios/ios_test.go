@@ -6,147 +6,234 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// embeddedWorkspaceExp = regexp.MustCompile(`.+.xcodeproj/.+.xcworkspace`)
-
-func TestIsEmbededWorkspace(t *testing.T) {
+func TestIsPathMatchRegexp(t *testing.T) {
+	// Should filter embedded workspace
 	t.Log("not embedded workspace")
 	{
-		actual := isEmbededWorkspace("samplexcodeproj/sample.xcworkspace")
-		expected := false
-		require.Equal(t, expected, actual)
+		actual := isPathMatchRegexp("samplexcodeproj/sample.xcworkspace", embeddedWorkspacePathRegexp)
+		require.Equal(t, false, actual)
 	}
 
 	t.Log("embedded workspace")
 	{
-		actual := isEmbededWorkspace("sample.xcodeproj/sample.xcworkspace")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathMatchRegexp("sample.xcodeproj/sample.xcworkspace", embeddedWorkspacePathRegexp)
+		require.Equal(t, true, actual)
 	}
 
 	t.Log("not embedded workspace")
 	{
-		actual := isEmbededWorkspace("/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcworkspace")
-		expected := false
-		require.Equal(t, expected, actual)
+		actual := isPathMatchRegexp("/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcworkspace", embeddedWorkspacePathRegexp)
+		require.Equal(t, false, actual)
 	}
 
 	t.Log("not embedded workspace - relative path")
 	{
-		actual := isEmbededWorkspace("SampleAppWithCocoapods.xcworkspace")
-		expected := false
-		require.Equal(t, expected, actual)
+		actual := isPathMatchRegexp("SampleAppWithCocoapods.xcworkspace", embeddedWorkspacePathRegexp)
+		require.Equal(t, false, actual)
 	}
 
 	t.Log("embedded workspace")
 	{
-		actual := isEmbededWorkspace("/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcodeproj/project.xcworkspace")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathMatchRegexp("/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcodeproj/project.xcworkspace", embeddedWorkspacePathRegexp)
+		require.Equal(t, true, actual)
 	}
 
 	t.Log("embedded workspace - relative path")
 	{
-		actual := isEmbededWorkspace("SampleAppWithCocoapods.xcodeproj/project.xcworkspace")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathMatchRegexp("SampleAppWithCocoapods.xcodeproj/project.xcworkspace", embeddedWorkspacePathRegexp)
+		require.Equal(t, true, actual)
 	}
 }
 
-func TestIsPodProject(t *testing.T) {
+func TestIsPathContainsComponent(t *testing.T) {
+	// Should filter .git folder
+	t.Log("not inside .git workspace")
+	{
+		actual := isPathContainsComponent("/Users/bitrise/sample-apps-ios-cocoapods/CarthageSampleAppWithCocoapods.xcworkspace", gitFolderName)
+		require.Equal(t, false, actual)
+	}
+
+	t.Log("not .git project - relative path")
+	{
+		actual := isPathContainsComponent("CarthageSampleAppWithCocoapods.xcodeproj", gitFolderName)
+		require.Equal(t, false, actual)
+	}
+
+	t.Log(".git project")
+	{
+		actual := isPathContainsComponent("/Users/bitrise/ios-no-shared-schemes/.git/Checkouts/Result/Result.xcodeproj", gitFolderName)
+		require.Equal(t, true, actual)
+	}
+
+	t.Log(".git workspace - relative path")
+	{
+		actual := isPathContainsComponent(".git/Checkouts/Result/Result.xcworkspace", gitFolderName)
+		require.Equal(t, true, actual)
+	}
+
+	t.Log(".git workspace - relative path")
+	{
+		actual := isPathContainsComponent("./sub/dir/.git/Checkouts/Result/Result.xcworkspace", gitFolderName)
+		require.Equal(t, true, actual)
+	}
+
+	t.Log(".git workspace - relative path")
+	{
+		actual := isPathContainsComponent("sub/dir/.git/Checkouts/Result/Result.xcworkspace", gitFolderName)
+		require.Equal(t, true, actual)
+	}
+
+	// Should filter Pods folder
 	t.Log("not pod workspace")
 	{
-		actual := isPodProject("/Users/bitrise/sample-apps-ios-cocoapods/PodsSampleAppWithCocoapods.xcworkspace")
-		expected := false
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("/Users/bitrise/sample-apps-ios-cocoapods/PodsSampleAppWithCocoapods.xcworkspace", podsFolderName)
+		require.Equal(t, false, actual)
 	}
 
 	t.Log("not pod project - relative path")
 	{
-		actual := isPodProject("PodsSampleAppWithCocoapods.xcodeproj")
-		expected := false
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("PodsSampleAppWithCocoapods.xcodeproj", podsFolderName)
+		require.Equal(t, false, actual)
 	}
 
 	t.Log("pod project")
 	{
-		actual := isPodProject("/Users/bitrise/sample-apps-ios-cocoapods/Pods/Pods.xcodeproj")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("/Users/bitrise/sample-apps-ios-cocoapods/Pods/Pods.xcodeproj", podsFolderName)
+		require.Equal(t, true, actual)
 	}
 
 	t.Log("pod workspace - relative path")
 	{
-		actual := isPodProject("Pods/Pods.xcworkspace")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("Pods/Pods.xcworkspace", podsFolderName)
+		require.Equal(t, true, actual)
 	}
 
 	t.Log("pod workspace - relative path")
 	{
-		actual := isPodProject("./sub/dir/Pods/Pods.xcworkspace")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("./sub/dir/Pods/Pods.xcworkspace", podsFolderName)
+		require.Equal(t, true, actual)
 	}
 
 	t.Log("pod workspace - relative path")
 	{
-		actual := isPodProject("sub/dir/Pods/Pods.xcworkspace")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("sub/dir/Pods/Pods.xcworkspace", podsFolderName)
+		require.Equal(t, true, actual)
 	}
-}
 
-func TestIsCarthageProject(t *testing.T) {
+	// Should filter Carthage folder
 	t.Log("not Carthage workspace")
 	{
-		actual := isCarthageProject("/Users/bitrise/sample-apps-ios-cocoapods/CarthageSampleAppWithCocoapods.xcworkspace")
-		expected := false
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("/Users/bitrise/sample-apps-ios-cocoapods/CarthageSampleAppWithCocoapods.xcworkspace", carthageFolderName)
+		require.Equal(t, false, actual)
 	}
 
 	t.Log("not Carthage project - relative path")
 	{
-		actual := isCarthageProject("CarthageSampleAppWithCocoapods.xcodeproj")
-		expected := false
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("CarthageSampleAppWithCocoapods.xcodeproj", carthageFolderName)
+		require.Equal(t, false, actual)
 	}
 
 	t.Log("Carthage project")
 	{
-		actual := isCarthageProject("/Users/bitrise/ios-no-shared-schemes/Carthage/Checkouts/Result/Result.xcodeproj")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("/Users/bitrise/ios-no-shared-schemes/Carthage/Checkouts/Result/Result.xcodeproj", carthageFolderName)
+		require.Equal(t, true, actual)
 	}
 
 	t.Log("Carthage workspace - relative path")
 	{
-		actual := isCarthageProject("Carthage/Checkouts/Result/Result.xcworkspace")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("Carthage/Checkouts/Result/Result.xcworkspace", carthageFolderName)
+		require.Equal(t, true, actual)
 	}
 
 	t.Log("Carthage workspace - relative path")
 	{
-		actual := isCarthageProject("./sub/dir/Carthage/Checkouts/Result/Result.xcworkspace")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("./sub/dir/Carthage/Checkouts/Result/Result.xcworkspace", carthageFolderName)
+		require.Equal(t, true, actual)
 	}
 
 	t.Log("Carthage workspace - relative path")
 	{
-		actual := isCarthageProject("sub/dir/Carthage/Checkouts/Result/Result.xcworkspace")
-		expected := true
-		require.Equal(t, expected, actual)
+		actual := isPathContainsComponent("sub/dir/Carthage/Checkouts/Result/Result.xcworkspace", carthageFolderName)
+		require.Equal(t, true, actual)
+	}
+}
+
+func TestIsPathContainsComponentWithExtension(t *testing.T) {
+	// Should filter .framework folder
+	t.Log("not .framework workspace")
+	{
+		actual := isPathContainsComponentWithExtension("/Users/bitrise/sample-apps-ios-cocoapods/CarthageSampleAppWithCocoapods.xcworkspace", frameworkExt)
+		require.Equal(t, false, actual)
+	}
+
+	t.Log("not .framework project - relative path")
+	{
+		actual := isPathContainsComponentWithExtension("CarthageSampleAppWithCocoapods.xcodeproj", frameworkExt)
+		require.Equal(t, false, actual)
+	}
+
+	t.Log(".framework project")
+	{
+		actual := isPathContainsComponentWithExtension("/Users/bitrise/ios-no-shared-schemes/test.framework/Checkouts/Result/Result.xcodeproj", frameworkExt)
+		require.Equal(t, true, actual)
+	}
+
+	t.Log(".framework workspace - relative path")
+	{
+		actual := isPathContainsComponentWithExtension("test.framework/Checkouts/Result/Result.xcworkspace", frameworkExt)
+		require.Equal(t, true, actual)
+	}
+
+	t.Log(".framework workspace - relative path")
+	{
+		actual := isPathContainsComponentWithExtension("./sub/dir/test.framework/Checkouts/Result/Result.xcworkspace", frameworkExt)
+		require.Equal(t, true, actual)
+	}
+
+	t.Log(".framework workspace - relative path")
+	{
+		actual := isPathContainsComponentWithExtension("sub/dir/test.framework/Checkouts/Result/Result.xcworkspace", frameworkExt)
+		require.Equal(t, true, actual)
+	}
+}
+
+func TestIsRelevantProject(t *testing.T) {
+	t.Log(`embedded, .git, pod, carthage, .framework - not relevant`)
+	{
+		fileList := []string{
+			"/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcodeproj/project.xcworkspace",
+			"/Users/bitrise/.git/SampleAppWithCocoapods.xcodeproj/project.xcworkspace",
+			"/Users/bitrise/sample-apps-ios-cocoapods/Pods/Pods.xcodeproj",
+			"/Users/bitrise/ios-no-shared-schemes/Carthage/Checkouts/Result/Result.xcodeproj",
+			"/Users/bitrise/ios-no-shared-schemes/test.framework/Checkouts/Result/Result.xcodeproj",
+		}
+
+		for _, file := range fileList {
+			require.Equal(t, false, isRelevantProject(file))
+		}
+	}
+
+	t.Log(`relevant project`)
+	{
+		fileList := []string{
+			"/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcodeproj",
+		}
+
+		for _, file := range fileList {
+			require.Equal(t, true, isRelevantProject(file))
+		}
 	}
 }
 
 func TestFilterXcodeprojectFiles(t *testing.T) {
-	t.Log(`embedded, pod, carthage, relevant project`)
+	t.Log(`embedded, .git, pod, carthage, .framework, relevant project`)
 	{
 		fileList := []string{
 			"/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcodeproj/project.xcworkspace",
+			"/Users/bitrise/.git/SampleAppWithCocoapods.xcodeproj/project.xcworkspace",
 			"/Users/bitrise/sample-apps-ios-cocoapods/Pods/Pods.xcodeproj",
 			"/Users/bitrise/ios-no-shared-schemes/Carthage/Checkouts/Result/Result.xcodeproj",
+			"/Users/bitrise/ios-no-shared-schemes/test.framework/Checkouts/Result/Result.xcodeproj",
 			"/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcodeproj",
 		}
 
@@ -155,12 +242,14 @@ func TestFilterXcodeprojectFiles(t *testing.T) {
 		require.Equal(t, "/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcodeproj", files[0])
 	}
 
-	t.Log(`embedded, pod, carthage, relevant project - relative path`)
+	t.Log(`embedded, .git, pod, carthage, .framework, relevant project - relative path`)
 	{
 		fileList := []string{
 			"SampleAppWithCocoapods.xcodeproj/project.xcworkspace",
+			".git/SampleAppWithCocoapods.xcodeproj/project.xcworkspace",
 			"Pods/Pods.xcodeproj",
 			"Carthage/Checkouts/Result/Result.xcodeproj",
+			"test.framework/Checkouts/Result/Result.xcodeproj",
 			"SampleAppWithCocoapods.xcodeproj",
 		}
 
@@ -193,6 +282,33 @@ func TestFilterXcodeprojectFiles(t *testing.T) {
 
 		files := filterXcodeprojectFiles(fileList)
 		require.Equal(t, 0, len(files))
+	}
+}
+
+func TestIsRelevantPodfile(t *testing.T) {
+	t.Log(`.git, pod, carthage, .framework - not relevant`)
+	{
+		fileList := []string{
+			"/Users/bitrise/.git/Podfile",
+			"/Users/bitrise/sample-apps-ios-cocoapods/Pods/Podfile",
+			"/Users/bitrise/ios-no-shared-schemes/Carthage/Checkouts/Result/Podfile",
+			"/Users/bitrise/ios-no-shared-schemes/test.framework/Checkouts/Result/Podfile",
+		}
+
+		for _, file := range fileList {
+			require.Equal(t, false, isRelevantPodfile(file))
+		}
+	}
+
+	t.Log(`relevant project`)
+	{
+		fileList := []string{
+			"/Users/bitrise/sample-apps-ios-cocoapods/Podfile",
+		}
+
+		for _, file := range fileList {
+			require.Equal(t, true, isRelevantPodfile(file))
+		}
 	}
 }
 
