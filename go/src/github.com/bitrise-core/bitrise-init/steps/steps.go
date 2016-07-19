@@ -16,7 +16,7 @@ const (
 	gitCloneVersion = "3.2.0"
 
 	certificateAndProfileInstallerID      = "certificate-and-profile-installer"
-	certificateAndProfileInstallerVersion = "1.5.2"
+	certificateAndProfileInstallerVersion = "1.6.0"
 
 	deployToBitriseIoID      = "deploy-to-bitrise-io"
 	deployToBitriseIoVersion = "1.2.4"
@@ -34,13 +34,13 @@ const (
 
 	// iOS Step IDs
 	cocoapodsInstallID      = "cocoapods-install"
-	cocoapodsInstallVersion = "1.5.2"
+	cocoapodsInstallVersion = "1.5.3"
 
 	xcodeArchiveID      = "xcode-archive"
 	xcodeArchiveVersion = "1.8.3"
 
 	xcodeTestID      = "xcode-test"
-	xcodeTestVersion = "1.13.7"
+	xcodeTestVersion = "1.13.8"
 
 	// Xamarin Step IDs
 	xamarinUserManagementID      = "xamarin-user-management"
@@ -53,7 +53,7 @@ const (
 	xamarinComponentsRestoreVersion = "0.9.0"
 
 	xamarinBuilderID      = "xamarin-builder"
-	xamarinBuilderVersion = "1.3.4"
+	xamarinBuilderVersion = "1.3.5"
 )
 
 func stepIDComposite(ID, version string) string {

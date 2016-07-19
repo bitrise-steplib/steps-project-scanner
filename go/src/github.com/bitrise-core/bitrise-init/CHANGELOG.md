@@ -1,6 +1,15 @@
-## Changelog (Current version: 0.9.6)
+## Changelog (Current version: 0.9.7)
 
 -----------------
+
+### 0.9.7 (2016 Jul 19)
+
+* [e8d39da] prepare for 0.9.7
+* [483f065] Merge pull request #29 from bitrise-core/step_version_update
+* [77056a3] version updates
+* [98176e0] Merge pull request #28 from bitrise-core/user_management
+* [76ad7a1] typo
+* [8604486] xamarin user management step fix
 
 ### 0.9.6 (2016 Jul 05)
 
@@ -75,4 +84,4 @@
 
 -----------------
 
-Updated: 2016 Jul 05
+Updated: 2016 Jul 19
