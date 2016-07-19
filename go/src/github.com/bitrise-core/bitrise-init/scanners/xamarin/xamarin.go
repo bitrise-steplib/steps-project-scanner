@@ -28,6 +28,7 @@ const (
 	solutionExtension          = ".sln"
 	solutionConfigurationStart = "GlobalSection(SolutionConfigurationPlatforms) = preSolution"
 	solutionConfigurationEnd   = "EndGlobalSection"
+	projectTypeGUIDExp         = `(?i)<ProjectTypeGuids>(?P<project_type_guids>.*)<\/ProjectTypeGuids>`
 
 	includeMonoTouchAPIPattern   = `Include="monotouch"`
 	includeXamarinIosAPIPattern  = `Include="Xamarin.iOS"`
@@ -39,7 +40,7 @@ const (
 
 	includeXamarinUITestFrameworkPattern = `Include="Xamarin.UITest`
 	includeNunitFrameworkPattern         = `Include="nunit.framework`
-	includeNunitLiteFrameworkPattern     = `Include="MonoTouch.NUnitLite`
+	includeNunitLiteFrameworkExp         = `(?i)Include=".*.NUnitLite"`
 
 	xamarinUITestType = "Xamarin UITest"
 	nunitTestType     = "NUnit test"
@@ -59,22 +60,65 @@ const (
 	xamarinPlatformTitle  = "Xamarin platform"
 	xamarinPlatformEnvKey = "BITRISE_XAMARIN_PLATFORM"
 
-	xamarinIosLicenceKey    = "xamarin_ios_license"
-	xamarinIosLicenceTitle  = "Xamarin.iOS License"
-	xamarinIosLicenceEnvKey = "__XAMARIN_IOS_LICENSE_VALUE__"
+	xamarinIosLicenceKey   = "xamarin_ios_license"
+	xamarinIosLicenceTitle = "Xamarin.iOS License"
 
-	xamarinAndroidLicenceKey    = "xamarin_android_license"
-	xamarinAndroidLicenceTitle  = "Xamarin.Android License"
-	xamarinAndroidLicenceEnvKey = "__XAMARIN_ANDROID_LICENSE_VALUE__"
+	xamarinAndroidLicenceKey   = "xamarin_android_license"
+	xamarinAndroidLicenceTitle = "Xamarin.Android License"
+
+	xamarinMacLicenseKey   = "xamarin_mac_license"
+	xamarinMacLicenseTitle = "Xamarin.Mac License"
 )
 
 var (
 	logger = utility.NewLogger()
 )
 
+var (
+	projectTypeGUIDMap = map[string][]string{
+		"Xamarin.iOS": []string{
+			"E613F3A2-FE9C-494F-B74E-F63BCB86FEA6",
+			"6BC8ED88-2882-458C-8E55-DFD12B67127B",
+			"F5B4F3BC-B597-4E2B-B552-EF5D8A32436F",
+			"FEACFBD2-3405-455C-9665-78FE426C6842",
+			"8FFB629D-F513-41CE-95D2-7ECE97B6EEEC",
+			"EE2C853D-36AF-4FDB-B1AD-8E90477E2198",
+		},
+		"Xamarin.Android": []string{
+			"EFBA0AD7-5A72-4C68-AF49-83D382785DCF",
+			"10368E6C-D01B-4462-8E8B-01FC667A7035",
+		},
+		"MonoMac": []string{
+			"1C533B1C-72DD-4CB1-9F6B-BF11D93BCFBE",
+			"948B3504-5B70-4649-8FE4-BDE1FB46EC69",
+		},
+		"Xamarin.Mac": []string{
+			"42C0BBD9-55CE-4FC1-8D90-A7348ABAFB23",
+			"A3F8F2AB-B479-4A4A-A458-A89E7DC349F1",
+		},
+		"Xamarin.tvOS": []string{
+			"06FA79CB-D6CD-4721-BB4B-1BD202089C55",
+		},
+	}
+)
+
 //--------------------------------------------------
 // Utility
 //--------------------------------------------------
+
+func projectType(guids []string) string {
+	for _, GUID := range guids {
+		for projectType, projectTypeGUIDs := range projectTypeGUIDMap {
+			for _, aGUID := range projectTypeGUIDs {
+				if aGUID == GUID {
+					return projectType
+				}
+			}
+		}
+	}
+
+	return ""
+}
 
 func filterSolutionFiles(fileList []string) []string {
 	files := utility.FilterFilesWithExtensions(fileList, solutionExtension)
@@ -142,21 +186,38 @@ func getSolutionConfigs(solutionFile string) (map[string][]string, error) {
 	return configMap, nil
 }
 
-func getProjectPlatformAPI(projectFile string) (string, error) {
+func getProjectGUIDs(projectFile string) ([]string, error) {
+	projectTypeGUIDSExp := regexp.MustCompile(projectTypeGUIDExp)
 	content, err := fileutil.ReadStringFromFile(projectFile)
 	if err != nil {
-		return "", err
+		return []string{}, err
 	}
 
-	if utility.CaseInsensitiveContains(content, includeMonoAndroidAPIPattern) {
-		return monoAndroidAPI, nil
-	} else if utility.CaseInsensitiveContains(content, includeMonoTouchAPIPattern) {
-		return monoTouchAPI, nil
-	} else if utility.CaseInsensitiveContains(content, includeXamarinIosAPIPattern) {
-		return xamarinIosAPI, nil
+	lines := strings.Split(content, "\n")
+	guidsStr := ""
+	for _, line := range lines {
+		match := projectTypeGUIDSExp.FindStringSubmatch(line)
+		if len(match) == 2 {
+			guidsStr = match[1]
+		}
 	}
 
-	return "", nil
+	guids := []string{}
+	guidsSplit := strings.Split(guidsStr, ";")
+	for _, guidStr := range guidsSplit {
+		guid := guidStr
+		if strings.HasPrefix(guid, "{") {
+			guid = strings.TrimPrefix(guid, "{")
+		}
+
+		if strings.HasSuffix(guid, "}") {
+			guid = strings.TrimSuffix(guid, "}")
+		}
+
+		guids = append(guids, guid)
+	}
+
+	return guids, nil
 }
 
 func getProjectTestType(projectFile string) (string, error) {
@@ -165,15 +226,26 @@ func getProjectTestType(projectFile string) (string, error) {
 		return "", err
 	}
 
-	if utility.CaseInsensitiveContains(content, includeXamarinUITestFrameworkPattern) {
-		return xamarinUITestType, nil
-	} else if utility.CaseInsensitiveContains(content, includeNunitLiteFrameworkPattern) {
-		return nunitLiteTestType, nil
-	} else if utility.CaseInsensitiveContains(content, includeNunitFrameworkPattern) {
-		return nunitTestType, nil
+	return projectTestType(content), nil
+}
+
+func projectTestType(projectFileContent string) string {
+	if utility.CaseInsensitiveContains(projectFileContent, includeXamarinUITestFrameworkPattern) {
+		return xamarinUITestType
+	} else if utility.CaseInsensitiveContains(projectFileContent, includeNunitFrameworkPattern) {
+		return nunitTestType
+	} else {
+		lines := strings.Split(projectFileContent, string(filepath.Separator))
+		nunitLiteExp := regexp.MustCompile(includeNunitLiteFrameworkExp)
+
+		for _, line := range lines {
+			if nunitLiteExp.FindString(line) != "" {
+				return nunitLiteTestType
+			}
+		}
 	}
 
-	return "", nil
+	return ""
 }
 
 func getProjects(solutionFile string) ([]string, error) {
@@ -226,6 +298,11 @@ type Scanner struct {
 
 	HasNugetPackages     bool
 	HasXamarinComponents bool
+
+	HasIosProject     bool
+	HasAndroidProject bool
+	HasMacProject     bool
+	HasTVOSProject    bool
 }
 
 // Name ...
@@ -346,26 +423,42 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 		for _, project := range projects {
 			logger.InfofSection("  Inspecting project file: %s", project)
 
-			api, err := getProjectPlatformAPI(project)
+			guids, err := getProjectGUIDs(project)
 			if err != nil {
 				return models.OptionModel{}, models.Warnings{}, err
 			}
 
-			if api == "" {
-				testType, err := getProjectTestType(project)
-				if err != nil {
-					return models.OptionModel{}, models.Warnings{}, err
-				}
+			projectType := projectType(guids)
 
-				if testType == "" {
-					log.Warn("    No platform api or test framework found")
-					continue
-				}
-
-				logger.InfofDetails("  %s test project", testType)
-			} else {
-				logger.InfofDetails("  %s project", api)
+			testType, err := getProjectTestType(project)
+			if err != nil {
+				return models.OptionModel{}, models.Warnings{}, err
 			}
+
+			if testType != "" {
+				logger.InfofReceipt("    test project type: %s", testType)
+				continue
+			}
+
+			if projectType == "" {
+				log.Warn("    No platform api or test framework found")
+				continue
+			}
+
+			if projectType == "Xamarin.iOS" {
+				scanner.HasIosProject = true
+			} else if projectType == "Xamarin.Android" {
+				scanner.HasAndroidProject = true
+			} else if projectType == "MonoMac" || projectType == "Xamarin.Mac" {
+				scanner.HasMacProject = true
+			} else if projectType == "Xamarin.tvOS" {
+				scanner.HasTVOSProject = true
+			} else {
+				log.Warn("    Unknow project type for GUIDs: %v", guids)
+				continue
+			}
+
+			logger.InfofReceipt("    project type: %s", projectType)
 		}
 
 		xamarinConfigurationOption := models.NewOptionModel(xamarinConfigurationTitle, xamarinConfigurationEnvKey)
@@ -421,9 +514,15 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	stepList = append(stepList, steps.CertificateAndProfileInstallerStepListItem())
 
 	// XamarinUserManagement
-	inputs := []envmanModels.EnvironmentItemModel{
-		envmanModels.EnvironmentItemModel{xamarinIosLicenceKey: "$" + xamarinIosLicenceEnvKey},
-		envmanModels.EnvironmentItemModel{xamarinAndroidLicenceKey: "$" + xamarinAndroidLicenceEnvKey},
+	inputs := []envmanModels.EnvironmentItemModel{}
+	if scanner.HasIosProject {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{xamarinIosLicenceKey: "yes"})
+	}
+	if scanner.HasAndroidProject {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{xamarinAndroidLicenceKey: "yes"})
+	}
+	if scanner.HasMacProject {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{xamarinMacLicenseKey: "yes"})
 	}
 
 	stepList = append(stepList, steps.XamarinUserManagementStepListItem(inputs))
@@ -481,11 +580,7 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	stepList = append(stepList, steps.CertificateAndProfileInstallerStepListItem())
 
 	// XamarinUserManagement
-	inputs := []envmanModels.EnvironmentItemModel{
-		envmanModels.EnvironmentItemModel{xamarinIosLicenceKey: "$" + xamarinIosLicenceEnvKey},
-		envmanModels.EnvironmentItemModel{xamarinAndroidLicenceKey: "$" + xamarinAndroidLicenceEnvKey},
-	}
-
+	inputs := []envmanModels.EnvironmentItemModel{}
 	stepList = append(stepList, steps.XamarinUserManagementStepListItem(inputs))
 
 	// NugetRestore
