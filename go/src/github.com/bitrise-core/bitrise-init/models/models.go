@@ -2,6 +2,7 @@ package models
 
 import (
 	bitriseModels "github.com/bitrise-io/bitrise/models"
+	envmanModels "github.com/bitrise-io/envman/models"
 )
 
 const (
@@ -63,8 +64,39 @@ func (option OptionModel) GetValues() []string {
 	return values
 }
 
-// BitriseDataWithPrimaryWorkflowSteps ...
-func BitriseDataWithPrimaryWorkflowSteps(steps []bitriseModels.StepListItemModel) bitriseModels.BitriseDataModel {
+// BitriseDataWithDefaultTriggerMapAndAppEnvsAndPrimaryWorkflowSteps ...
+func BitriseDataWithDefaultTriggerMapAndAppEnvsAndPrimaryWorkflowSteps(appEnvs []envmanModels.EnvironmentItemModel, steps []bitriseModels.StepListItemModel) bitriseModels.BitriseDataModel {
+	workflows := map[string]bitriseModels.WorkflowModel{
+		primaryWorkflowID: bitriseModels.WorkflowModel{
+			Steps: steps,
+		},
+	}
+
+	triggerMap := []bitriseModels.TriggerMapItemModel{
+		bitriseModels.TriggerMapItemModel{
+			Pattern:              "*",
+			IsPullRequestAllowed: true,
+			WorkflowID:           primaryWorkflowID,
+		},
+	}
+
+	app := bitriseModels.AppModel{
+		Environments: appEnvs,
+	}
+
+	bitriseData := bitriseModels.BitriseDataModel{
+		FormatVersion:        "1.2.0",
+		DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
+		TriggerMap:           triggerMap,
+		Workflows:            workflows,
+		App:                  app,
+	}
+
+	return bitriseData
+}
+
+// BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps ...
+func BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps(steps []bitriseModels.StepListItemModel) bitriseModels.BitriseDataModel {
 	workflows := map[string]bitriseModels.WorkflowModel{
 		primaryWorkflowID: bitriseModels.WorkflowModel{
 			Steps: steps,

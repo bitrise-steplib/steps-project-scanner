@@ -300,7 +300,7 @@ func TestIsRelevantPodfile(t *testing.T) {
 		}
 	}
 
-	t.Log(`relevant project`)
+	t.Log(`relevant podfile`)
 	{
 		fileList := []string{
 			"/Users/bitrise/sample-apps-ios-cocoapods/Podfile",
@@ -340,11 +340,4 @@ func TestFilterPodFiles(t *testing.T) {
 		files := filterPodFiles(fileList)
 		require.Equal(t, 0, len(files))
 	}
-}
-
-func TestIOSConfigName(t *testing.T) {
-	require.Equal(t, "ios-config", configName(false, false))
-	require.Equal(t, "ios-pod-config", configName(true, false))
-	require.Equal(t, "ios-test-config", configName(false, true))
-	require.Equal(t, "ios-pod-test-config", configName(true, true))
 }

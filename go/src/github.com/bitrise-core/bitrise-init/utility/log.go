@@ -35,6 +35,11 @@ func (logger *LoggerModel) Infof(format string, args ...interface{}) {
 	logger.Logger.Info(colorstring.Bluef(format, args...))
 }
 
+// Warnf ...
+func (logger *LoggerModel) Warnf(format string, args ...interface{}) {
+	logger.Logger.Info(colorstring.Yellowf(format, args...))
+}
+
 // InfoSection ...
 func (logger *LoggerModel) InfoSection(args ...interface{}) {
 	logger.Logger.Info()

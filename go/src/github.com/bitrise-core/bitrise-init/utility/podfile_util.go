@@ -184,11 +184,22 @@ require 'json'
 
 path = ENV['pod_file_path']
 
-podfile = Podfile.from_file(path)
-workspaces = podfile.get_workspaces(podfile.list_targets.first)
+begin
+  podfile = Podfile.from_file(path)
+  workspaces = podfile.get_workspaces(podfile.list_targets.first)
+rescue => ex
+  puts(ex.inspect.to_s)
+  puts('--- Stack trace: ---')
+  puts(ex.backtrace.to_s)
+  exit(1)
+end
 
 puts workspaces.to_json
 `
+
+var (
+	logger = NewLogger()
+)
 
 func isWorkspaceSpecified(podfileContent string) bool {
 	re := regexp.MustCompile(`\s*workspace (.+)`)
@@ -210,6 +221,7 @@ func getWorkspaceProjectMap(podfilePth string) (map[string]string, error) {
 	}
 
 	if !isWorkspaceSpecified(podfileContent) {
+		logger.InfofDetails("workspace not specified in podfile (%s)", podfilePth)
 		// If no explicit Xcode workspace is specified and
 		// only one project exists in the same directory as the Podfile,
 		// then the name of that project is used as the workspace’s name.
@@ -236,6 +248,9 @@ func getWorkspaceProjectMap(podfilePth string) (map[string]string, error) {
 		}
 	}
 
+	logger.Warnf("Workspace specified in podfile (%s)", podfilePth)
+	logger.Warnf("Running extended podfile analyzer")
+
 	// Analyze Podfile as a ruby file
 	if err := os.Setenv("pod_file_path", podfilePth); err != nil {
 		return map[string]string{}, err
@@ -258,6 +273,9 @@ func getWorkspaceProjectMap(podfilePth string) (map[string]string, error) {
 
 	out, err := cmdex.RunCommandAndReturnCombinedStdoutAndStderr("ruby", getWorkspacesRubyFilePath)
 	if err != nil {
+		logger.Warnf("Extended analyzer failed against podfile:")
+		fmt.Println(podfileContent)
+
 		if errorutil.IsExitStatusError(err) {
 			return map[string]string{}, errors.New(out)
 		}

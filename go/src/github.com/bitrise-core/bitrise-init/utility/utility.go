@@ -9,6 +9,12 @@ import (
 	"github.com/bitrise-io/go-utils/pathutil"
 )
 
+// CaseInsensitiveEquals ...
+func CaseInsensitiveEquals(s1, s2 string) bool {
+	s1, s2 = strings.ToLower(s1), strings.ToLower(s2)
+	return s1 == s2
+}
+
 // CaseInsensitiveContains ...
 func CaseInsensitiveContains(s, substr string) bool {
 	s, substr = strings.ToUpper(s), strings.ToUpper(substr)

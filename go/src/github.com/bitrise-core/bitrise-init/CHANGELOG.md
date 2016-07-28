@@ -1,6 +1,20 @@
-## Changelog (Current version: 0.9.7)
+## Changelog (Current version: 0.9.9)
 
 -----------------
+
+### 0.9.9 (2016 Jul 28)
+
+* [e68da49] prepare for 0.9.9
+* [02a019d] step version updates (#35)
+
+### 0.9.8 (2016 Jul 28)
+
+* [e126a76] prepare for 0.9.8
+* [7cf7fe7] Xcode util, recreate-user schemes (#34)
+* [14c97b6] godep update (#33)
+* [10c79d8] podfile fix (#32)
+* [06f5280] FASTLANE_XCODE_LIST_TIMEOUT (#31)
+* [3eca702] improved find podfiles (#30)
 
 ### 0.9.7 (2016 Jul 19)
 
@@ -84,4 +98,4 @@
 
 -----------------
 
-Updated: 2016 Jul 19
+Updated: 2016 Jul 28
