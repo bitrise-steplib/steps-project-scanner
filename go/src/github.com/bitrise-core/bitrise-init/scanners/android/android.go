@@ -8,12 +8,15 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-core/bitrise-init/utility"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
+)
+
+var (
+	log = utility.NewLogger()
 )
 
 const (
@@ -44,10 +47,6 @@ var defaultGradleTasks = []string{
 	"assembleDebug",
 	"assembleRelease",
 }
-
-var (
-	logger = utility.NewLogger()
-)
 
 //--------------------------------------------------
 // Utility
@@ -150,7 +149,7 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 	scanner.FileList = fileList
 
 	// Search for gradle file
-	logger.Info("Searching for build.gradle files")
+	log.Info("Searching for build.gradle files")
 
 	gradleFiles, err := filterRootBuildGradleFiles(fileList)
 	if err != nil {
@@ -158,17 +157,17 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 	}
 	scanner.GradleFiles = gradleFiles
 
-	logger.InfofDetails("%d build.gradle file(s) detected:", len(gradleFiles))
+	log.InfofDetails("%d build.gradle file(s) detected:", len(gradleFiles))
 	for _, file := range gradleFiles {
-		logger.InfofDetails("  - %s", file)
+		log.InfofDetails("  - %s", file)
 	}
 
 	if len(gradleFiles) == 0 {
-		logger.InfofDetails("platform not detected")
+		log.InfofDetails("platform not detected")
 		return false, nil
 	}
 
-	logger.InfofReceipt("platform detected")
+	log.InfofReceipt("platform detected")
 
 	return true, nil
 }
@@ -176,14 +175,14 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 // Options ...
 func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	// Search for gradlew_path input
-	logger.InfoSection("Searching for gradlew files")
+	log.InfoSection("Searching for gradlew files")
 
 	warnings := models.Warnings{}
 	gradlewFiles := filterGradlewFiles(scanner.FileList)
 
-	logger.InfofDetails("%d gradlew file(s) detected:", len(gradlewFiles))
+	log.InfofDetails("%d gradlew file(s) detected:", len(gradlewFiles))
 	for _, file := range gradlewFiles {
-		logger.InfofDetails("  - %s", file)
+		log.InfofDetails("  - %s", file)
 	}
 
 	rootGradlewPath := ""
@@ -191,15 +190,15 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 		rootGradlewPath = gradlewFiles[0]
 		scanner.HasGradlewFile = true
 
-		logger.InfofDetails("root gradlew path: %s", rootGradlewPath)
+		log.InfofDetails("root gradlew path: %s", rootGradlewPath)
 	} else {
-		log.Warn("No gradlew file found")
+		log.Warnf("No gradlew file found")
 		warnings = append(warnings, "no gradlew file found")
 	}
 
 	gradleBin := "gradle"
 	if scanner.HasGradlewFile {
-		logger.InfofDetails("adding executable permission to gradlew file")
+		log.InfofDetails("adding executable permission to gradlew file")
 
 		err := os.Chmod(rootGradlewPath, 0770)
 		if err != nil {
@@ -209,17 +208,17 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 		gradleBin = rootGradlewPath
 	}
 
-	logger.InfofReceipt("gradle bin to use by inspect: %s", gradleBin)
+	log.InfofReceipt("gradle bin to use by inspect: %s", gradleBin)
 
 	// Inspect Gradle files
 	gradleFileOption := models.NewOptionModel(gradleFileTitle, gradleFileEnvKey)
 
 	for _, gradleFile := range scanner.GradleFiles {
-		logger.InfofSection("Gradle file: %s", gradleFile)
+		log.InfofSection("Gradle file: %s", gradleFile)
 
 		configs := defaultGradleTasks
 
-		logger.InfofReceipt("gradle tasks: %v", configs)
+		log.InfofReceipt("gradle tasks: %v", configs)
 
 		gradleTaskOption := models.NewOptionModel(gradleTaskTitle, gradleTaskEnvKey)
 		for _, config := range configs {
@@ -289,7 +288,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	// DeployToBitriseIo
 	stepList = append(stepList, steps.DeployToBitriseIoStepListItem())
 
-	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
+	bitriseData := models.BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
@@ -331,7 +330,7 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	// DeployToBitriseIo
 	stepList = append(stepList, steps.DeployToBitriseIoStepListItem())
 
-	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
+	bitriseData := models.BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
 		return models.BitriseConfigMap{}, err

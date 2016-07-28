@@ -211,7 +211,7 @@ func initManualConfig(c *cli.Context) error {
 			return fmt.Errorf("Failed to unmarshal config, error: %s", err)
 		}
 
-		config.App.Environments = appEnvs
+		config.App.Environments = append(config.App.Environments, appEnvs...)
 
 		log.Debug()
 		log.Debug("Config:")

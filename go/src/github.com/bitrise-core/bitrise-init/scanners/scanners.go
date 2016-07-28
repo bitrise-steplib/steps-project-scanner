@@ -36,7 +36,7 @@ func CustomConfig() (models.BitriseConfigMap, error) {
 	// GitClone
 	stepList = append(stepList, steps.GitCloneStepListItem())
 
-	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
+	bitriseData := models.BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
 		return map[string]string{}, err

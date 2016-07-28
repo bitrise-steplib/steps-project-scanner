@@ -11,13 +11,16 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-core/bitrise-init/utility"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/fileutil"
+)
+
+var (
+	log = utility.NewLogger()
 )
 
 const (
@@ -68,10 +71,6 @@ const (
 
 	xamarinMacLicenseKey   = "xamarin_mac_license"
 	xamarinMacLicenseTitle = "Xamarin.Mac License"
-)
-
-var (
-	logger = utility.NewLogger()
 )
 
 var (
@@ -324,29 +323,29 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 	scanner.FileList = fileList
 
 	// Search for solution file
-	logger.Info("Searching for solution files")
+	log.Info("Searching for solution files")
 
 	solutionFiles := filterSolutionFiles(fileList)
 	scanner.SolutionFiles = solutionFiles
 
-	logger.InfofDetails("%d solution file(s) detected:", len(solutionFiles))
+	log.InfofDetails("%d solution file(s) detected:", len(solutionFiles))
 	for _, file := range solutionFiles {
-		logger.InfofDetails("  - %s", file)
+		log.InfofDetails("  - %s", file)
 	}
 
 	if len(solutionFiles) == 0 {
-		logger.InfofDetails("platform not detected")
+		log.InfofDetails("platform not detected")
 		return false, nil
 	}
 
-	logger.InfofReceipt("platform detected")
+	log.InfofReceipt("platform detected")
 
 	return true, nil
 }
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
-	logger.InfoSection("Searching for Nuget packages & Xamarin Components")
+	log.InfoSection("Searching for NuGet packages & Xamarin Components")
 
 	warnings := models.Warnings{}
 
@@ -376,21 +375,21 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	}
 
 	if scanner.HasNugetPackages {
-		logger.InfofReceipt("Nuget packages found")
+		log.InfofReceipt("Nuget packages found")
 	} else {
-		logger.InfofDetails("NO Nuget packages found")
+		log.InfofDetails("NO Nuget packages found")
 	}
 
 	if scanner.HasXamarinComponents {
-		logger.InfofReceipt("Xamarin Components found")
+		log.InfofReceipt("Xamarin Components found")
 	} else {
-		logger.InfofDetails("NO Xamarin Components found")
+		log.InfofDetails("NO Xamarin Components found")
 	}
 
 	// Check for solution configs
 	validSolutionMap := map[string]map[string][]string{}
 	for _, solutionFile := range scanner.SolutionFiles {
-		logger.InfofSection("Inspecting solution file: %s", solutionFile)
+		log.InfofSection("Inspecting solution file: %s", solutionFile)
 
 		configs, err := getSolutionConfigs(solutionFile)
 		if err != nil {
@@ -398,7 +397,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 		}
 
 		if len(configs) > 0 {
-			logger.InfofReceipt("found configs: %v", configs)
+			log.InfofReceipt("found configs: %v", configs)
 
 			validSolutionMap[solutionFile] = configs
 		} else {
@@ -421,7 +420,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 
 		// Inspect projects
 		for _, project := range projects {
-			logger.InfofSection("  Inspecting project file: %s", project)
+			log.InfofSection("  Inspecting project file: %s", project)
 
 			guids, err := getProjectGUIDs(project)
 			if err != nil {
@@ -436,12 +435,12 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 			}
 
 			if testType != "" {
-				logger.InfofReceipt("    test project type: %s", testType)
+				log.InfofReceipt("    test project type: %s", testType)
 				continue
 			}
 
 			if projectType == "" {
-				log.Warn("    No platform api or test framework found")
+				log.Warnf("    No platform api or test framework found")
 				continue
 			}
 
@@ -454,11 +453,11 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 			} else if projectType == "Xamarin.tvOS" {
 				scanner.HasTVOSProject = true
 			} else {
-				log.Warn("    Unknow project type for GUIDs: %v", guids)
+				log.Warnf("    Unknow project type for GUIDs: %v", guids)
 				continue
 			}
 
-			logger.InfofReceipt("    project type: %s", projectType)
+			log.InfofReceipt("    project type: %s", projectType)
 		}
 
 		xamarinConfigurationOption := models.NewOptionModel(xamarinConfigurationTitle, xamarinConfigurationEnvKey)
@@ -549,7 +548,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	// DeployToBitriseIo
 	stepList = append(stepList, steps.DeployToBitriseIoStepListItem())
 
-	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
+	bitriseData := models.BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
@@ -601,7 +600,7 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	// DeployToBitriseIo
 	stepList = append(stepList, steps.DeployToBitriseIoStepListItem())
 
-	bitriseData := models.BitriseDataWithPrimaryWorkflowSteps(stepList)
+	bitriseData := models.BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps(stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
