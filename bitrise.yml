@@ -13,6 +13,8 @@ workflows:
   test:
     title: Bitrise Init Test
     description: Bitrise Init Test
+    envs:
+    - CLONE_INTO_DIR: _tmp
     steps:
     - script:
         title: "Scann test: ios-no-shared-schemes"
@@ -23,17 +25,11 @@ workflows:
 
             rm -rf ./_tmp
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/ios-no-shared-schemes.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-    - change-workdir:
-        title: Switch working dir to ./_tmp
-        run_if: true
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
+            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
     - path::./:
         title: Step Test
         inputs:
-        - scan_dir: ./
+        - scan_dir: $CLONE_INTO_DIR
         - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
@@ -44,19 +40,13 @@ workflows:
             #!/bin/bash
             set -x
 
-            rm -rf ./_tmp
+            rm -rf $CLONE_INTO_DIR
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-    - change-workdir:
-        title: Switch working dir to ./_tmp
-        run_if: true
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
+            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
     - path::./:
         title: Step Test
         inputs:
-        - scan_dir: ./
+        - scan_dir: $CLONE_INTO_DIR
         - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
@@ -67,19 +57,13 @@ workflows:
             #!/bin/bash
             set -x
 
-            rm -rf ./_tmp
+            rm -rf $CLONE_INTO_DIR
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/sample-apps-android-sdk22.git
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-    - change-workdir:
-        title: Switch working dir to ./_tmp
-        run_if: true
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
     - path::./:
         title: Step Test
         inputs:
-        - scan_dir: ./
+        - scan_dir: $CLONE_INTO_DIR
         - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
@@ -90,19 +74,13 @@ workflows:
             #!/bin/bash
             set -x
 
-            rm -rf ./_tmp
+            rm -rf $CLONE_INTO_DIR
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/xamarin-sample-app.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-    - change-workdir:
-        title: Switch working dir to ./_tmp
-        run_if: true
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
+            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
     - path::./:
         title: Step Test
         inputs:
-        - scan_dir: ./
+        - scan_dir: $CLONE_INTO_DIR
         - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
@@ -113,33 +91,33 @@ workflows:
             #!/bin/bash
             set -x
 
-            rm -rf ./_tmp
+            rm -rf $CLONE_INTO_DIR
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-watchkit.git
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-    - change-workdir:
-        title: Switch working dir to ./_tmp
-        run_if: true
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
     - path::./:
         title: Step Test
         inputs:
-        - scan_dir: ./
+        - scan_dir: $CLONE_INTO_DIR
         - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
-    # - script:
-    #     title: "Scann test: android-sdk22-no-gradlew"
-    #     inputs:
-    #     - content: |-
-    #         #!/bin/bash
-    #         set -x
-    #
-    #         rm -rf ./_tmp
-    #         SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/android-sdk22-no-gradlew.git
-    #         git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-    #         $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    - script:
+        title: "Scanner test: fastlane"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf $CLONE_INTO_DIR
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/fastlane.git
+            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
+    - path::./:
+        title: Step Test
+        inputs:
+        - scan_dir: $CLONE_INTO_DIR
+        - output_dir: ../result
+        - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
+        - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
         title: "Scann test: sample-apps-xamarin-ios"
         inputs:
@@ -147,19 +125,13 @@ workflows:
             #!/bin/bash
             set -x
 
-            rm -rf ./_tmp
+            rm -rf $CLONE_INTO_DIR
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-ios.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-    - change-workdir:
-        title: Switch working dir to ./_tmp
-        run_if: true
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
+            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
     - path::./:
         title: Step Test
         inputs:
-        - scan_dir: ./
+        - scan_dir: $CLONE_INTO_DIR
         - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
@@ -170,19 +142,13 @@ workflows:
             #!/bin/bash
             set -x
 
-            rm -rf ./_tmp
+            rm -rf $CLONE_INTO_DIR
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/android-non-executable-gradlew.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-    - change-workdir:
-        title: Switch working dir to ./_tmp
-        run_if: true
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
+            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
     - path::./:
         title: Step Test
         inputs:
-        - scan_dir: ./
+        - scan_dir: $CLONE_INTO_DIR
         - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
@@ -193,19 +159,13 @@ workflows:
             #!/bin/bash
             set -x
 
-            rm -rf ./_tmp
+            rm -rf $CLONE_INTO_DIR
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-android.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-    - change-workdir:
-        title: Switch working dir to ./_tmp
-        run_if: true
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
+            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
     - path::./:
         title: Step Test
         inputs:
-        - scan_dir: ./
+        - scan_dir: $CLONE_INTO_DIR
         - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN

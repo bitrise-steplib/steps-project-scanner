@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.9.10)
+## Changelog (Current version: 0.9.11)
 
 -----------------
+
+### 0.9.11 (2016 Jul 29)
+
+* [1bad745] prepare for 0.9.11
+* [1d56f71] typo fix
 
 ### 0.9.10 (2016 Jul 29)
 

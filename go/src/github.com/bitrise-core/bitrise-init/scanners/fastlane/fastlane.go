@@ -164,7 +164,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 			return models.OptionModel{}, models.Warnings{}, err
 		}
 
-		log.Details("%d lane(s) found")
+		log.Details("%d lane(s) found", len(lanes))
 		for _, lane := range lanes {
 			log.Details("- %s", lane)
 		}
