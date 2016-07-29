@@ -13,7 +13,7 @@ const (
 	activateSSHKeyVersion = "3.1.0"
 
 	gitCloneID      = "git-clone"
-	gitCloneVersion = "3.2.0"
+	gitCloneVersion = "3.3.0"
 
 	certificateAndProfileInstallerID      = "certificate-and-profile-installer"
 	certificateAndProfileInstallerVersion = "1.6.0"
@@ -37,7 +37,7 @@ const (
 	cocoapodsInstallVersion = "1.5.4"
 
 	recreateUserSchemesID      = "recreate-user-schemes"
-	recreateUserSchemesVersion = "0.9.0"
+	recreateUserSchemesVersion = "0.9.1"
 
 	xcodeArchiveID      = "xcode-archive"
 	xcodeArchiveVersion = "1.8.5"

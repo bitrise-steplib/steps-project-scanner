@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-io/go-utils/pathutil"
 )
 
@@ -123,18 +122,20 @@ func (s ByComponents) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 func (s ByComponents) Less(i, j int) bool {
+	log := NewLogger()
+
 	path1 := s[i]
 	path2 := s[j]
 
 	d1, err := PathDept(path1)
 	if err != nil {
-		log.Warnf("failed to calculate path depth (%s), error: %s", path1, err)
+		log.Warn("failed to calculate path depth (%s), error: %s", path1, err)
 		return false
 	}
 
 	d2, err := PathDept(path2)
 	if err != nil {
-		log.Warnf("failed to calculate path depth (%s), error: %s", path1, err)
+		log.Warn("failed to calculate path depth (%s), error: %s", path1, err)
 		return false
 	}
 

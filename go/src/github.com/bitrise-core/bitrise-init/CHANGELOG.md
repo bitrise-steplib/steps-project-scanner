@@ -1,6 +1,12 @@
-## Changelog (Current version: 0.9.9)
+## Changelog (Current version: 0.9.10)
 
 -----------------
+
+### 0.9.10 (2016 Jul 29)
+
+* [ca94c8c] prepare for 0.9.10
+* [f541e09] fastalne test, logging updates (#37)
+* [0253f44] logging updates, godep update (#36)
 
 ### 0.9.9 (2016 Jul 28)
 
@@ -98,4 +104,4 @@
 
 -----------------
 
-Updated: 2016 Jul 28
+Updated: 2016 Jul 29

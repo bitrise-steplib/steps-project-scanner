@@ -157,17 +157,17 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 	}
 	scanner.GradleFiles = gradleFiles
 
-	log.InfofDetails("%d build.gradle file(s) detected:", len(gradleFiles))
+	log.Details("%d build.gradle file(s) detected", len(gradleFiles))
 	for _, file := range gradleFiles {
-		log.InfofDetails("  - %s", file)
+		log.Details("- %s", file)
 	}
 
 	if len(gradleFiles) == 0 {
-		log.InfofDetails("platform not detected")
+		log.Details("platform not detected")
 		return false, nil
 	}
 
-	log.InfofReceipt("platform detected")
+	log.Done("Platform detected")
 
 	return true, nil
 }
@@ -175,14 +175,14 @@ func (scanner *Scanner) DetectPlatform() (bool, error) {
 // Options ...
 func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	// Search for gradlew_path input
-	log.InfoSection("Searching for gradlew files")
+	log.Info("Searching for gradlew files")
 
 	warnings := models.Warnings{}
 	gradlewFiles := filterGradlewFiles(scanner.FileList)
 
-	log.InfofDetails("%d gradlew file(s) detected:", len(gradlewFiles))
+	log.Details("%d gradlew file(s) detected", len(gradlewFiles))
 	for _, file := range gradlewFiles {
-		log.InfofDetails("  - %s", file)
+		log.Details("- %s", file)
 	}
 
 	rootGradlewPath := ""
@@ -190,15 +190,15 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 		rootGradlewPath = gradlewFiles[0]
 		scanner.HasGradlewFile = true
 
-		log.InfofDetails("root gradlew path: %s", rootGradlewPath)
+		log.Details("root gradlew path: %s", rootGradlewPath)
 	} else {
-		log.Warnf("No gradlew file found")
+		log.Warn("No gradlew file found")
 		warnings = append(warnings, "no gradlew file found")
 	}
 
 	gradleBin := "gradle"
 	if scanner.HasGradlewFile {
-		log.InfofDetails("adding executable permission to gradlew file")
+		log.Details("adding executable permission to gradlew file")
 
 		err := os.Chmod(rootGradlewPath, 0770)
 		if err != nil {
@@ -208,17 +208,20 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 		gradleBin = rootGradlewPath
 	}
 
-	log.InfofReceipt("gradle bin to use by inspect: %s", gradleBin)
+	log.Details("gradle bin to use: %s", gradleBin)
 
 	// Inspect Gradle files
 	gradleFileOption := models.NewOptionModel(gradleFileTitle, gradleFileEnvKey)
 
 	for _, gradleFile := range scanner.GradleFiles {
-		log.InfofSection("Gradle file: %s", gradleFile)
+		log.Info("Inspecting gradle file: %s", gradleFile)
 
 		configs := defaultGradleTasks
 
-		log.InfofReceipt("gradle tasks: %v", configs)
+		log.Details("%d gradle task(s) found", len(configs))
+		for _, config := range configs {
+			log.Details("- %s", config)
+		}
 
 		gradleTaskOption := models.NewOptionModel(gradleTaskTitle, gradleTaskEnvKey)
 		for _, config := range configs {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/bitrise-io/go-utils/colorstring"
 )
 
 // LoggerModel ...
@@ -25,44 +24,39 @@ func NewLogger() LoggerModel {
 	}
 }
 
+// Fail ...
+func (logger *LoggerModel) Fail(format string, v ...interface{}) {
+	errorMsg := fmt.Sprintf(format, v...)
+	logger.Logger.Fatalf("\x1b[31;1m%s\x1b[0m", errorMsg)
+}
+
+// Error ...
+func (logger *LoggerModel) Error(format string, v ...interface{}) {
+	errorMsg := fmt.Sprintf(format, v...)
+	logger.Logger.Errorf("\x1b[31;1m%s\x1b[0m", errorMsg)
+}
+
+// Warn ...
+func (logger *LoggerModel) Warn(format string, v ...interface{}) {
+	errorMsg := fmt.Sprintf(format, v...)
+	logger.Logger.Warnf("\x1b[33;1m%s\x1b[0m", errorMsg)
+}
+
 // Info ...
-func (logger *LoggerModel) Info(args ...interface{}) {
-	logger.Logger.Info(colorstring.Blue(args...))
+func (logger *LoggerModel) Info(format string, v ...interface{}) {
+	logger.Logger.Info("")
+	errorMsg := fmt.Sprintf(format, v...)
+	logger.Logger.Infof("\x1b[34;1m%s\x1b[0m", errorMsg)
 }
 
-// Infof ...
-func (logger *LoggerModel) Infof(format string, args ...interface{}) {
-	logger.Logger.Info(colorstring.Bluef(format, args...))
+// Details ...
+func (logger *LoggerModel) Details(format string, v ...interface{}) {
+	errorMsg := fmt.Sprintf(format, v...)
+	logger.Logger.Infof("  %s", errorMsg)
 }
 
-// Warnf ...
-func (logger *LoggerModel) Warnf(format string, args ...interface{}) {
-	logger.Logger.Info(colorstring.Yellowf(format, args...))
-}
-
-// InfoSection ...
-func (logger *LoggerModel) InfoSection(args ...interface{}) {
-	logger.Logger.Info()
-	logger.Logger.Info(colorstring.Blue(args...))
-}
-
-// InfofSection ...
-func (logger *LoggerModel) InfofSection(format string, args ...interface{}) {
-	logger.Logger.Info()
-	logger.Logger.Info(colorstring.Bluef(format, args...))
-}
-
-// InfofDetails ...
-func (logger *LoggerModel) InfofDetails(format string, args ...interface{}) {
-	logger.Logger.Infof("  " + fmt.Sprintf(format, args...))
-}
-
-// InfoDetails ...
-func (logger *LoggerModel) InfoDetails(args ...interface{}) {
-	logger.Logger.Info("  " + fmt.Sprint(args...))
-}
-
-// InfofReceipt ...
-func (logger *LoggerModel) InfofReceipt(format string, args ...interface{}) {
-	logger.Logger.Info(colorstring.Green("  " + fmt.Sprintf(format, args...)))
+// Done ...
+func (logger *LoggerModel) Done(format string, v ...interface{}) {
+	errorMsg := fmt.Sprintf(format, v...)
+	logger.Logger.Infof("\x1b[32;1m%s\x1b[0m", errorMsg)
 }
