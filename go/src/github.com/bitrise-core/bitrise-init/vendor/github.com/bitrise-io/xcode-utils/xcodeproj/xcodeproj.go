@@ -2,6 +2,7 @@ package xcodeproj
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -186,11 +187,9 @@ func ReCreateProjectUserSchemes(projectPth string) error {
 		return err
 	}
 
-	projectDir := filepath.Dir(projectPth)
-
 	// Write Gemfile to file and install
 	gemfileContent := `source 'https://rubygems.org'
-
+	
 gem 'xcodeproj'`
 
 	gemfilePth := path.Join(tmpDir, "Gemfile")
@@ -198,10 +197,37 @@ gem 'xcodeproj'`
 		return err
 	}
 
-	envs := append(os.Environ(), "BUNDLE_GEMFILE="+gemfilePth)
+	cmd := cmdex.NewCommand("bundle", "install")
 
-	out, err := cmdex.NewCommand("bundle", "install").SetDir(projectDir).SetEnvs(envs).RunAndReturnTrimmedCombinedOutput()
-	if err != nil {
+	projectDir := filepath.Dir(projectPth)
+	cmd.SetDir(projectDir)
+
+	envs := append(os.Environ(), "BUNDLE_GEMFILE="+gemfilePth)
+	cmd.SetEnvs(envs)
+
+	var outBuffer bytes.Buffer
+	outWriter := bufio.NewWriter(&outBuffer)
+	cmd.SetStdout(outWriter)
+
+	var errBuffer bytes.Buffer
+	errWriter := bufio.NewWriter(&errBuffer)
+	cmd.SetStderr(errWriter)
+
+	if err := cmd.Run(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			errMsg := ""
+			if errBuffer.String() != "" {
+				errMsg += fmt.Sprintf("error: %s\n", errBuffer.String())
+			}
+			if outBuffer.String() != "" {
+				errMsg += fmt.Sprintf("output: %s", outBuffer.String())
+			}
+			if errMsg == "" {
+				return err
+			}
+
+			return errors.New(errMsg)
+		}
 		return err
 	}
 
@@ -229,13 +255,36 @@ end
 		return err
 	}
 
+	cmd = cmdex.NewCommand("bundle", "exec", "ruby", rubyScriptPth)
+
+	cmd.SetDir(projectDir)
+
 	projectBase := filepath.Base(projectPth)
 	envs = append(os.Environ(), "project_path="+projectBase, "LC_ALL=en_US.UTF-8", "BUNDLE_GEMFILE="+gemfilePth)
+	cmd.SetEnvs(envs)
 
-	out, err = cmdex.NewCommand("bundle", "exec", "ruby", rubyScriptPth).SetDir(projectDir).SetEnvs(envs).RunAndReturnTrimmedCombinedOutput()
-	if err != nil {
-		if errorutil.IsExitStatusError(err) && out != "" {
-			return errors.New(out)
+	outBuffer.Reset()
+	outWriter = bufio.NewWriter(&outBuffer)
+	cmd.SetStdout(outWriter)
+
+	errBuffer.Reset()
+	errWriter = bufio.NewWriter(&errBuffer)
+	cmd.SetStderr(errWriter)
+
+	if err := cmd.Run(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			errMsg := ""
+			if errBuffer.String() != "" {
+				errMsg += fmt.Sprintf("error: %s\n", errBuffer.String())
+			}
+			if outBuffer.String() != "" {
+				errMsg += fmt.Sprintf("output: %s", outBuffer.String())
+			}
+			if errMsg == "" {
+				return err
+			}
+
+			return errors.New(errMsg)
 		}
 		return err
 	}

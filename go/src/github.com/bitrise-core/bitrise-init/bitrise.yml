@@ -132,17 +132,17 @@ workflows:
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-watchkit.git
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
             $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
-    # - script:
-    #     title: "Scanner test: android-sdk22-no-gradlew"
-    #     inputs:
-    #     - content: |-
-    #         #!/bin/bash
-    #         set -x
-    #
-    #         rm -rf ./_tmp
-    #         SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/android-sdk22-no-gradlew.git
-    #         git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-    #         $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+    - script:
+        title: "Scanner test: fastlane"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/fastlane.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
     - script:
         title: "Scanner test: sample-apps-xamarin-ios"
         inputs:
@@ -212,7 +212,7 @@ workflows:
         2, Export RELEASE_VERSION
         3, Create binaries
     envs:
-    - RELEASE_VERSION: 0.9.9
+    - RELEASE_VERSION: 0.9.11
     after_run:
     - _export_release_version
     - create_binaries
