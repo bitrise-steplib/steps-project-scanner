@@ -1,6 +1,12 @@
-## Changelog (Current version: 0.9.10)
+## Changelog (Current version: 0.9.11)
 
 -----------------
+
+### 0.9.11 (2016 Aug 10)
+
+* [19b53a4] prepare for 0.9.11
+* [895cb20] Merge pull request #15 from bitrise-steplib/update
+* [b23b464] depman update
 
 ### 0.9.10 (2016 Jul 29)
 
@@ -63,4 +69,4 @@
 
 -----------------
 
-Updated: 2016 Jul 29
+Updated: 2016 Aug 10
