@@ -10,10 +10,10 @@ import (
 const (
 	// Common Step IDs
 	activateSSHKeyID      = "activate-ssh-key"
-	activateSSHKeyVersion = "3.1.0"
+	activateSSHKeyVersion = "3.1.1"
 
 	gitCloneID      = "git-clone"
-	gitCloneVersion = "3.3.0"
+	gitCloneVersion = "3.3.3"
 
 	certificateAndProfileInstallerID      = "certificate-and-profile-installer"
 	certificateAndProfileInstallerVersion = "1.6.0"
@@ -22,7 +22,7 @@ const (
 	deployToBitriseIoVersion = "1.2.4"
 
 	scriptID      = "script"
-	scriptVersion = "1.1.1"
+	scriptVersion = "1.1.2"
 
 	// Android Step IDs
 	gradleRunnerID      = "gradle-runner"

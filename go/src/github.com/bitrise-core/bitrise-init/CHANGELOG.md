@@ -1,6 +1,14 @@
-## Changelog (Current version: 0.9.11)
+## Changelog (Current version: 0.9.12)
 
 -----------------
+
+### 0.9.12 (2016 Aug 10)
+
+* [405e2ef] step versions
+* [25f83f0] prepare for 0.9.12
+* [c080c79] godep update ios fixes (#40)
+* [6e2dd87] add script step to default workflow (#39)
+* [a1cecc1] xcodeproj and xcworkspace should be a dir (#38)
 
 ### 0.9.11 (2016 Jul 29)
 
@@ -109,4 +117,4 @@
 
 -----------------
 
-Updated: 2016 Jul 29
+Updated: 2016 Aug 10
