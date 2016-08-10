@@ -499,13 +499,60 @@ func sharedSchemes(projectOrWorkspacePth string) (map[string]bool, error) {
 }
 
 func schemeFileContentContainsXCTestBuildAction(schemeFileContent string) (bool, error) {
-	regexpPattern := `BuildableName = ".+.xctest"`
-	regexp := regexp.MustCompile(regexpPattern)
+	testActionStartPattern := "<TestAction"
+	testActionEndPattern := "</TestAction>"
+	isTestableAction := false
+
+	testableReferenceStartPattern := "<TestableReference"
+	testableReferenceSkippedRegexp := regexp.MustCompile(`skipped = "(?P<skipped>.+)"`)
+	testableReferenceEndPattern := "</TestableReference>"
+	isTestableReference := false
+
+	xctestBuildableReferenceNameRegexp := regexp.MustCompile(`BuildableName = ".+.xctest"`)
 
 	scanner := bufio.NewScanner(strings.NewReader(schemeFileContent))
 	for scanner.Scan() {
 		line := scanner.Text()
-		if regexp.FindString(line) != "" {
+
+		if strings.TrimSpace(line) == testActionEndPattern {
+			break
+		}
+
+		if strings.TrimSpace(line) == testActionStartPattern {
+			isTestableAction = true
+			continue
+		}
+
+		if !isTestableAction {
+			continue
+		}
+
+		// TestAction
+
+		if strings.TrimSpace(line) == testableReferenceEndPattern {
+			isTestableReference = false
+			continue
+		}
+
+		if strings.TrimSpace(line) == testableReferenceStartPattern {
+			isTestableReference = true
+			continue
+		}
+
+		if !isTestableReference {
+			continue
+		}
+
+		// TestableReference
+
+		if matches := testableReferenceSkippedRegexp.FindStringSubmatch(line); len(matches) > 1 {
+			skipped := matches[1]
+			if skipped != "NO" {
+				break
+			}
+		}
+
+		if match := xctestBuildableReferenceNameRegexp.FindString(line); match != "" {
 			return true, nil
 		}
 	}
@@ -517,77 +564,296 @@ func schemeFileContentContainsXCTestBuildAction(schemeFileContent string) (bool,
 	return false, nil
 }
 
-func pbxprojContentTartgets(pbxprojContent string) (map[string]bool, error) {
-	nativeTargetSectionStart := "/* Begin PBXNativeTarget section */"
-	nativeTargetSectionEnd := "/* End PBXNativeTarget section */"
+// PBXTargetDependency ...
+type PBXTargetDependency struct {
+	id     string
+	isa    string
+	target string
+}
 
-	targetStartRegexpPattern := `\s*[A-Z0-9]+ /\* .* \*/ = {`
-	targetStartRegexp := regexp.MustCompile(targetStartRegexpPattern)
-	targetEnd := "};"
+func parsePBXTargetDependencies(pbxprojContent string) ([]PBXTargetDependency, error) {
+	pbxTargetDependencies := []PBXTargetDependency{}
 
-	xcTestRegexpPattern := `\s*productReference = .* /\* .*.xctest \*/;`
-	xcTestRegexp := regexp.MustCompile(xcTestRegexpPattern)
+	id := ""
+	isa := ""
+	target := ""
 
-	nameRegexpPattern := `\s*name = (?P<name>.+);`
-	nameRegexp := regexp.MustCompile(nameRegexpPattern)
+	beginPBXTargetDependencySectionPattern := `/* Begin PBXTargetDependency section */`
+	endPBXTargetDependencySectionPattern := `/* End PBXTargetDependency section */`
+	isPBXTargetDependencySection := false
 
-	isTargetSection := false
-	isTarget := false
+	// BAAFFEEF19EE788800F3AC91 /* PBXTargetDependency */ = {
+	beginPBXTargetDependencyRegexp := regexp.MustCompile(`\s*(?P<id>[A-Z0-9]+) /\* (?P<isa>.*) \*/ = {`)
+	endPBXTargetDependencyPattern := `};`
+	isPBXTargetDependency := false
 
-	targetMap := map[string]bool{}
-	targetName := ""
-	targetHasXCTest := false
+	// isa = PBXTargetDependency;
+	isaRegexp := regexp.MustCompile(`\s*isa = (?P<isa>.*);`)
+	// target = BAAFFED019EE788800F3AC91 /* SampleAppWithCocoapods */;
+	targetRegexp := regexp.MustCompile(`\s*target = (?P<id>[A-Z0-9]+) /\* (?P<name>.*) \*/;`)
 
 	scanner := bufio.NewScanner(strings.NewReader(pbxprojContent))
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		// End PBXNativeTarget section
-		if strings.TrimSpace(line) == nativeTargetSectionEnd {
+		if strings.TrimSpace(line) == endPBXTargetDependencySectionPattern {
 			break
 		}
 
-		// Begin PBXNativeTarget section
-		if strings.TrimSpace(line) == nativeTargetSectionStart {
-			isTargetSection = true
+		if strings.TrimSpace(line) == beginPBXTargetDependencySectionPattern {
+			isPBXTargetDependencySection = true
 			continue
 		}
 
-		if !isTargetSection {
+		if !isPBXTargetDependencySection {
 			continue
 		}
 
-		if strings.TrimSpace(line) == targetEnd {
-			isTarget = false
+		// PBXTargetDependency section
 
-			targetMap[targetName] = targetHasXCTest
+		if strings.TrimSpace(line) == endPBXTargetDependencyPattern {
+			pbxTargetDependency := PBXTargetDependency{
+				id:     id,
+				isa:    isa,
+				target: target,
+			}
+			pbxTargetDependencies = append(pbxTargetDependencies, pbxTargetDependency)
 
-			targetName = ""
-			targetHasXCTest = false
+			id = ""
+			isa = ""
+			target = ""
 
+			isPBXTargetDependency = false
 			continue
 		}
 
-		if targetStartRegexp.FindString(line) != "" {
-			isTarget = true
-		}
+		if matches := beginPBXTargetDependencyRegexp.FindStringSubmatch(line); len(matches) == 3 {
+			id = matches[1]
+			isa = matches[2]
 
-		if !isTarget {
+			isPBXTargetDependency = true
 			continue
 		}
 
-		if match := nameRegexp.FindStringSubmatch(line); len(match) == 2 {
-			targetName = match[1]
-			targetName = strings.Trim(targetName, `"`)
+		if !isPBXTargetDependency {
+			continue
 		}
 
-		if match := xcTestRegexp.FindString(line); match != "" {
-			targetHasXCTest = true
+		// PBXTargetDependency item
+
+		if matches := isaRegexp.FindStringSubmatch(line); len(matches) == 2 {
+			isa = strings.Trim(matches[1], `"`)
+		}
+
+		if matches := targetRegexp.FindStringSubmatch(line); len(matches) == 3 {
+			targetID := strings.Trim(matches[1], `"`)
+			// targetName := strings.Trim(matches[2], `"`)
+
+			target = targetID
+		}
+	}
+
+	return pbxTargetDependencies, nil
+}
+
+// PBXNativeTarget ...
+type PBXNativeTarget struct {
+	id           string
+	isa          string
+	dependencies []string
+	name         string
+	productPath  string
+	productType  string
+}
+
+func parsePBXNativeTargets(pbxprojContent string) ([]PBXNativeTarget, error) {
+	pbxNativeTargets := []PBXNativeTarget{}
+
+	id := ""
+	isa := ""
+	dependencies := []string{}
+	name := ""
+	productPath := ""
+	productType := ""
+
+	beginPBXNativeTargetSectionPattern := `/* Begin PBXNativeTarget section */`
+	endPBXNativeTargetSectionPattern := `/* End PBXNativeTarget section */`
+	isPBXNativeTargetSection := false
+
+	// BAAFFED019EE788800F3AC91 /* SampleAppWithCocoapods */ = {
+	beginPBXNativeTargetRegexp := regexp.MustCompile(`\s*(?P<id>[A-Z0-9]+) /\* (?P<name>.*) \*/ = {`)
+	endPBXNativeTargetPattern := `};`
+	isPBXNativeTarget := false
+
+	// isa = PBXNativeTarget;
+	isaRegexp := regexp.MustCompile(`\s*isa = (?P<isa>.*);`)
+
+	beginDependenciesPattern := `dependencies = (`
+	dependencieRegexp := regexp.MustCompile(`\s*(?P<id>[A-Z0-9]+) /\* (?P<isa>.*) \*/,`)
+	endDependenciesPattern := `);`
+	isDependencies := false
+
+	// name = SampleAppWithCocoapods;
+	nameRegexp := regexp.MustCompile(`\s*name = (?P<name>.*);`)
+	// productReference = BAAFFEED19EE788800F3AC91 /* SampleAppWithCocoapodsTests.xctest */;
+	productReferenceRegexp := regexp.MustCompile(`\s*productReference = (?P<id>[A-Z0-9]+) /\* (?P<path>.*) \*/;`)
+	// productType = "com.apple.product-type.bundle.unit-test";
+	productTypeRegexp := regexp.MustCompile(`\s*productType = (?P<productType>.*);`)
+
+	scanner := bufio.NewScanner(strings.NewReader(pbxprojContent))
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if strings.TrimSpace(line) == endPBXNativeTargetSectionPattern {
+			break
+		}
+
+		if strings.TrimSpace(line) == beginPBXNativeTargetSectionPattern {
+			isPBXNativeTargetSection = true
+			continue
+		}
+
+		if !isPBXNativeTargetSection {
+			continue
+		}
+
+		// PBXNativeTarget section
+
+		if strings.TrimSpace(line) == endPBXNativeTargetPattern {
+			pbxNativeTarget := PBXNativeTarget{
+				id:           id,
+				isa:          isa,
+				dependencies: dependencies,
+				name:         name,
+				productPath:  productPath,
+				productType:  productType,
+			}
+			pbxNativeTargets = append(pbxNativeTargets, pbxNativeTarget)
+
+			id = ""
+			isa = ""
+			name = ""
+			productPath = ""
+			productType = ""
+			dependencies = []string{}
+
+			isPBXNativeTarget = false
+			continue
+		}
+
+		if matches := beginPBXNativeTargetRegexp.FindStringSubmatch(line); len(matches) == 3 {
+			id = matches[1]
+			name = matches[2]
+
+			isPBXNativeTarget = true
+			continue
+		}
+
+		if !isPBXNativeTarget {
+			continue
+		}
+
+		// PBXNativeTarget item
+
+		if matches := isaRegexp.FindStringSubmatch(line); len(matches) == 2 {
+			isa = strings.Trim(matches[1], `"`)
+		}
+
+		if matches := nameRegexp.FindStringSubmatch(line); len(matches) == 2 {
+			name = strings.Trim(matches[1], `"`)
+		}
+
+		if matches := productTypeRegexp.FindStringSubmatch(line); len(matches) == 2 {
+			productType = strings.Trim(matches[1], `"`)
+		}
+
+		if matches := productReferenceRegexp.FindStringSubmatch(line); len(matches) == 3 {
+			// productId := strings.Trim(matches[1], `"`)
+			productPath = strings.Trim(matches[2], `"`)
+		}
+
+		if isDependencies && strings.TrimSpace(line) == endDependenciesPattern {
+			isDependencies = false
+			continue
+		}
+
+		if strings.TrimSpace(line) == beginDependenciesPattern {
+			isDependencies = true
+			continue
+		}
+
+		if !isDependencies {
+			continue
+		}
+
+		// dependencies
+		if matches := dependencieRegexp.FindStringSubmatch(line); len(matches) == 3 {
+			dependencieID := strings.Trim(matches[1], `"`)
+			dependencieIsa := strings.Trim(matches[2], `"`)
+
+			if dependencieIsa == "PBXTargetDependency" {
+				dependencies = append(dependencies, dependencieID)
+			}
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
+		return []PBXNativeTarget{}, err
+	}
+
+	return pbxNativeTargets, nil
+}
+
+func targetDependencieWithID(dependencies []PBXTargetDependency, id string) (PBXTargetDependency, bool) {
+	for _, dependencie := range dependencies {
+		if dependencie.id == id {
+			return dependencie, true
+		}
+	}
+	return PBXTargetDependency{}, false
+}
+
+func targetWithID(targets []PBXNativeTarget, id string) (PBXNativeTarget, bool) {
+	for _, target := range targets {
+		if target.id == id {
+			return target, true
+		}
+	}
+	return PBXNativeTarget{}, false
+}
+
+func pbxprojContentTartgets(pbxprojContent string) (map[string]bool, error) {
+	targetMap := map[string]bool{}
+
+	targets, err := parsePBXNativeTargets(pbxprojContent)
+	if err != nil {
 		return map[string]bool{}, err
+	}
+
+	targetDependencies, err := parsePBXTargetDependencies(pbxprojContent)
+	if err != nil {
+		return map[string]bool{}, err
+	}
+
+	for _, target := range targets {
+		if path.Ext(target.productPath) == ".xctest" {
+			if len(target.dependencies) > 0 {
+				for _, dependencieID := range target.dependencies {
+					dependency, found := targetDependencieWithID(targetDependencies, dependencieID)
+					if found {
+						dependentTarget, found := targetWithID(targets, dependency.target)
+						if found {
+							targetMap[dependentTarget.name] = true
+						}
+					}
+				}
+			}
+		}
+
+		_, found := targetMap[target.name]
+		if !found {
+			targetMap[target.name] = false
+		}
 	}
 
 	return targetMap, nil
