@@ -1,6 +1,12 @@
-## Changelog (Current version: 0.9.12)
+## Changelog (Current version: 0.9.13)
 
 -----------------
+
+### 0.9.13 (2016 Sep 07)
+
+* [48c10ed] step version updates (#42)
+* [e3d1e61] prepare for 0.9.13
+* [a0685c6] step version updates (#41)
 
 ### 0.9.12 (2016 Aug 10)
 
@@ -117,4 +123,4 @@
 
 -----------------
 
-Updated: 2016 Aug 10
+Updated: 2016 Sep 07
