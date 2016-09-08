@@ -1,6 +1,17 @@
-## Changelog (Current version: 0.9.13)
+## Changelog (Current version: 0.9.15)
 
 -----------------
+
+### 0.9.15 (2016 Sep 08)
+
+* [f4c3052] prepare for 0.9.15
+* [309935d] recreate-user-schemes step version update (#44)
+* [6c0b221] changelog update
+
+### 0.9.14 (2016 Sep 08)
+
+* [ba611ae] prepare for 0.9.14
+* [0107d78] fixed scheme generation if no shared scheme found
 
 ### 0.9.13 (2016 Sep 07)
 
@@ -123,4 +134,4 @@
 
 -----------------
 
-Updated: 2016 Sep 07
+Updated: 2016 Sep 08

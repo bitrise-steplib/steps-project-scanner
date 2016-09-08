@@ -180,30 +180,76 @@ func WorkspaceUserSchemes(workspacePth string) (map[string]bool, error) {
 	return schemeMap, nil
 }
 
-// ReCreateProjectUserSchemes ...
-func ReCreateProjectUserSchemes(projectPth string) error {
+func runRubyScriptForOutput(scriptContent, gemfileContent, inDir string, withEnvs []string) (string, error) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("bitrise")
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Write Gemfile to file and install
-	gemfileContent := `source 'https://rubygems.org'
-	
-gem 'xcodeproj'`
+	if gemfileContent != "" {
+		gemfilePth := path.Join(tmpDir, "Gemfile")
+		if err := fileutil.WriteStringToFile(gemfilePth, gemfileContent); err != nil {
+			return "", err
+		}
 
-	gemfilePth := path.Join(tmpDir, "Gemfile")
-	if err := fileutil.WriteStringToFile(gemfilePth, gemfileContent); err != nil {
-		return err
+		cmd := cmdex.NewCommand("bundle", "install")
+
+		if inDir != "" {
+			cmd.SetDir(inDir)
+		}
+
+		withEnvs = append(withEnvs, "BUNDLE_GEMFILE="+gemfilePth)
+		cmd.SetEnvs(withEnvs)
+
+		var outBuffer bytes.Buffer
+		outWriter := bufio.NewWriter(&outBuffer)
+		cmd.SetStdout(outWriter)
+
+		var errBuffer bytes.Buffer
+		errWriter := bufio.NewWriter(&errBuffer)
+		cmd.SetStderr(errWriter)
+
+		if err := cmd.Run(); err != nil {
+			if errorutil.IsExitStatusError(err) {
+				errMsg := ""
+				if errBuffer.String() != "" {
+					errMsg += fmt.Sprintf("error: %s\n", errBuffer.String())
+				}
+				if outBuffer.String() != "" {
+					errMsg += fmt.Sprintf("output: %s", outBuffer.String())
+				}
+				if errMsg == "" {
+					return "", err
+				}
+
+				return "", errors.New(errMsg)
+			}
+			return "", err
+		}
 	}
 
-	cmd := cmdex.NewCommand("bundle", "install")
+	// Write script to file and run
+	rubyScriptPth := path.Join(tmpDir, "script.rb")
+	if err := fileutil.WriteStringToFile(rubyScriptPth, scriptContent); err != nil {
+		return "", err
+	}
 
-	projectDir := filepath.Dir(projectPth)
-	cmd.SetDir(projectDir)
+	var cmd *cmdex.CommandModel
 
-	envs := append(os.Environ(), "BUNDLE_GEMFILE="+gemfilePth)
-	cmd.SetEnvs(envs)
+	if gemfileContent != "" {
+		cmd = cmdex.NewCommand("bundle", "exec", "ruby", rubyScriptPth)
+	} else {
+		cmd = cmdex.NewCommand("ruby", rubyScriptPth)
+	}
+
+	if inDir != "" {
+		cmd.SetDir(inDir)
+	}
+
+	if len(withEnvs) > 0 {
+		cmd.SetEnvs(withEnvs)
+	}
 
 	var outBuffer bytes.Buffer
 	outWriter := bufio.NewWriter(&outBuffer)
@@ -223,73 +269,30 @@ gem 'xcodeproj'`
 				errMsg += fmt.Sprintf("output: %s", outBuffer.String())
 			}
 			if errMsg == "" {
-				return err
+				return "", err
 			}
 
-			return errors.New(errMsg)
+			return "", errors.New(errMsg)
 		}
-		return err
+		return "", err
 	}
 
-	// Write recreate_user_schemes.rb to file and run
-	rubyScriptContent := `require 'xcodeproj'
+	return outBuffer.String(), nil
+}
 
-project_path = ENV['project_path']
+func runRubyScript(scriptContent, gemfileContent, inDir string, withEnvs []string) error {
+	_, err := runRubyScriptForOutput(scriptContent, gemfileContent, inDir, withEnvs)
+	return err
+}
 
-begin
-  raise 'empty path' if project_path.empty?
-
-  project = Xcodeproj::Project.open(project_path)
-  project.recreate_user_schemes
-  project.save
-rescue => ex
-  puts(ex.inspect.to_s)
-  puts('--- Stack trace: ---')
-  puts(ex.backtrace.to_s)
-  exit(1)
-end
-`
-
-	rubyScriptPth := path.Join(tmpDir, "recreate_user_schemes.rb")
-	if err := fileutil.WriteStringToFile(rubyScriptPth, rubyScriptContent); err != nil {
-		return err
-	}
-
-	cmd = cmdex.NewCommand("bundle", "exec", "ruby", rubyScriptPth)
-
-	cmd.SetDir(projectDir)
+// ReCreateProjectUserSchemes ....
+func ReCreateProjectUserSchemes(projectPth string) error {
+	projectDir := filepath.Dir(projectPth)
 
 	projectBase := filepath.Base(projectPth)
-	envs = append(os.Environ(), "project_path="+projectBase, "LC_ALL=en_US.UTF-8", "BUNDLE_GEMFILE="+gemfilePth)
-	cmd.SetEnvs(envs)
+	envs := append(os.Environ(), "project_path="+projectBase, "LC_ALL=en_US.UTF-8")
 
-	outBuffer.Reset()
-	outWriter = bufio.NewWriter(&outBuffer)
-	cmd.SetStdout(outWriter)
-
-	errBuffer.Reset()
-	errWriter = bufio.NewWriter(&errBuffer)
-	cmd.SetStderr(errWriter)
-
-	if err := cmd.Run(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			errMsg := ""
-			if errBuffer.String() != "" {
-				errMsg += fmt.Sprintf("error: %s\n", errBuffer.String())
-			}
-			if outBuffer.String() != "" {
-				errMsg += fmt.Sprintf("output: %s", outBuffer.String())
-			}
-			if errMsg == "" {
-				return err
-			}
-
-			return errors.New(errMsg)
-		}
-		return err
-	}
-
-	return nil
+	return runRubyScript(recreateUserSchemesRubyScriptContent, xcodeprojGemfileContent, projectDir, envs)
 }
 
 // ReCreateWorkspaceUserSchemes ...
@@ -323,6 +326,7 @@ func ProjectTargets(projectPth string) (map[string]bool, error) {
 	}
 
 	return pbxprojContentTartgets(content)
+
 }
 
 // WorkspaceTargets ...
@@ -835,6 +839,7 @@ func pbxprojContentTartgets(pbxprojContent string) (map[string]bool, error) {
 		return map[string]bool{}, err
 	}
 
+	// Add targets which has test targets
 	for _, target := range targets {
 		if path.Ext(target.productPath) == ".xctest" {
 			if len(target.dependencies) > 0 {
@@ -849,10 +854,15 @@ func pbxprojContentTartgets(pbxprojContent string) (map[string]bool, error) {
 				}
 			}
 		}
+	}
 
-		_, found := targetMap[target.name]
-		if !found {
-			targetMap[target.name] = false
+	// Add targets which has NO test targets
+	for _, target := range targets {
+		if path.Ext(target.productPath) != ".xctest" {
+			_, found := targetMap[target.name]
+			if !found {
+				targetMap[target.name] = false
+			}
 		}
 	}
 
