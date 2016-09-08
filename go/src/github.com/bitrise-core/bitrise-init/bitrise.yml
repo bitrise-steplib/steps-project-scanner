@@ -177,6 +177,302 @@ workflows:
             git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
             $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
 
+  # Scanner test with bitrise run config test
+  local_test_with_bitrise_run:
+    before_run:
+    - _install_init_tool
+    after_run:
+    - _test_ios-no-shared-schemes
+    - _test_ios-cocoapods-at-root
+    - _test_sample-apps-ios-simple-objc
+    - _test_sample-apps-android-sdk22
+    - _test_xamarin-sample-app
+    - _test_sample-apps-ios-watchkit
+    - _test_fastlane
+    - _test_sample-apps-xamarin-ios
+    - _test_android-non-executable-gradlew
+    - _test_sample-apps-xamarin-android
+
+  _test_ios-no-shared-schemes:
+    steps:
+    - script:
+        title: "Scanner test: ios-no-shared-schemes"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/ios-no-shared-schemes.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
+    - change-workdir:
+        title: Switch working dir
+        inputs:
+        - path: ./_tmp/sample-repo
+        - is_create_path: true
+    - script:
+        title: "config test"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            config=$(find ./../output -name "*.yml" -print -quit)
+            bitrise run primary --config $config
+
+  _test_ios-cocoapods-at-root:
+    steps:
+    - script:
+        title: "Scanner test: ios-cocoapods-at-root"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/ios-cocoapods-at-root.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
+    - change-workdir:
+        title: Switch working dir
+        inputs:
+        - path: ./_tmp/sample-repo
+        - is_create_path: true
+    - script:
+        title: "config test"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            config=$(find ./../output -name "*.yml" -print -quit)
+            bitrise run primary --config $config
+
+  _test_sample-apps-ios-simple-objc:
+    steps:
+    - script:
+        title: "Scanner test: sample-apps-ios-simple-objc"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
+    - change-workdir:
+        title: Switch working dir
+        inputs:
+        - path: ./_tmp/sample-repo
+        - is_create_path: true
+    - script:
+        title: "config test"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            config=$(find ./../output -name "*.yml" -print -quit)
+            bitrise run primary --config $config
+
+  _test_sample-apps-android-sdk22:
+    steps:
+    - script:
+        title: "Scanner test: sample-apps-android-sdk22"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/sample-apps-android-sdk22.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
+    - change-workdir:
+        title: Switch working dir
+        inputs:
+        - path: ./_tmp/sample-repo
+        - is_create_path: true
+    - script:
+        title: "config test"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            config=$(find ./../output -name "*.yml" -print -quit)
+            bitrise run primary --config $config
+
+  _test_xamarin-sample-app:
+    steps:
+    - script:
+        title: "Scanner test: xamarin-sample-app"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/xamarin-sample-app.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
+    - change-workdir:
+        title: Switch working dir
+        inputs:
+        - path: ./_tmp/sample-repo
+        - is_create_path: true
+    - script:
+        title: "config test"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            config=$(find ./../output -name "*.yml" -print -quit)
+            bitrise run primary --config $config
+
+  _test_sample-apps-ios-watchkit:
+    steps:
+    - script:
+        title: "Scanner test: sample-apps-ios-watchkit"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-watchkit.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
+    - change-workdir:
+        title: Switch working dir
+        inputs:
+        - path: ./_tmp/sample-repo
+        - is_create_path: true
+    - script:
+        title: "config test"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            config=$(find ./../output -name "*.yml" -print -quit)
+            bitrise run primary --config $config
+
+  _test_fastlane:
+    steps:
+    - script:
+        title: "Scanner test: fastlane"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/fastlane.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
+    - change-workdir:
+        title: Switch working dir
+        inputs:
+        - path: ./_tmp/sample-repo
+        - is_create_path: true
+    - script:
+        title: "config test"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            config=$(find ./../output -name "*.yml" -print -quit)
+            bitrise run primary --config $config
+
+  _test_sample-apps-xamarin-ios:
+    steps:
+    - script:
+        title: "Scanner test: sample-apps-xamarin-ios"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-ios.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
+    - change-workdir:
+        title: Switch working dir
+        inputs:
+        - path: ./_tmp/sample-repo
+        - is_create_path: true
+    - script:
+        title: "config test"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            config=$(find ./../output -name "*.yml" -print -quit)
+            bitrise run primary --config $config
+
+  _test_android-non-executable-gradlew:
+    steps:
+    - script:
+        title: "Scanner test: android-non-executable-gradlew"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/android-non-executable-gradlew.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
+    - change-workdir:
+        title: Switch working dir
+        inputs:
+        - path: ./_tmp/sample-repo
+        - is_create_path: true
+    - script:
+        title: "config test"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            config=$(find ./../output -name "*.yml" -print -quit)
+            bitrise run primary --config $config
+
+  _test_sample-apps-xamarin-android:
+    steps:
+    - script:
+        title: "Scanner test: sample-apps-xamarin-android"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf ./_tmp
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-android.git
+            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
+            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
+    - change-workdir:
+        title: Switch working dir
+        inputs:
+        - path: ./_tmp/sample-repo
+        - is_create_path: true
+    - script:
+        title: "config test"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            config=$(find ./../output -name "*.yml" -print -quit)
+            bitrise run primary --config $config
+
   # ----------------------------------------------------------------
   # --- workflows for Releasing
   create_release:
@@ -212,7 +508,7 @@ workflows:
         2, Export RELEASE_VERSION
         3, Create binaries
     envs:
-    - RELEASE_VERSION: 0.9.13
+    - RELEASE_VERSION: 0.9.15
     after_run:
     - _export_release_version
     - create_binaries

@@ -37,7 +37,7 @@ const (
 	cocoapodsInstallVersion = "1.5.7"
 
 	recreateUserSchemesID      = "recreate-user-schemes"
-	recreateUserSchemesVersion = "0.9.2"
+	recreateUserSchemesVersion = "0.9.4"
 
 	xcodeArchiveID      = "xcode-archive"
 	xcodeArchiveVersion = "1.9.1"
