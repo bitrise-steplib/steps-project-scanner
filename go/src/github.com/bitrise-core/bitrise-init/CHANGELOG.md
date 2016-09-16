@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.9.15)
+## Changelog (Current version: 0.9.16)
 
 -----------------
+
+### 0.9.16 (2016 Sep 16)
+
+* [56018e2] prepare for 0.9.16
+* [5038efb] ste version updates (#45)
 
 ### 0.9.15 (2016 Sep 08)
 
@@ -134,4 +139,4 @@
 
 -----------------
 
-Updated: 2016 Sep 08
+Updated: 2016 Sep 16
