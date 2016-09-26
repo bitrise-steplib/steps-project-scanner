@@ -61,6 +61,13 @@ func (command *CommandModel) SetEnvs(envs []string) *CommandModel {
 	return command
 }
 
+// AppendEnvs - appends the envs to the current os.Environ()
+// Calling this multiple times will NOT appens the envs one by one,
+// only the last "envs" set will be appended to os.Environ()!
+func (command *CommandModel) AppendEnvs(envs []string) *CommandModel {
+	return command.SetEnvs(append(os.Environ(), envs...))
+}
+
 // SetStdin ...
 func (command *CommandModel) SetStdin(in io.Reader) *CommandModel {
 	command.cmd.Stdin = in
@@ -133,12 +140,6 @@ func RunCmdAndReturnExitCode(cmd *exec.Cmd) (int, error) {
 // RunCmdAndReturnTrimmedOutput ...
 func RunCmdAndReturnTrimmedOutput(cmd *exec.Cmd) (string, error) {
 	outBytes, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	if outBytes == nil {
-		return "", nil
-	}
 	outStr := string(outBytes)
 	return strings.TrimSpace(outStr), err
 }
@@ -146,12 +147,6 @@ func RunCmdAndReturnTrimmedOutput(cmd *exec.Cmd) (string, error) {
 // RunCmdAndReturnTrimmedCombinedOutput ...
 func RunCmdAndReturnTrimmedCombinedOutput(cmd *exec.Cmd) (string, error) {
 	outBytes, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", err
-	}
-	if outBytes == nil {
-		return "", nil
-	}
 	outStr := string(outBytes)
 	return strings.TrimSpace(outStr), err
 }

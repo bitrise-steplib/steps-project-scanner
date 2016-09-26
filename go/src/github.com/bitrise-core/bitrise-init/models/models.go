@@ -7,6 +7,7 @@ import (
 
 const (
 	primaryWorkflowID = "primary"
+	deployWorkflowID  = "deploy"
 )
 
 // Warnings ...
@@ -95,6 +96,38 @@ func BitriseDataWithDefaultTriggerMapAndAppEnvsAndPrimaryWorkflowSteps(appEnvs [
 	return bitriseData
 }
 
+// DefaultBitriseConfigForIos ...
+func DefaultBitriseConfigForIos(ciSteps, deploySteps []bitriseModels.StepListItemModel) bitriseModels.BitriseDataModel {
+	workflows := map[string]bitriseModels.WorkflowModel{
+		primaryWorkflowID: bitriseModels.WorkflowModel{
+			Steps: ciSteps,
+		},
+		deployWorkflowID: bitriseModels.WorkflowModel{
+			Steps: deploySteps,
+		},
+	}
+
+	triggerMap := []bitriseModels.TriggerMapItemModel{
+		bitriseModels.TriggerMapItemModel{
+			PushBranch: "*",
+			WorkflowID: primaryWorkflowID,
+		},
+		bitriseModels.TriggerMapItemModel{
+			PullRequestSourceBranch: "*",
+			WorkflowID:              primaryWorkflowID,
+		},
+	}
+
+	bitriseData := bitriseModels.BitriseDataModel{
+		FormatVersion:        "1.3.0",
+		DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
+		TriggerMap:           triggerMap,
+		Workflows:            workflows,
+	}
+
+	return bitriseData
+}
+
 // BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps ...
 func BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps(steps []bitriseModels.StepListItemModel) bitriseModels.BitriseDataModel {
 	workflows := map[string]bitriseModels.WorkflowModel{
@@ -105,14 +138,17 @@ func BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps(steps []bitriseMode
 
 	triggerMap := []bitriseModels.TriggerMapItemModel{
 		bitriseModels.TriggerMapItemModel{
-			Pattern:              "*",
-			IsPullRequestAllowed: true,
-			WorkflowID:           primaryWorkflowID,
+			PushBranch: "*",
+			WorkflowID: primaryWorkflowID,
+		},
+		bitriseModels.TriggerMapItemModel{
+			PullRequestSourceBranch: "*",
+			WorkflowID:              primaryWorkflowID,
 		},
 	}
 
 	bitriseData := bitriseModels.BitriseDataModel{
-		FormatVersion:        "1.2.0",
+		FormatVersion:        "1.3.0",
 		DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
 		TriggerMap:           triggerMap,
 		Workflows:            workflows,

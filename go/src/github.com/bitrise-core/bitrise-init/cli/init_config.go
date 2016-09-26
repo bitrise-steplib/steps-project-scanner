@@ -136,10 +136,14 @@ func initConfig(c *cli.Context) error {
 		log.Info("+------------------------------------------------------------------------------+")
 		log.Info("|                                                                              |")
 
+		detectorWarnings := []string{}
 		detector.Configure(searchDir)
 		detected, err := detector.DetectPlatform()
 		if err != nil {
-			return fmt.Errorf("Scanner failed, error: %s", err)
+			log.Errorf("Scanner failed, error: %s", err)
+			detectorWarnings = append(detectorWarnings, err.Error())
+			projectTypeWarningMap[detectorName] = detectorWarnings
+			continue
 		}
 
 		if !detected {
@@ -149,12 +153,16 @@ func initConfig(c *cli.Context) error {
 			continue
 		}
 
-		option, warnings, err := detector.Options()
+		option, projectWarnings, err := detector.Options()
 		if err != nil {
-			return fmt.Errorf("Analyzer failed, error: %s", err)
+			log.Errorf("Analyzer failed, error: %s", err)
+			detectorWarnings = append(detectorWarnings, projectWarnings...)
+			detectorWarnings = append(detectorWarnings, err.Error())
+			projectTypeWarningMap[detectorName] = detectorWarnings
+			continue
 		}
 
-		projectTypeWarningMap[detectorName] = warnings
+		projectTypeWarningMap[detectorName] = append(detectorWarnings, projectWarnings...)
 
 		log.Debug()
 		log.Debug("Analyze result:")

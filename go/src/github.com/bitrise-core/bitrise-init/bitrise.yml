@@ -508,7 +508,7 @@ workflows:
         2, Export RELEASE_VERSION
         3, Create binaries
     envs:
-    - RELEASE_VERSION: 0.9.16
+    - RELEASE_VERSION: 0.10.0
     after_run:
     - _export_release_version
     - create_binaries
@@ -657,3 +657,28 @@ workflows:
 
             echo "ceated at: ${bin_pth}"
             envman add --key SCANNER_BIN --value $bin_pth
+
+  godeps_update:
+    title: Godeps update
+    description: |
+      Used for updating bitrise dependencies with godep
+    before_run:
+    - _prepare_and_setup
+    steps:
+    - script:
+        title: Dependency update
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -ex
+            go get -u -v github.com/tools/godep
+
+            rm -rf ./Godeps
+            rm -rf ./vendor
+
+            go get -t -d ./...
+            go get golang.org/x/sys/unix
+            go get github.com/davecgh/go-spew/spew
+            go get github.com/pmezard/go-difflib/difflib
+            go get github.com/ryanuber/go-glob
+            godep save ./...
