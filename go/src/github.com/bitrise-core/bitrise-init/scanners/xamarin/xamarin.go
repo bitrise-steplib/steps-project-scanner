@@ -393,7 +393,9 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 
 		configs, err := getSolutionConfigs(solutionFile)
 		if err != nil {
-			return models.OptionModel{}, models.Warnings{}, err
+			log.Warn("Failed to get solution configs, error: %s", err)
+			warnings = append(warnings, fmt.Sprintf("Failed to get solution (%s) configs, error: %s", solutionFile, err))
+			continue
 		}
 
 		if len(configs) > 0 {
@@ -405,64 +407,19 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 			validSolutionMap[solutionFile] = configs
 		} else {
 			log.Warn("No config found for %s", solutionFile)
+			warnings = append(warnings, fmt.Sprintf("No configs found for solution: %s", solutionFile))
 		}
 	}
 
 	if len(validSolutionMap) == 0 {
-		return models.OptionModel{}, models.Warnings{}, errors.New("No valid solution file found")
+		log.Error("No valid solution file found")
+		return models.OptionModel{}, warnings, errors.New("No valid solution file found")
 	}
 
 	// Check for solution projects
 	xamarinProjectOption := models.NewOptionModel(xamarinProjectTitle, xamarinProjectEnvKey)
 
 	for solutionFile, configMap := range validSolutionMap {
-		projects, err := getProjects(solutionFile)
-		if err != nil {
-			return models.OptionModel{}, models.Warnings{}, err
-		}
-
-		// Inspect projects
-		for _, project := range projects {
-			log.Info("  Inspecting project file: %s", project)
-
-			guids, err := getProjectGUIDs(project)
-			if err != nil {
-				return models.OptionModel{}, models.Warnings{}, err
-			}
-
-			projectType := projectType(guids)
-
-			testType, err := getProjectTestType(project)
-			if err != nil {
-				return models.OptionModel{}, models.Warnings{}, err
-			}
-
-			if testType != "" {
-				log.Details("  test project type: %s", testType)
-				continue
-			}
-
-			if projectType == "" {
-				log.Warn("  No platform api or test framework found")
-				continue
-			}
-
-			if projectType == "Xamarin.iOS" {
-				scanner.HasIosProject = true
-			} else if projectType == "Xamarin.Android" {
-				scanner.HasAndroidProject = true
-			} else if projectType == "MonoMac" || projectType == "Xamarin.Mac" {
-				scanner.HasMacProject = true
-			} else if projectType == "Xamarin.tvOS" {
-				scanner.HasTVOSProject = true
-			} else {
-				log.Warn("    Unknow project type for GUIDs: %v", guids)
-				continue
-			}
-
-			log.Details("  project type: %s", projectType)
-		}
-
 		xamarinConfigurationOption := models.NewOptionModel(xamarinConfigurationTitle, xamarinConfigurationEnvKey)
 
 		for config, platforms := range configMap {

@@ -15,18 +15,34 @@ import (
 func triggerEventType(pushBranch, prSourceBranch, prTargetBranch string) (TriggerEventType, error) {
 	if pushBranch != "" {
 		if prSourceBranch != "" {
-			return UnknownTriggerEvent, fmt.Errorf("push_branch (%s) selects code-push trigger event, but pull_request_source_branch (%s) also provided", pushBranch, prSourceBranch)
+			return TriggerEventTypeUnknown, fmt.Errorf("push_branch (%s) selects code-push trigger event, but pull_request_source_branch (%s) also provided", pushBranch, prSourceBranch)
 		}
 		if prTargetBranch != "" {
-			return UnknownTriggerEvent, fmt.Errorf("push_branch (%s) selects code-push trigger event, but pull_request_target_branch (%s) also provided", pushBranch, prTargetBranch)
+			return TriggerEventTypeUnknown, fmt.Errorf("push_branch (%s) selects code-push trigger event, but pull_request_target_branch (%s) also provided", pushBranch, prTargetBranch)
 		}
 
-		return CodePushTriggerEvent, nil
+		return TriggerEventTypeCodePush, nil
 	} else if prSourceBranch != "" || prTargetBranch != "" {
-		return PullRequestTriggerEvent, nil
+		return TriggerEventTypePullRequest, nil
 	}
 
-	return UnknownTriggerEvent, fmt.Errorf("failed to determin trigger event from params: push-branch: %s, pr-source-branch: %s, pr-target-branch: %s", pushBranch, prSourceBranch, prTargetBranch)
+	return TriggerEventTypeUnknown, fmt.Errorf("failed to determin trigger event from params: push-branch: %s, pr-source-branch: %s, pr-target-branch: %s", pushBranch, prSourceBranch, prTargetBranch)
+}
+
+func migrateDeprecatedTriggerItem(triggerItem TriggerMapItemModel) []TriggerMapItemModel {
+	migratedItems := []TriggerMapItemModel{
+		TriggerMapItemModel{
+			PushBranch: triggerItem.Pattern,
+			WorkflowID: triggerItem.WorkflowID,
+		},
+	}
+	if triggerItem.IsPullRequestAllowed {
+		migratedItems = append(migratedItems, TriggerMapItemModel{
+			PullRequestSourceBranch: triggerItem.Pattern,
+			WorkflowID:              triggerItem.WorkflowID,
+		})
+	}
+	return migratedItems
 }
 
 // MatchWithParams ...
@@ -36,20 +52,42 @@ func (triggerItem TriggerMapItemModel) MatchWithParams(pushBranch, prSourceBranc
 		return false, err
 	}
 
-	itemEventType, err := triggerEventType(triggerItem.PushBranch, triggerItem.PullRequestSourceBranch, triggerItem.PullRequestTargetBranch)
-	if err != nil {
-		return false, err
+	migratedTriggerItems := []TriggerMapItemModel{triggerItem}
+	if triggerItem.Pattern != "" {
+		migratedTriggerItems = migrateDeprecatedTriggerItem(triggerItem)
 	}
 
-	if paramsEventType != itemEventType {
-		return false, nil
-	}
+	for _, migratedTriggerItem := range migratedTriggerItems {
+		itemEventType, err := triggerEventType(migratedTriggerItem.PushBranch, migratedTriggerItem.PullRequestSourceBranch, migratedTriggerItem.PullRequestTargetBranch)
+		if err != nil {
+			return false, err
+		}
 
-	switch itemEventType {
-	case CodePushTriggerEvent:
-		return glob.Glob(triggerItem.PushBranch, pushBranch), nil
-	case PullRequestTriggerEvent:
-		return (glob.Glob(triggerItem.PullRequestSourceBranch, prSourceBranch) && glob.Glob(triggerItem.PullRequestTargetBranch, prTargetBranch)), nil
+		if paramsEventType != itemEventType {
+			continue
+		}
+
+		switch itemEventType {
+		case TriggerEventTypeCodePush:
+			match := glob.Glob(migratedTriggerItem.PushBranch, pushBranch)
+			return match, nil
+		case TriggerEventTypePullRequest:
+			sourceMatch := false
+			if migratedTriggerItem.PullRequestSourceBranch == "" {
+				sourceMatch = true
+			} else {
+				sourceMatch = glob.Glob(migratedTriggerItem.PullRequestSourceBranch, prSourceBranch)
+			}
+
+			targetMatch := false
+			if migratedTriggerItem.PullRequestTargetBranch == "" {
+				targetMatch = true
+			} else {
+				targetMatch = glob.Glob(migratedTriggerItem.PullRequestTargetBranch, prTargetBranch)
+			}
+
+			return (sourceMatch && targetMatch), nil
+		}
 	}
 
 	return false, nil
@@ -225,8 +263,10 @@ func (triggerItem TriggerMapItemModel) Validate() error {
 	if triggerItem.Pattern == "" {
 		_, err := triggerEventType(triggerItem.PushBranch, triggerItem.PullRequestSourceBranch, triggerItem.PullRequestTargetBranch)
 		if err != nil {
-			return err
+			return fmt.Errorf("trigger map item (%v) validate failed, error: %s", triggerItem, err)
 		}
+	} else if triggerItem.PushBranch != "" || triggerItem.PullRequestSourceBranch != "" || triggerItem.PullRequestTargetBranch != "" {
+		return fmt.Errorf("deprecated trigger item (pattern defined), mixed with trigger params (push_branch: %s, pull_request_source_branch: %s, pull_request_target_branch: %s)", triggerItem.PushBranch, triggerItem.PullRequestSourceBranch, triggerItem.PullRequestTargetBranch)
 	}
 
 	return nil
@@ -693,6 +733,36 @@ func CreateStepIDDataFromString(compositeVersionStr, defaultStepLibSource string
 		IDorURI:       stepIDOrURI,
 		Version:       stepVersion,
 	}, nil
+}
+
+// IsUniqueResourceID : true if this ID is a unique resource ID, which is true
+// if the ID refers to the exact same step code/data every time.
+// Practically, this is only true for steps from StepLibrary collections,
+// a local path or direct git step ID is never guaranteed to identify the
+// same resource every time, the step's behaviour can change at every execution!
+//
+// __If the ID is a Unique Resource ID then the step can be cached (locally)__,
+// as it won't change between subsequent step execution.
+func (sIDData StepIDData) IsUniqueResourceID() bool {
+	switch sIDData.SteplibSource {
+	case "path":
+		return false
+	case "git":
+		return false
+	case "_":
+		return false
+	case "":
+		return false
+	}
+
+	// in any other case, it's a StepLib URL
+	// but it's only unique if StepID and Step Version are all defined!
+	if len(sIDData.IDorURI) > 0 && len(sIDData.Version) > 0 {
+		return true
+	}
+
+	// in every other case, it's not unique, not even if it's from a StepLib
+	return false
 }
 
 // ----------------------------

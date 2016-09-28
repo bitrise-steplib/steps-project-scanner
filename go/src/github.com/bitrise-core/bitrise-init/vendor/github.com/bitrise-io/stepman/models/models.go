@@ -26,12 +26,24 @@ type DependencyModel struct {
 
 // BrewDepModel ...
 type BrewDepModel struct {
+	// Name is the package name for Brew
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+	// BinName is the binary's name, if it doesn't match the package's name.
+	// Can be used for e.g. calling `which`.
+	// E.g. in case of "AWS CLI" the package is `awscli` and the binary is `aws`.
+	// If BinName is empty Name will be used as BinName too.
+	BinName string `json:"bin_name,omitempty" yaml:"bin_name,omitempty"`
 }
 
 // AptGetDepModel ...
 type AptGetDepModel struct {
+	// Name is the package name for Apt-get
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+	// BinName is the binary's name, if it doesn't match the package's name.
+	// Can be used for e.g. calling `which`.
+	// E.g. in case of "AWS CLI" the package is `awscli` and the binary is `aws`.
+	// If BinName is empty Name will be used as BinName too.
+	BinName string `json:"bin_name,omitempty" yaml:"bin_name,omitempty"`
 }
 
 // CheckOnlyDepModel ...
@@ -44,6 +56,23 @@ type DepsModel struct {
 	Brew      []BrewDepModel      `json:"brew,omitempty" yaml:"brew,omitempty"`
 	AptGet    []AptGetDepModel    `json:"apt_get,omitempty" yaml:"apt_get,omitempty"`
 	CheckOnly []CheckOnlyDepModel `json:"check_only,omitempty" yaml:"check_only,omitempty"`
+}
+
+// BashStepToolkitModel ...
+type BashStepToolkitModel struct {
+	EntryFile string `json:"entry_file,omitempty" yaml:"entry_file,omitempty"`
+}
+
+// GoStepToolkitModel ...
+type GoStepToolkitModel struct {
+	// PackageName - required
+	PackageName string `json:"package_name" yaml:"package_name"`
+}
+
+// StepToolkitModel ...
+type StepToolkitModel struct {
+	Bash *BashStepToolkitModel `json:"bash,omitempty" yaml:"bash,omitempty"`
+	Go   *GoStepToolkitModel   `json:"go,omitempty" yaml:"go,omitempty"`
 }
 
 // StepModel ...
@@ -64,6 +93,7 @@ type StepModel struct {
 	ProjectTypeTags     []string          `json:"project_type_tags,omitempty" yaml:"project_type_tags,omitempty"`
 	TypeTags            []string          `json:"type_tags,omitempty" yaml:"type_tags,omitempty"`
 	Dependencies        []DependencyModel `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
+	Toolkit             *StepToolkitModel `json:"toolkit,omitempty" yaml:"toolkit,omitempty"`
 	Deps                DepsModel         `json:"deps,omitempty" yaml:"deps,omitempty"`
 	IsRequiresAdminUser *bool             `json:"is_requires_admin_user,omitempty" yaml:"is_requires_admin_user,omitempty"`
 	// IsAlwaysRun : if true then this step will always run,

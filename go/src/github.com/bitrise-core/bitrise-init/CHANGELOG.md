@@ -1,6 +1,13 @@
-## Changelog (Current version: 0.9.16)
+## Changelog (Current version: 0.10.0)
 
 -----------------
+
+### 0.10.0 (2016 Sep 26)
+
+* [78be37d] prepare for 0.10.0
+* [812974d] format version update to 1.3.0, trigger map format update,  (#48)
+* [1f25f6e] godeps update (#47)
+* [91e379d] Warnings (#46)
 
 ### 0.9.16 (2016 Sep 16)
 
@@ -139,4 +146,4 @@
 
 -----------------
 
-Updated: 2016 Sep 16
+Updated: 2016 Sep 26

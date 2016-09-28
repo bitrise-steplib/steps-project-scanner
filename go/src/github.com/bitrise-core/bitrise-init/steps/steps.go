@@ -40,10 +40,10 @@ const (
 	recreateUserSchemesVersion = "0.9.4"
 
 	xcodeArchiveID      = "xcode-archive"
-	xcodeArchiveVersion = "1.9.1"
+	xcodeArchiveVersion = "1.10.0"
 
 	xcodeTestID      = "xcode-test"
-	xcodeTestVersion = "1.14.1"
+	xcodeTestVersion = "1.16.0"
 
 	// Xamarin Step IDs
 	xamarinUserManagementID      = "xamarin-user-management"

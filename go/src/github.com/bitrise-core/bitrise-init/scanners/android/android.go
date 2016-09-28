@@ -2,7 +2,6 @@ package android
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
@@ -74,14 +73,14 @@ func filterRootBuildGradleFiles(fileList []string) ([]string, error) {
 
 	mindDepth, err := utility.PathDept(gradleFiles[0])
 	if err != nil {
-		return []string{}, nil
+		return []string{}, err
 	}
 
 	rootGradleFiles := []string{}
 	for _, gradleFile := range gradleFiles {
 		depth, err := utility.PathDept(gradleFile)
 		if err != nil {
-			return []string{}, nil
+			return []string{}, err
 		}
 
 		if depth == mindDepth {
@@ -105,12 +104,8 @@ func filterGradlewFiles(fileList []string) []string {
 	return fixedGradlewFiles
 }
 
-func configName(hasGradlew bool) string {
-	name := "android-"
-	if hasGradlew {
-		name = name + "gradlew-"
-	}
-	return name + "config"
+func configName() string {
+	return "android-config"
 }
 
 func defaultConfigName() string {
@@ -126,8 +121,6 @@ type Scanner struct {
 	SearchDir   string
 	FileList    []string
 	GradleFiles []string
-
-	HasGradlewFile bool
 }
 
 // Name ...
@@ -188,27 +181,13 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	rootGradlewPath := ""
 	if len(gradlewFiles) > 0 {
 		rootGradlewPath = gradlewFiles[0]
-		scanner.HasGradlewFile = true
-
 		log.Details("root gradlew path: %s", rootGradlewPath)
 	} else {
-		log.Warn("No gradlew file found")
-		warnings = append(warnings, "no gradlew file found")
+		log.Error("No gradle wrapper (gradlew) found")
+		return models.OptionModel{}, warnings, fmt.Errorf(`<b>No Gradle Wrapper (gradlew) found.</b> 
+Using a Gradle Wrapper (gradlew) is required, as the wrapper is what makes sure
+that the right Gradle version is installed and used for the build. More info/guide: <a>https://docs.gradle.org/current/userguide/gradle_wrapper.html</a>`)
 	}
-
-	gradleBin := "gradle"
-	if scanner.HasGradlewFile {
-		log.Details("adding executable permission to gradlew file")
-
-		err := os.Chmod(rootGradlewPath, 0770)
-		if err != nil {
-			return models.OptionModel{}, models.Warnings{}, fmt.Errorf("failed to add executable permission on gradlew file (%s), error: %s", rootGradlewPath, err)
-		}
-
-		gradleBin = rootGradlewPath
-	}
-
-	log.Details("gradle bin to use: %s", gradleBin)
 
 	// Inspect Gradle files
 	gradleFileOption := models.NewOptionModel(gradleFileTitle, gradleFileEnvKey)
@@ -218,25 +197,21 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 
 		configs := defaultGradleTasks
 
-		log.Details("%d gradle task(s) found", len(configs))
+		log.Details("%d gradle task(s)", len(configs))
 		for _, config := range configs {
 			log.Details("- %s", config)
 		}
 
 		gradleTaskOption := models.NewOptionModel(gradleTaskTitle, gradleTaskEnvKey)
+
 		for _, config := range configs {
-
 			configOption := models.NewEmptyOptionModel()
-			configOption.Config = configName(scanner.HasGradlewFile)
+			configOption.Config = configName()
 
-			if scanner.HasGradlewFile {
-				gradlewPathOption := models.NewOptionModel(gradlewPathTitle, gradlewPathEnvKey)
-				gradlewPathOption.ValueMap[rootGradlewPath] = configOption
+			gradlewPathOption := models.NewOptionModel(gradlewPathTitle, gradlewPathEnvKey)
+			gradlewPathOption.ValueMap[rootGradlewPath] = configOption
 
-				gradleTaskOption.ValueMap[config] = gradlewPathOption
-			} else {
-				gradleTaskOption.ValueMap[config] = configOption
-			}
+			gradleTaskOption.ValueMap[config] = gradlewPathOption
 		}
 
 		gradleFileOption.ValueMap[gradleFile] = gradleTaskOption
@@ -278,14 +253,8 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	inputs := []envmanModels.EnvironmentItemModel{
 		envmanModels.EnvironmentItemModel{gradleFileKey: "$" + gradleFileEnvKey},
 		envmanModels.EnvironmentItemModel{gradleTaskKey: "$" + gradleTaskEnvKey},
+		envmanModels.EnvironmentItemModel{gradlewPathKey: "$" + gradlewPathEnvKey},
 	}
-
-	if scanner.HasGradlewFile {
-		inputs = append(inputs, envmanModels.EnvironmentItemModel{
-			gradlewPathKey: "$" + gradlewPathEnvKey,
-		})
-	}
-
 	stepList = append(stepList, steps.GradleRunnerStepListItem(inputs))
 
 	// DeployToBitriseIo
@@ -297,7 +266,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		return models.BitriseConfigMap{}, err
 	}
 
-	configName := configName(scanner.HasGradlewFile)
+	configName := configName()
 	bitriseDataMap := models.BitriseConfigMap{
 		configName: string(data),
 	}
@@ -322,12 +291,8 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	inputs := []envmanModels.EnvironmentItemModel{
 		envmanModels.EnvironmentItemModel{gradleFileKey: "$" + gradleFileEnvKey},
 		envmanModels.EnvironmentItemModel{gradleTaskKey: "$" + gradleTaskEnvKey},
+		envmanModels.EnvironmentItemModel{gradlewPathKey: "$" + gradlewPathEnvKey},
 	}
-
-	inputs = append(inputs, envmanModels.EnvironmentItemModel{
-		gradlewPathKey: "$" + gradlewPathEnvKey,
-	})
-
 	stepList = append(stepList, steps.GradleRunnerStepListItem(inputs))
 
 	// DeployToBitriseIo
