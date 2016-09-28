@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.9.14)
+## Changelog (Current version: 0.10.0)
 
 -----------------
+
+### 0.10.0 (2016 Sep 28)
+
+* [1f73f51] prepare for 0.10.0
+* [2de3304] deps update (#19)
 
 ### 0.9.14 (2016 Sep 16)
 
@@ -84,4 +89,4 @@
 
 -----------------
 
-Updated: 2016 Sep 16
+Updated: 2016 Sep 28
