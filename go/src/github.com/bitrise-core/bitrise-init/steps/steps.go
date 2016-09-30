@@ -13,7 +13,7 @@ const (
 	activateSSHKeyVersion = "3.1.1"
 
 	gitCloneID      = "git-clone"
-	gitCloneVersion = "3.3.4"
+	gitCloneVersion = "3.4.0"
 
 	certificateAndProfileInstallerID      = "certificate-and-profile-installer"
 	certificateAndProfileInstallerVersion = "1.7.0"
@@ -26,7 +26,7 @@ const (
 
 	// Android Step IDs
 	gradleRunnerID      = "gradle-runner"
-	gradleRunnerVersion = "1.5.1"
+	gradleRunnerVersion = "1.5.2"
 
 	// Fastlane Step IDs
 	fastlaneID      = "fastlane"
@@ -43,7 +43,7 @@ const (
 	xcodeArchiveVersion = "1.10.0"
 
 	xcodeTestID      = "xcode-test"
-	xcodeTestVersion = "1.16.0"
+	xcodeTestVersion = "1.17.0"
 
 	// Xamarin Step IDs
 	xamarinUserManagementID      = "xamarin-user-management"
