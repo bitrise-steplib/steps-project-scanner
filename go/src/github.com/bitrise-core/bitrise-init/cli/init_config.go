@@ -143,7 +143,7 @@ func initConfig(c *cli.Context) error {
 			log.Errorf("Scanner failed, error: %s", err)
 			detectorWarnings = append(detectorWarnings, err.Error())
 			projectTypeWarningMap[detectorName] = detectorWarnings
-			continue
+			detected = false
 		}
 
 		if !detected {
@@ -154,15 +154,16 @@ func initConfig(c *cli.Context) error {
 		}
 
 		option, projectWarnings, err := detector.Options()
+		detectorWarnings = append(detectorWarnings, projectWarnings...)
+
 		if err != nil {
 			log.Errorf("Analyzer failed, error: %s", err)
-			detectorWarnings = append(detectorWarnings, projectWarnings...)
 			detectorWarnings = append(detectorWarnings, err.Error())
 			projectTypeWarningMap[detectorName] = detectorWarnings
 			continue
 		}
 
-		projectTypeWarningMap[detectorName] = append(detectorWarnings, projectWarnings...)
+		projectTypeWarningMap[detectorName] = detectorWarnings
 
 		log.Debug()
 		log.Debug("Analyze result:")

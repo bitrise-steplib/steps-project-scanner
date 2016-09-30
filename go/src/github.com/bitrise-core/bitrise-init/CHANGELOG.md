@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.10.0)
+## Changelog (Current version: 0.10.1)
 
 -----------------
+
+### 0.10.1 (2016 Sep 30)
+
+* [b3f7924] prepare for 1.10.1
+* [4fdad80] step versions (#49)
 
 ### 0.10.0 (2016 Sep 26)
 
@@ -146,4 +151,4 @@
 
 -----------------
 
-Updated: 2016 Sep 26
+Updated: 2016 Sep 30
