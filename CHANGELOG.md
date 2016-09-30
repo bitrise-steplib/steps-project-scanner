@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.10.0)
+## Changelog (Current version: 0.10.1)
 
 -----------------
+
+### 0.10.1 (2016 Sep 30)
+
+* [0d6b528] prepare for 0.10.1
+* [1798c43] depman update (#20)
 
 ### 0.10.0 (2016 Sep 28)
 
@@ -89,4 +94,4 @@
 
 -----------------
 
-Updated: 2016 Sep 28
+Updated: 2016 Sep 30
