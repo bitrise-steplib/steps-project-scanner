@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.10.1)
+## Changelog (Current version: 0.11.0)
 
 -----------------
+
+### 0.11.0 (2016 Oct 11)
+
+* [02f7b1b] prepare for 0.11.0
+* [1d5dd5b] scanner update (#21)
 
 ### 0.10.1 (2016 Sep 30)
 
@@ -94,4 +99,4 @@
 
 -----------------
 
-Updated: 2016 Sep 30
+Updated: 2016 Oct 11
