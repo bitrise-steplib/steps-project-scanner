@@ -52,8 +52,8 @@ func (format Format) String() string {
 	return "unknown"
 }
 
-// Print ...
-func Print(a interface{}, format Format, pth string) error {
+// WriteToFile ...
+func WriteToFile(a interface{}, format Format, pth string) (string, error) {
 	str := ""
 	ext := ""
 
@@ -64,29 +64,55 @@ func Print(a interface{}, format Format, pth string) error {
 	case JSONFormat:
 		bytes, err := json.MarshalIndent(a, "", "\t")
 		if err != nil {
-			return err
+			return "", err
 		}
 		str = string(bytes)
 		ext = ".json"
 	case YAMLFormat:
 		bytes, err := yaml.Marshal(a)
 		if err != nil {
-			return err
+			return "", err
 		}
 		str = string(bytes)
 		ext = ".yml"
 	default:
-		return fmt.Errorf("not a valid format: %s", format)
+		return "", fmt.Errorf("not a valid format: %s", format)
 	}
 
-	if pth != "" {
-		fileExt := filepath.Ext(pth)
-		if fileExt != "" {
-			pth = strings.TrimSuffix(pth, fileExt)
-		}
-		pth = pth + ext
+	fileExt := filepath.Ext(pth)
+	if fileExt != "" {
+		pth = strings.TrimSuffix(pth, fileExt)
+	}
+	pth = pth + ext
 
-		return fileutil.WriteStringToFile(pth, str)
+	if err := fileutil.WriteStringToFile(pth, str); err != nil {
+		return "", err
+	}
+
+	return pth, nil
+}
+
+// Print ...
+func Print(a interface{}, format Format, pth string) error {
+	str := ""
+
+	switch format {
+	case RawFormat:
+		str = fmt.Sprint(a)
+	case JSONFormat:
+		bytes, err := json.MarshalIndent(a, "", "\t")
+		if err != nil {
+			return err
+		}
+		str = string(bytes)
+	case YAMLFormat:
+		bytes, err := yaml.Marshal(a)
+		if err != nil {
+			return err
+		}
+		str = string(bytes)
+	default:
+		return fmt.Errorf("not a valid format: %s", format)
 	}
 
 	fmt.Println(str)

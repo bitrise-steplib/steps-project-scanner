@@ -8,6 +8,7 @@ trigger_map:
 
 app:
   envs:
+  - BIN_VERSION: 0.11.0
   - BIN_NAME: bitrise-init
 
 workflows:
@@ -476,41 +477,13 @@ workflows:
   # ----------------------------------------------------------------
   # --- workflows for Releasing
   create_release:
-    title: Create Release with auto version bump
-    description: |
-        Creates new version with auto patch version bump based on last git version tag
-
-        1, Create CHANGELOG and git release
-        2, Export RELEASE_VERSION
-        3, Create binaries
-    after_run:
-    - _export_release_version
-    - create_binaries
-    steps:
-    - script:
-        title: Create CHANGELOG and git release
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -e
-
-            export CI=true
-            releaseman create \
-              --bump-version patch \
-              --set-version-script "bash _scripts/set_version.sh version/version.go"
-
-  create_release_version:
     title: Create Release version
     description: |
-        Creates new version with specified RELEASE_VERSION environment
+        Creates new version with specified $BIN_VERSION environment
 
         1, Create CHANGELOG and git release
-        2, Export RELEASE_VERSION
-        3, Create binaries
-    envs:
-    - RELEASE_VERSION: 0.10.1
+        2, Create binaries
     after_run:
-    - _export_release_version
     - create_binaries
     steps:
     - script:
@@ -522,25 +495,8 @@ workflows:
 
             export CI=true
             releaseman create \
-              --version $RELEASE_VERSION \
+              --version $BIN_VERSION \
               --set-version-script "bash _scripts/set_version.sh version/version.go"
-
-  _export_release_version:
-    title: Export release version
-    description: |
-        Exports RELEASE_VERSION from ./version/version.go
-    steps:
-    - script:
-        title: Export RELEASE_VERSION
-        inputs:
-        - content: |
-            #!/bin/bash
-            set -e
-
-            RELEASE_VERSION=$(go run _scripts/get_version.go -file ./version/version.go)
-            echo "RELEASE_VERSION: $RELEASE_VERSION"
-
-            envman add --key RELEASE_VERSION --value $RELEASE_VERSION
 
   create_binaries:
     title: Create binaries
