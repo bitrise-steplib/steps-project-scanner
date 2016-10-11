@@ -216,10 +216,11 @@ func initConfig(c *cli.Context) error {
 		}
 
 		pth := path.Join(outputDir, "result")
-		if err := output.Print(scanResult, format, pth); err != nil {
+		outputPth, err := output.WriteToFile(scanResult, format, pth)
+		if err != nil {
 			return fmt.Errorf("Failed to print result, error: %s", err)
 		}
-		log.Infof("  scan result: %s", colorstring.Blue(pth))
+		log.Infof("  scan result: %s", colorstring.Blue(outputPth))
 
 		return nil
 	}
@@ -306,10 +307,11 @@ func initConfig(c *cli.Context) error {
 
 		// Write config to file
 		pth := path.Join(platformOutputDir, configPth)
-		if err := output.Print(config, format, pth); err != nil {
+		outputPth, err := output.WriteToFile(config, format, pth)
+		if err != nil {
 			return fmt.Errorf("Failed to print result, error: %s", err)
 		}
-		log.Infof("  bitrise.yml template: %s", colorstring.Blue(pth))
+		log.Infof("  bitrise.yml template: %s", colorstring.Blue(outputPth))
 		fmt.Println()
 	}
 

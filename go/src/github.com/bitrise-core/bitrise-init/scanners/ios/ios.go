@@ -684,6 +684,14 @@ func generateConfig(hasPodfile, hasTest, missingSharedSchemes bool) bitriseModel
 	// Deploy steps
 	deploySteps := append([]bitriseModels.StepListItemModel{}, prepareSteps...)
 
+	if hasTest {
+		// XcodeTest
+		deploySteps = append(deploySteps, steps.XcodeTestStepListItem([]envmanModels.EnvironmentItemModel{
+			envmanModels.EnvironmentItemModel{projectPathKey: "$" + projectPathEnvKey},
+			envmanModels.EnvironmentItemModel{schemeKey: "$" + schemeEnvKey},
+		}))
+	}
+
 	// XcodeArchive
 	deploySteps = append(deploySteps, steps.XcodeArchiveStepListItem([]envmanModels.EnvironmentItemModel{
 		envmanModels.EnvironmentItemModel{projectPathKey: "$" + projectPathEnvKey},
@@ -767,6 +775,12 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	//
 	// Deploy steps
 	deploySteps := append([]bitriseModels.StepListItemModel{}, prepareSteps...)
+
+	// XcodeTest
+	deploySteps = append(deploySteps, steps.XcodeTestStepListItem([]envmanModels.EnvironmentItemModel{
+		envmanModels.EnvironmentItemModel{projectPathKey: "$" + projectPathEnvKey},
+		envmanModels.EnvironmentItemModel{schemeKey: "$" + schemeEnvKey},
+	}))
 
 	// XcodeArchive
 	deploySteps = append(deploySteps, steps.XcodeArchiveStepListItem([]envmanModels.EnvironmentItemModel{

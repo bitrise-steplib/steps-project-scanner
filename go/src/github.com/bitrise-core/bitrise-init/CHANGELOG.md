@@ -1,6 +1,13 @@
-## Changelog (Current version: 0.10.1)
+## Changelog (Current version: 0.11.0)
 
 -----------------
+
+### 0.11.0 (2016 Oct 11)
+
+* [5544b87] prepare for 0.11.0
+* [a828292] godeps update (#51)
+* [33ed07c] bitrise.yml update
+* [64db30a] Deploy fix (#50)
 
 ### 0.10.1 (2016 Sep 30)
 
@@ -151,4 +158,4 @@
 
 -----------------
 
-Updated: 2016 Sep 30
+Updated: 2016 Oct 11
