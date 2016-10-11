@@ -3,7 +3,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  - STEP_VERSION: 0.10.1
+  - STEP_VERSION: 0.11.0
 
   # define these in your .bitrise.secrets.yml
   - BITRISE_SCAN_RESULT_POST_URL: $BITRISE_SCAN_RESULT_POST_URL
