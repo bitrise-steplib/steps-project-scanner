@@ -51,16 +51,16 @@ const (
 )
 
 const (
-	xamarinProjectKey    = "xamarin_project"
-	xamarinProjectTitle  = "Path to Xamarin Solution"
-	xamarinProjectEnvKey = "BITRISE_PROJECT_PATH"
+	xamarinSolutionKey    = "xamarin_solution"
+	xamarinSolutionTitle  = "Path to the Xamarin Solution file"
+	xamarinSolutionEnvKey = "BITRISE_PROJECT_PATH"
 
 	xamarinConfigurationKey    = "xamarin_configuration"
-	xamarinConfigurationTitle  = "Xamarin project configuration"
+	xamarinConfigurationTitle  = "Xamarin solution configuration"
 	xamarinConfigurationEnvKey = "BITRISE_XAMARIN_CONFIGURATION"
 
 	xamarinPlatformKey    = "xamarin_platform"
-	xamarinPlatformTitle  = "Xamarin platform"
+	xamarinPlatformTitle  = "Xamarin solution platform"
 	xamarinPlatformEnvKey = "BITRISE_XAMARIN_PLATFORM"
 
 	xamarinIosLicenceKey   = "xamarin_ios_license"
@@ -417,7 +417,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	}
 
 	// Check for solution projects
-	xamarinProjectOption := models.NewOptionModel(xamarinProjectTitle, xamarinProjectEnvKey)
+	xamarinSolutionOption := models.NewOptionModel(xamarinSolutionTitle, xamarinSolutionEnvKey)
 
 	for solutionFile, configMap := range validSolutionMap {
 		xamarinConfigurationOption := models.NewOptionModel(xamarinConfigurationTitle, xamarinConfigurationEnvKey)
@@ -434,10 +434,10 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 			xamarinConfigurationOption.ValueMap[config] = xamarinPlatformOption
 		}
 
-		xamarinProjectOption.ValueMap[solutionFile] = xamarinConfigurationOption
+		xamarinSolutionOption.ValueMap[solutionFile] = xamarinConfigurationOption
 	}
 
-	return xamarinProjectOption, warnings, nil
+	return xamarinSolutionOption, warnings, nil
 }
 
 // DefaultOptions ...
@@ -445,15 +445,15 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 	configOption := models.NewEmptyOptionModel()
 	configOption.Config = defaultConfigName()
 
-	xamarinProjectOption := models.NewOptionModel(xamarinProjectTitle, xamarinProjectEnvKey)
+	xamarinSolutionOption := models.NewOptionModel(xamarinSolutionTitle, xamarinSolutionEnvKey)
 	xamarinConfigurationOption := models.NewOptionModel(xamarinConfigurationTitle, xamarinConfigurationEnvKey)
 	xamarinPlatformOption := models.NewOptionModel(xamarinPlatformTitle, xamarinPlatformEnvKey)
 
 	xamarinPlatformOption.ValueMap["_"] = configOption
 	xamarinConfigurationOption.ValueMap["_"] = xamarinPlatformOption
-	xamarinProjectOption.ValueMap["_"] = xamarinConfigurationOption
+	xamarinSolutionOption.ValueMap["_"] = xamarinConfigurationOption
 
-	return xamarinProjectOption
+	return xamarinSolutionOption
 }
 
 // Configs ...
@@ -496,14 +496,14 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		stepList = append(stepList, steps.XamarinComponentsRestoreStepListItem())
 	}
 
-	// XamarinBuilder
+	// XamarinArchive
 	inputs = []envmanModels.EnvironmentItemModel{
-		envmanModels.EnvironmentItemModel{xamarinProjectKey: "$" + xamarinProjectEnvKey},
+		envmanModels.EnvironmentItemModel{xamarinSolutionKey: "$" + xamarinSolutionEnvKey},
 		envmanModels.EnvironmentItemModel{xamarinConfigurationKey: "$" + xamarinConfigurationEnvKey},
 		envmanModels.EnvironmentItemModel{xamarinPlatformKey: "$" + xamarinPlatformEnvKey},
 	}
 
-	stepList = append(stepList, steps.XamarinBuilderStepListItem(inputs))
+	stepList = append(stepList, steps.XamarinArchiveStepListItem(inputs))
 
 	// DeployToBitriseIo
 	stepList = append(stepList, steps.DeployToBitriseIoStepListItem())
@@ -548,14 +548,14 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	// XamarinComponentsRestore
 	stepList = append(stepList, steps.XamarinComponentsRestoreStepListItem())
 
-	// XamarinBuilder
+	// XamarinArchive
 	inputs = []envmanModels.EnvironmentItemModel{
-		envmanModels.EnvironmentItemModel{xamarinProjectKey: "$" + xamarinProjectEnvKey},
+		envmanModels.EnvironmentItemModel{xamarinSolutionKey: "$" + xamarinSolutionEnvKey},
 		envmanModels.EnvironmentItemModel{xamarinConfigurationKey: "$" + xamarinConfigurationEnvKey},
 		envmanModels.EnvironmentItemModel{xamarinPlatformKey: "$" + xamarinPlatformEnvKey},
 	}
 
-	stepList = append(stepList, steps.XamarinBuilderStepListItem(inputs))
+	stepList = append(stepList, steps.XamarinArchiveStepListItem(inputs))
 
 	// DeployToBitriseIo
 	stepList = append(stepList, steps.DeployToBitriseIoStepListItem())

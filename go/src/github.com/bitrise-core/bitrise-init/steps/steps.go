@@ -13,10 +13,10 @@ const (
 	activateSSHKeyVersion = "3.1.1"
 
 	gitCloneID      = "git-clone"
-	gitCloneVersion = "3.4.0"
+	gitCloneVersion = "3.4.1"
 
 	certificateAndProfileInstallerID      = "certificate-and-profile-installer"
-	certificateAndProfileInstallerVersion = "1.7.0"
+	certificateAndProfileInstallerVersion = "1.8.1"
 
 	deployToBitriseIoID      = "deploy-to-bitrise-io"
 	deployToBitriseIoVersion = "1.2.5"
@@ -50,13 +50,13 @@ const (
 	xamarinUserManagementVersion = "1.0.3"
 
 	nugetRestoreID      = "nuget-restore"
-	nugetRestoreVersion = "0.9.3"
+	nugetRestoreVersion = "1.0.1"
 
 	xamarinComponentsRestoreID      = "xamarin-components-restore"
 	xamarinComponentsRestoreVersion = "0.9.0"
 
-	xamarinBuilderID      = "xamarin-builder"
-	xamarinBuilderVersion = "1.4.1"
+	xamarinArchiveID      = "xamarin-archive"
+	xamarinArchiveVersion = "1.1.0"
 )
 
 func stepIDComposite(ID, version string) string {
@@ -186,8 +186,8 @@ func XamarinComponentsRestoreStepListItem() bitrise.StepListItemModel {
 	return stepListItem(stepIDComposite, "", "", nil)
 }
 
-// XamarinBuilderStepListItem ...
-func XamarinBuilderStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(xamarinBuilderID, xamarinBuilderVersion)
+// XamarinArchiveStepListItem ...
+func XamarinArchiveStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
+	stepIDComposite := stepIDComposite(xamarinArchiveID, xamarinArchiveVersion)
 	return stepListItem(stepIDComposite, "", "", inputs)
 }

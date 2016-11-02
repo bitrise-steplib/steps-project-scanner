@@ -1,6 +1,12 @@
-## Changelog (Current version: 0.11.0)
+## Changelog (Current version: 0.11.1)
 
 -----------------
+
+### 0.11.1 (2016 Nov 02)
+
+* [ea4f563] workflow refractors
+* [35590f0] prepare for 0.11.1
+* [03a8785] bump format version to 1.3.1, use xamarin-archive step instead of xam… (#52)
 
 ### 0.11.0 (2016 Oct 11)
 
@@ -158,4 +164,4 @@
 
 -----------------
 
-Updated: 2016 Oct 11
+Updated: 2016 Nov 02
