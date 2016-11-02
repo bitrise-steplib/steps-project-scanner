@@ -86,7 +86,7 @@ func BitriseDataWithDefaultTriggerMapAndAppEnvsAndPrimaryWorkflowSteps(appEnvs [
 	}
 
 	bitriseData := bitriseModels.BitriseDataModel{
-		FormatVersion:        "1.2.0",
+		FormatVersion:        "1.3.1",
 		DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
 		TriggerMap:           triggerMap,
 		Workflows:            workflows,

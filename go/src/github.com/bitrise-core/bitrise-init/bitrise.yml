@@ -8,8 +8,7 @@ trigger_map:
 
 app:
   envs:
-  - BIN_VERSION: 0.11.0
-  - BIN_NAME: bitrise-init
+  - RELEASE_VERSION: 0.11.1
 
 workflows:
   # ----------------------------------------------------------------
@@ -476,15 +475,15 @@ workflows:
 
   # ----------------------------------------------------------------
   # --- workflows for Releasing
-  create_release:
+  create-release:
     title: Create Release version
     description: |
-        Creates new version with specified $BIN_VERSION environment
+        Creates new version with specified $RELEASE_VERSION environment
 
         1, Create CHANGELOG and git release
         2, Create binaries
     after_run:
-    - create_binaries
+    - create-binaries
     steps:
     - script:
         title: Create CHANGELOG and git release
@@ -495,10 +494,10 @@ workflows:
 
             export CI=true
             releaseman create \
-              --version $BIN_VERSION \
+              --version $RELEASE_VERSION \
               --set-version-script "bash _scripts/set_version.sh version/version.go"
 
-  create_binaries:
+  create-binaries:
     title: Create binaries
     description: |
         Creates Linux and Darwin binaries
@@ -510,6 +509,8 @@ workflows:
             #!/bin/bash
             set -e
             set -x
+
+            BIN_NAME="bitrise-init"
 
             echo
             echo "Create final binaries"
@@ -614,7 +615,7 @@ workflows:
             echo "ceated at: ${bin_pth}"
             envman add --key SCANNER_BIN --value $bin_pth
 
-  godeps_update:
+  godeps-update:
     title: Godeps update
     description: |
       Used for updating bitrise dependencies with godep
