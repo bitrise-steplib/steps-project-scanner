@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.11.1)
+## Changelog (Current version: 0.11.2)
 
 -----------------
+
+### 0.11.2 (2016 Nov 09)
+
+* [b4c667b] prepare for 1.11.2
+* [6806caa] update android extra packages (#23)
 
 ### 0.11.1 (2016 Nov 02)
 
@@ -104,4 +109,4 @@
 
 -----------------
 
-Updated: 2016 Nov 02
+Updated: 2016 Nov 09
