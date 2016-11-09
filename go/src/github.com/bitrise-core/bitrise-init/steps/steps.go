@@ -56,7 +56,7 @@ const (
 	xamarinComponentsRestoreVersion = "0.9.0"
 
 	xamarinArchiveID      = "xamarin-archive"
-	xamarinArchiveVersion = "1.1.0"
+	xamarinArchiveVersion = "1.1.1"
 )
 
 // TemplateScriptStepTitiel ...
