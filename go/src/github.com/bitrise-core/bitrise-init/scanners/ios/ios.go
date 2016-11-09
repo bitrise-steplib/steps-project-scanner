@@ -646,7 +646,7 @@ func generateConfig(hasPodfile, hasTest, missingSharedSchemes bool) bitriseModel
 	prepareSteps = append(prepareSteps, steps.GitCloneStepListItem())
 
 	// Script
-	prepareSteps = append(prepareSteps, steps.ScriptSteplistItem())
+	prepareSteps = append(prepareSteps, steps.ScriptSteplistItem(steps.TemplateScriptStepTitiel))
 
 	// CertificateAndProfileInstaller
 	prepareSteps = append(prepareSteps, steps.CertificateAndProfileInstallerStepListItem())
@@ -744,7 +744,7 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	prepareSteps = append(prepareSteps, steps.GitCloneStepListItem())
 
 	// Script
-	prepareSteps = append(prepareSteps, steps.ScriptSteplistItem())
+	prepareSteps = append(prepareSteps, steps.ScriptSteplistItem(steps.TemplateScriptStepTitiel))
 
 	// CertificateAndProfileInstaller
 	prepareSteps = append(prepareSteps, steps.CertificateAndProfileInstallerStepListItem())

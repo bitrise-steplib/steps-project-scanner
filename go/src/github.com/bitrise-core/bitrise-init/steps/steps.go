@@ -56,8 +56,11 @@ const (
 	xamarinComponentsRestoreVersion = "0.9.0"
 
 	xamarinArchiveID      = "xamarin-archive"
-	xamarinArchiveVersion = "1.1.0"
+	xamarinArchiveVersion = "1.1.1"
 )
+
+// TemplateScriptStepTitiel ...
+const TemplateScriptStepTitiel = "Do anything with Script step"
 
 func stepIDComposite(ID, version string) string {
 	return ID + "@" + version
@@ -110,9 +113,9 @@ func DeployToBitriseIoStepListItem() bitrise.StepListItemModel {
 }
 
 // ScriptSteplistItem ...
-func ScriptSteplistItem() bitrise.StepListItemModel {
+func ScriptSteplistItem(title string, inputs ...envman.EnvironmentItemModel) bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(scriptID, scriptVersion)
-	return stepListItem(stepIDComposite, "Do anything with Script step", "", nil)
+	return stepListItem(stepIDComposite, title, "", inputs)
 }
 
 //------------------------
