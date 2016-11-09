@@ -39,6 +39,24 @@ const (
 	gradlewPathKey    = "gradlew_path"
 	gradlewPathTitle  = "Gradlew file path"
 	gradlewPathEnvKey = "GRADLEW_PATH"
+
+	scriptContentKey = "content"
+)
+
+const (
+	updateAndroidExtraPackagesScriptContent = `#!/bin/bash
+set -ex
+
+echo y | android update sdk --no-ui --all --filter platform-tools | grep 'package installed'
+
+echo y | android update sdk --no-ui --all --filter extra-android-support | grep 'package installed'
+echo y | android update sdk --no-ui --all --filter extra-android-m2repository | grep 'package installed'
+
+echo y | android update sdk --no-ui --all --filter extra-google-google_play_services | grep 'package installed'
+echo y | android update sdk --no-ui --all --filter extra-google-m2repository | grep 'package installed'
+`
+
+	updateAndroidExtraPackagesScriptTite = "Update Android Extra packages"
 )
 
 var defaultGradleTasks = []string{
@@ -247,7 +265,12 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	stepList = append(stepList, steps.GitCloneStepListItem())
 
 	// Script
-	stepList = append(stepList, steps.ScriptSteplistItem())
+	stepList = append(stepList, steps.ScriptSteplistItem(steps.TemplateScriptStepTitiel))
+
+	// Script - Update unversioned main android packages
+	stepList = append(stepList, steps.ScriptSteplistItem(updateAndroidExtraPackagesScriptTite, envmanModels.EnvironmentItemModel{
+		scriptContentKey: updateAndroidExtraPackagesScriptContent,
+	}))
 
 	// GradleRunner
 	inputs := []envmanModels.EnvironmentItemModel{
@@ -285,7 +308,12 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	stepList = append(stepList, steps.GitCloneStepListItem())
 
 	// Script
-	stepList = append(stepList, steps.ScriptSteplistItem())
+	stepList = append(stepList, steps.ScriptSteplistItem(steps.TemplateScriptStepTitiel))
+
+	// Script - Update unversioned main android packages
+	stepList = append(stepList, steps.ScriptSteplistItem(updateAndroidExtraPackagesScriptTite, envmanModels.EnvironmentItemModel{
+		scriptContentKey: updateAndroidExtraPackagesScriptContent,
+	}))
 
 	// GradleRunner
 	inputs := []envmanModels.EnvironmentItemModel{
