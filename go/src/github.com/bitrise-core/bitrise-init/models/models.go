@@ -6,22 +6,12 @@ import (
 )
 
 const (
-	primaryWorkflowID = "primary"
-	deployWorkflowID  = "deploy"
+	// FormatVersion ...
+	FormatVersion        = "1.3.1"
+	defaultSteplibSource = "https://github.com/bitrise-io/bitrise-steplib.git"
+	primaryWorkflowID    = "primary"
+	deployWorkflowID     = "deploy"
 )
-
-// Warnings ...
-type Warnings []string
-
-// ScanResultModel ...
-type ScanResultModel struct {
-	OptionsMap  map[string]OptionModel      `json:"options,omitempty" yaml:"options,omitempty"`
-	ConfigsMap  map[string]BitriseConfigMap `json:"configs,omitempty" yaml:"configs,omitempty"`
-	WarningsMap map[string]Warnings         `json:"warnings,omitempty" yaml:"warnings,omitempty"`
-}
-
-// OptionValueMap ...
-type OptionValueMap map[string]OptionModel
 
 // OptionModel ...
 type OptionModel struct {
@@ -32,8 +22,21 @@ type OptionModel struct {
 	Config   string         `json:"config,omitempty"  yaml:"config,omitempty"`
 }
 
+// OptionValueMap ...
+type OptionValueMap map[string]OptionModel
+
 // BitriseConfigMap ...
 type BitriseConfigMap map[string]string
+
+// Warnings ...
+type Warnings []string
+
+// ScanResultModel ...
+type ScanResultModel struct {
+	OptionsMap  map[string]OptionModel      `json:"options,omitempty" yaml:"options,omitempty"`
+	ConfigsMap  map[string]BitriseConfigMap `json:"configs,omitempty" yaml:"configs,omitempty"`
+	WarningsMap map[string]Warnings         `json:"warnings,omitempty" yaml:"warnings,omitempty"`
+}
 
 // NewOptionModel ...
 func NewOptionModel(title, envKey string) OptionModel {
@@ -65,8 +68,8 @@ func (option OptionModel) GetValues() []string {
 	return values
 }
 
-// BitriseDataWithDefaultTriggerMapAndAppEnvsAndPrimaryWorkflowSteps ...
-func BitriseDataWithDefaultTriggerMapAndAppEnvsAndPrimaryWorkflowSteps(appEnvs []envmanModels.EnvironmentItemModel, steps []bitriseModels.StepListItemModel) bitriseModels.BitriseDataModel {
+// BitriseDataWithCIWorkflow ...
+func BitriseDataWithCIWorkflow(appEnvs []envmanModels.EnvironmentItemModel, steps []bitriseModels.StepListItemModel) bitriseModels.BitriseDataModel {
 	workflows := map[string]bitriseModels.WorkflowModel{
 		primaryWorkflowID: bitriseModels.WorkflowModel{
 			Steps: steps,
@@ -86,8 +89,8 @@ func BitriseDataWithDefaultTriggerMapAndAppEnvsAndPrimaryWorkflowSteps(appEnvs [
 	}
 
 	bitriseData := bitriseModels.BitriseDataModel{
-		FormatVersion:        "1.3.1",
-		DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
+		FormatVersion:        FormatVersion,
+		DefaultStepLibSource: defaultSteplibSource,
 		TriggerMap:           triggerMap,
 		Workflows:            workflows,
 		App:                  app,
@@ -96,8 +99,8 @@ func BitriseDataWithDefaultTriggerMapAndAppEnvsAndPrimaryWorkflowSteps(appEnvs [
 	return bitriseData
 }
 
-// DefaultBitriseConfigForIos ...
-func DefaultBitriseConfigForIos(ciSteps, deploySteps []bitriseModels.StepListItemModel) bitriseModels.BitriseDataModel {
+// BitriseDataWithCIAndCDWorkflow ...
+func BitriseDataWithCIAndCDWorkflow(appEnvs []envmanModels.EnvironmentItemModel, ciSteps, deploySteps []bitriseModels.StepListItemModel) bitriseModels.BitriseDataModel {
 	workflows := map[string]bitriseModels.WorkflowModel{
 		primaryWorkflowID: bitriseModels.WorkflowModel{
 			Steps: ciSteps,
@@ -118,40 +121,16 @@ func DefaultBitriseConfigForIos(ciSteps, deploySteps []bitriseModels.StepListIte
 		},
 	}
 
-	bitriseData := bitriseModels.BitriseDataModel{
-		FormatVersion:        "1.3.0",
-		DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
-		TriggerMap:           triggerMap,
-		Workflows:            workflows,
-	}
-
-	return bitriseData
-}
-
-// BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps ...
-func BitriseDataWithDefaultTriggerMapAndPrimaryWorkflowSteps(steps []bitriseModels.StepListItemModel) bitriseModels.BitriseDataModel {
-	workflows := map[string]bitriseModels.WorkflowModel{
-		primaryWorkflowID: bitriseModels.WorkflowModel{
-			Steps: steps,
-		},
-	}
-
-	triggerMap := []bitriseModels.TriggerMapItemModel{
-		bitriseModels.TriggerMapItemModel{
-			PushBranch: "*",
-			WorkflowID: primaryWorkflowID,
-		},
-		bitriseModels.TriggerMapItemModel{
-			PullRequestSourceBranch: "*",
-			WorkflowID:              primaryWorkflowID,
-		},
+	app := bitriseModels.AppModel{
+		Environments: appEnvs,
 	}
 
 	bitriseData := bitriseModels.BitriseDataModel{
-		FormatVersion:        "1.3.0",
-		DefaultStepLibSource: "https://github.com/bitrise-io/bitrise-steplib.git",
+		FormatVersion:        FormatVersion,
+		DefaultStepLibSource: defaultSteplibSource,
 		TriggerMap:           triggerMap,
 		Workflows:            workflows,
+		App:                  app,
 	}
 
 	return bitriseData

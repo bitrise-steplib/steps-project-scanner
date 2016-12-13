@@ -1,10 +1,5 @@
-format_version: 1.2.0
+format_version: 1.3.1
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-
-trigger_map:
-- pattern: "*"
-  is_pull_request_allowed: true
-  workflow: ci
 
 app:
   envs:
@@ -19,7 +14,10 @@ workflows:
     before_run:
     - _prepare_and_setup
     after_run:
-    - test
+    - go-test
+    - integration-test
+
+  go-test:
     steps:
     - script:
         title: Print go environment
@@ -60,418 +58,79 @@ workflows:
         inputs:
         - content: go test ./...
 
-  test:
-    title: Bitrise Init Test
-    description: Bitrise Init Test
-    before_run:
-    - _install_init_tool
+  integration-test:
     steps:
     - script:
-        title: "Scanner test: ios-no-shared-schemes"
+        title: Go build
         inputs:
         - content: |-
             #!/bin/bash
-            set -x
+            set -ex
 
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/ios-no-shared-schemes.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
+            # build the new bitrise
+            current_dir=$(pwd)
+            current_bitrise_init=$current_dir/_tmp/ci-bin
+            go build -o $current_bitrise_init
+
+            envman add --key CURRENT_BITRISE_INIT --value $current_bitrise_init
     - script:
-        title: "Scanner test: ios-cocoapods-at-root"
+        title: Run integration tests
         inputs:
         - content: |-
             #!/bin/bash
-            set -x
+            echo "Running integration tests ..."
+            set -ex
 
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/ios-cocoapods-at-root.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
-    - script:
-        title: "Scanner test: sample-apps-ios-simple-objc"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
+            export INTEGRATION_TEST_BINARY_PATH="$CURRENT_BITRISE_INIT"
+            go test ./_tests/integration/...
 
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
-    - script:
-        title: "Scanner test: sample-apps-android-sdk22"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/sample-apps-android-sdk22.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
-    - script:
-        title: "Scanner test: xamarin-sample-app"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/xamarin-sample-app.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
-    - script:
-        title: "Scanner test: sample-apps-ios-watchkit"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-watchkit.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
-    - script:
-        title: "Scanner test: fastlane"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/fastlane.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
-    - script:
-        title: "Scanner test: sample-apps-xamarin-ios"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-ios.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
-    - script:
-        title: "Scanner test: android-non-executable-gradlew"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/android-non-executable-gradlew.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
-    - script:
-        title: "Scanner test: sample-apps-xamarin-android"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-android.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN --ci config --dir ./_tmp/sample-repo --output-dir ./_tmp/output --format json
-
-  # Scanner test with bitrise run config test
-  local_test_with_bitrise_run:
-    before_run:
-    - _install_init_tool
-    after_run:
-    - _test_ios-no-shared-schemes
-    - _test_ios-cocoapods-at-root
-    - _test_sample-apps-ios-simple-objc
-    - _test_sample-apps-android-sdk22
-    - _test_xamarin-sample-app
-    - _test_sample-apps-ios-watchkit
-    - _test_fastlane
-    - _test_sample-apps-xamarin-ios
-    - _test_android-non-executable-gradlew
-    - _test_sample-apps-xamarin-android
-
-  _test_ios-no-shared-schemes:
+  # ----------------------------------------------------------------
+  # --- workflows for Utility
+  _prepare_and_setup:
+    title: Prepare bitrise and install testing tools
+    description: |
+        Prepares the environment for testing
     steps:
     - script:
-        title: "Scanner test: ios-no-shared-schemes"
+        title: Install testing tools
+        run_if: ".IsCI"
         inputs:
         - content: |-
             #!/bin/bash
+            set -e
             set -x
 
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/ios-no-shared-schemes.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
-    - change-workdir:
-        title: Switch working dir
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
-    - script:
-        title: "config test"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
+            # Install dependencies
+            go get -u github.com/tools/godep
 
-            config=$(find ./../output -name "*.yml" -print -quit)
-            bitrise run primary --config $config
+            # Check for unhandled errors
+            go get -u github.com/kisielk/errcheck
 
-  _test_ios-cocoapods-at-root:
+            # Go lint
+            go get -u github.com/golang/lint/golint
+
+  godeps-update:
+    title: Godeps update
+    description: |
+      Used for updating bitrise dependencies with godep
     steps:
     - script:
-        title: "Scanner test: ios-cocoapods-at-root"
+        title: Dependency update
         inputs:
-        - content: |-
+        - content: |
             #!/bin/bash
-            set -x
+            set -ex
+            go get -u -v github.com/tools/godep
 
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/ios-cocoapods-at-root.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
-    - change-workdir:
-        title: Switch working dir
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
-    - script:
-        title: "config test"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
+            rm -rf ./Godeps
+            rm -rf ./vendor
 
-            config=$(find ./../output -name "*.yml" -print -quit)
-            bitrise run primary --config $config
-
-  _test_sample-apps-ios-simple-objc:
-    steps:
-    - script:
-        title: "Scanner test: sample-apps-ios-simple-objc"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
-    - change-workdir:
-        title: Switch working dir
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
-    - script:
-        title: "config test"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            config=$(find ./../output -name "*.yml" -print -quit)
-            bitrise run primary --config $config
-
-  _test_sample-apps-android-sdk22:
-    steps:
-    - script:
-        title: "Scanner test: sample-apps-android-sdk22"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/sample-apps-android-sdk22.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
-    - change-workdir:
-        title: Switch working dir
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
-    - script:
-        title: "config test"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            config=$(find ./../output -name "*.yml" -print -quit)
-            bitrise run primary --config $config
-
-  _test_xamarin-sample-app:
-    steps:
-    - script:
-        title: "Scanner test: xamarin-sample-app"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/xamarin-sample-app.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
-    - change-workdir:
-        title: Switch working dir
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
-    - script:
-        title: "config test"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            config=$(find ./../output -name "*.yml" -print -quit)
-            bitrise run primary --config $config
-
-  _test_sample-apps-ios-watchkit:
-    steps:
-    - script:
-        title: "Scanner test: sample-apps-ios-watchkit"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-watchkit.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
-    - change-workdir:
-        title: Switch working dir
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
-    - script:
-        title: "config test"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            config=$(find ./../output -name "*.yml" -print -quit)
-            bitrise run primary --config $config
-
-  _test_fastlane:
-    steps:
-    - script:
-        title: "Scanner test: fastlane"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/fastlane.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
-    - change-workdir:
-        title: Switch working dir
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
-    - script:
-        title: "config test"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            config=$(find ./../output -name "*.yml" -print -quit)
-            bitrise run primary --config $config
-
-  _test_sample-apps-xamarin-ios:
-    steps:
-    - script:
-        title: "Scanner test: sample-apps-xamarin-ios"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-ios.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
-    - change-workdir:
-        title: Switch working dir
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
-    - script:
-        title: "config test"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            config=$(find ./../output -name "*.yml" -print -quit)
-            bitrise run primary --config $config
-
-  _test_android-non-executable-gradlew:
-    steps:
-    - script:
-        title: "Scanner test: android-non-executable-gradlew"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/android-non-executable-gradlew.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
-    - change-workdir:
-        title: Switch working dir
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
-    - script:
-        title: "config test"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            config=$(find ./../output -name "*.yml" -print -quit)
-            bitrise run primary --config $config
-
-  _test_sample-apps-xamarin-android:
-    steps:
-    - script:
-        title: "Scanner test: sample-apps-xamarin-android"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf ./_tmp
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-android.git
-            git clone $SAMPLE_APP_REPOSITORY_URL ./_tmp/sample-repo
-            $SCANNER_BIN config --dir ./_tmp/sample-repo --output-dir ./_tmp/output
-    - change-workdir:
-        title: Switch working dir
-        inputs:
-        - path: ./_tmp/sample-repo
-        - is_create_path: true
-    - script:
-        title: "config test"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            config=$(find ./../output -name "*.yml" -print -quit)
-            bitrise run primary --config $config
+            go get -t -d ./...
+            go get golang.org/x/sys/unix
+            go get github.com/davecgh/go-spew/spew
+            go get github.com/pmezard/go-difflib/difflib
+            go get github.com/ryanuber/go-glob
+            godep save ./...
 
   # ----------------------------------------------------------------
   # --- workflows for Releasing
@@ -551,91 +210,3 @@ workflows:
             envman add --key LINUX_DEPLOY_PATH --value $DEPLOY_PATH
             cp $DEPLOY_PATH $BITRISE_DEPLOY_DIR/$BIN_NAME-$OS-$ARCH
             echo "  Copy final Linux binary to: $BITRISE_DEPLOY_DIR/$BIN_NAME-$OS-$ARCH"
-
-  # ----------------------------------------------------------------
-  # --- workflows for Utility
-  _prepare_and_setup:
-    title: Prepare bitrise and install testing tools
-    description: |
-        Prepares the environment for testing
-    steps:
-    - script:
-        title: Install testing tools
-        run_if: ".IsCI"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -e
-            set -x
-
-            # Install dependencies
-            go get -u github.com/tools/godep
-
-            # Check for unhandled errors
-            go get -u github.com/kisielk/errcheck
-
-            # Go lint
-            go get -u github.com/golang/lint/golint
-
-  _install_init_tool:
-    title: Installs bitrise-init tool
-    description: |
-        Installs bitrise-init tool
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-
-            #
-            # Create scanner bin
-            echo "Create scanner bin..."
-
-            export GO15VENDOREXPERIMENT="1"
-            export GOPATH="$GOPATH:$THIS_SCRIPTDIR/go/"
-            export ARCH=x86_64
-            export GOARCH=amd64
-
-            current_os=$(uname -s)
-            if [[ "$current_os" == "Darwin" ]] ; then
-              export GOOS=darwin
-            elif [[ "$current_os" == "Linux" ]]; then
-              export GOOS=linux
-            else
-              echo "step runs on unsupported os: $current_os"
-              exit 1
-            fi
-
-            tmp_dir=$(mktemp -d)
-            current_dir=$(pwd)
-            bin_pth="$tmp_dir/scanner"
-
-            go build -o "$bin_pth"
-
-            echo "ceated at: ${bin_pth}"
-            envman add --key SCANNER_BIN --value $bin_pth
-
-  godeps-update:
-    title: Godeps update
-    description: |
-      Used for updating bitrise dependencies with godep
-    before_run:
-    - _prepare_and_setup
-    steps:
-    - script:
-        title: Dependency update
-        inputs:
-        - content: |
-            #!/bin/bash
-            set -ex
-            go get -u -v github.com/tools/godep
-
-            rm -rf ./Godeps
-            rm -rf ./vendor
-
-            go get -t -d ./...
-            go get golang.org/x/sys/unix
-            go get github.com/davecgh/go-spew/spew
-            go get github.com/pmezard/go-difflib/difflib
-            go get github.com/ryanuber/go-glob
-            godep save ./...

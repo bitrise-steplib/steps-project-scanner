@@ -8,59 +8,105 @@ import (
 )
 
 const (
-	// Common Step IDs
-	activateSSHKeyID      = "activate-ssh-key"
-	activateSSHKeyVersion = "3.1.1"
+	// Common Steps
 
-	gitCloneID      = "git-clone"
-	gitCloneVersion = "3.4.1"
+	// ActivateSSHKeyID ...
+	ActivateSSHKeyID = "activate-ssh-key"
+	// ActivateSSHKeyVersion ...
+	ActivateSSHKeyVersion = "3.1.1"
 
-	certificateAndProfileInstallerID      = "certificate-and-profile-installer"
-	certificateAndProfileInstallerVersion = "1.8.1"
+	// GitCloneID ...
+	GitCloneID = "git-clone"
+	// GitCloneVersion ...
+	GitCloneVersion = "3.4.1"
 
-	deployToBitriseIoID      = "deploy-to-bitrise-io"
-	deployToBitriseIoVersion = "1.2.5"
+	// CertificateAndProfileInstallerID ...
+	CertificateAndProfileInstallerID = "certificate-and-profile-installer"
+	// CertificateAndProfileInstallerVersion ...
+	CertificateAndProfileInstallerVersion = "1.8.1"
 
-	scriptID      = "script"
-	scriptVersion = "1.1.3"
+	// DeployToBitriseIoID ...
+	DeployToBitriseIoID = "deploy-to-bitrise-io"
+	// DeployToBitriseIoVersion ...
+	DeployToBitriseIoVersion = "1.2.5"
 
-	// Android Step IDs
-	gradleRunnerID      = "gradle-runner"
-	gradleRunnerVersion = "1.5.2"
+	// ScriptID ...
+	ScriptID = "script"
+	// ScriptVersion ...
+	ScriptVersion = "1.1.3"
+	// ScriptDefaultTitle ...
+	ScriptDefaultTitle = "Do anything with Script step"
 
-	// Fastlane Step IDs
-	fastlaneID      = "fastlane"
-	fastlaneVersion = "2.2.0"
+	// Android Steps
 
-	// iOS Step IDs
-	cocoapodsInstallID      = "cocoapods-install"
-	cocoapodsInstallVersion = "1.5.7"
+	// GradleRunnerID ...
+	GradleRunnerID = "gradle-runner"
+	// GradleRunnerVersion ...
+	GradleRunnerVersion = "1.5.2"
 
-	recreateUserSchemesID      = "recreate-user-schemes"
-	recreateUserSchemesVersion = "0.9.4"
+	// Fastlane Steps
 
-	xcodeArchiveID      = "xcode-archive"
-	xcodeArchiveVersion = "1.10.1"
+	// FastlaneID ...
+	FastlaneID = "fastlane"
+	// FastlaneVersion ...
+	FastlaneVersion = "2.2.0"
 
-	xcodeTestID      = "xcode-test"
-	xcodeTestVersion = "1.17.1"
+	// iOS Steps
 
-	// Xamarin Step IDs
-	xamarinUserManagementID      = "xamarin-user-management"
-	xamarinUserManagementVersion = "1.0.3"
+	// CocoapodsInstallID ...
+	CocoapodsInstallID = "cocoapods-install"
+	// CocoapodsInstallVersion ...
+	CocoapodsInstallVersion = "1.5.8"
 
-	nugetRestoreID      = "nuget-restore"
-	nugetRestoreVersion = "1.0.1"
+	// RecreateUserSchemesID ...
+	RecreateUserSchemesID = "recreate-user-schemes"
+	// RecreateUserSchemesVersion ...
+	RecreateUserSchemesVersion = "0.9.4"
 
-	xamarinComponentsRestoreID      = "xamarin-components-restore"
-	xamarinComponentsRestoreVersion = "0.9.0"
+	// XcodeArchiveID ...
+	XcodeArchiveID = "xcode-archive"
+	// XcodeArchiveVersion ...
+	XcodeArchiveVersion = "2.0.4"
 
-	xamarinArchiveID      = "xamarin-archive"
-	xamarinArchiveVersion = "1.1.1"
+	// XcodeTestID ...
+	XcodeTestID = "xcode-test"
+	// XcodeTestVersion ...
+	XcodeTestVersion = "1.18.1"
+
+	// Xamarin Steps
+
+	// XamarinUserManagementID ...
+	XamarinUserManagementID = "xamarin-user-management"
+	// XamarinUserManagementVersion ...
+	XamarinUserManagementVersion = "1.0.3"
+
+	// NugetRestoreID ...
+	NugetRestoreID = "nuget-restore"
+	// NugetRestoreVersion ...
+	NugetRestoreVersion = "1.0.3"
+
+	// XamarinComponentsRestoreID ...
+	XamarinComponentsRestoreID = "xamarin-components-restore"
+	// XamarinComponentsRestoreVersion ...
+	XamarinComponentsRestoreVersion = "0.9.0"
+
+	// XamarinArchiveID ...
+	XamarinArchiveID = "xamarin-archive"
+	// XamarinArchiveVersion ...
+	XamarinArchiveVersion = "1.1.1"
+
+	// macOS Setps
+
+	// XcodeArchiveMacID ...
+	XcodeArchiveMacID = "xcode-archive-mac"
+	// XcodeArchiveMacVersion ...
+	XcodeArchiveMacVersion = "1.3.2"
+
+	// XcodeTestMacID ...
+	XcodeTestMacID = "xcode-test-mac"
+	// XcodeTestMacVersion ...
+	XcodeTestMacVersion = "1.0.5"
 )
-
-// TemplateScriptStepTitiel ...
-const TemplateScriptStepTitiel = "Do anything with Script step"
 
 func stepIDComposite(ID, version string) string {
 	return ID + "@" + version
@@ -89,32 +135,32 @@ func stepListItem(stepIDComposite, title, runIf string, inputs []envman.Environm
 
 // ActivateSSHKeyStepListItem ...
 func ActivateSSHKeyStepListItem() bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(activateSSHKeyID, activateSSHKeyVersion)
+	stepIDComposite := stepIDComposite(ActivateSSHKeyID, ActivateSSHKeyVersion)
 	runIf := `{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`
 	return stepListItem(stepIDComposite, "", runIf, nil)
 }
 
 // GitCloneStepListItem ...
 func GitCloneStepListItem() bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(gitCloneID, gitCloneVersion)
+	stepIDComposite := stepIDComposite(GitCloneID, GitCloneVersion)
 	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // CertificateAndProfileInstallerStepListItem ...
 func CertificateAndProfileInstallerStepListItem() bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(certificateAndProfileInstallerID, certificateAndProfileInstallerVersion)
+	stepIDComposite := stepIDComposite(CertificateAndProfileInstallerID, CertificateAndProfileInstallerVersion)
 	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // DeployToBitriseIoStepListItem ...
 func DeployToBitriseIoStepListItem() bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(deployToBitriseIoID, deployToBitriseIoVersion)
+	stepIDComposite := stepIDComposite(DeployToBitriseIoID, DeployToBitriseIoVersion)
 	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // ScriptSteplistItem ...
 func ScriptSteplistItem(title string, inputs ...envman.EnvironmentItemModel) bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(scriptID, scriptVersion)
+	stepIDComposite := stepIDComposite(ScriptID, ScriptVersion)
 	return stepListItem(stepIDComposite, title, "", inputs)
 }
 
@@ -124,7 +170,7 @@ func ScriptSteplistItem(title string, inputs ...envman.EnvironmentItemModel) bit
 
 // GradleRunnerStepListItem ...
 func GradleRunnerStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(gradleRunnerID, gradleRunnerVersion)
+	stepIDComposite := stepIDComposite(GradleRunnerID, GradleRunnerVersion)
 	return stepListItem(stepIDComposite, "", "", inputs)
 }
 
@@ -134,7 +180,7 @@ func GradleRunnerStepListItem(inputs []envman.EnvironmentItemModel) bitrise.Step
 
 // FastlaneStepListItem ...
 func FastlaneStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(fastlaneID, fastlaneVersion)
+	stepIDComposite := stepIDComposite(FastlaneID, FastlaneVersion)
 	return stepListItem(stepIDComposite, "", "", inputs)
 }
 
@@ -144,25 +190,25 @@ func FastlaneStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepList
 
 // CocoapodsInstallStepListItem ...
 func CocoapodsInstallStepListItem() bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(cocoapodsInstallID, cocoapodsInstallVersion)
+	stepIDComposite := stepIDComposite(CocoapodsInstallID, CocoapodsInstallVersion)
 	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // RecreateUserSchemesStepListItem ...
 func RecreateUserSchemesStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(recreateUserSchemesID, recreateUserSchemesVersion)
+	stepIDComposite := stepIDComposite(RecreateUserSchemesID, RecreateUserSchemesVersion)
 	return stepListItem(stepIDComposite, "", "", inputs)
 }
 
 // XcodeArchiveStepListItem ...
 func XcodeArchiveStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(xcodeArchiveID, xcodeArchiveVersion)
+	stepIDComposite := stepIDComposite(XcodeArchiveID, XcodeArchiveVersion)
 	return stepListItem(stepIDComposite, "", "", inputs)
 }
 
 // XcodeTestStepListItem ...
 func XcodeTestStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(xcodeTestID, xcodeTestVersion)
+	stepIDComposite := stepIDComposite(XcodeTestID, XcodeTestVersion)
 	return stepListItem(stepIDComposite, "", "", inputs)
 }
 
@@ -172,25 +218,41 @@ func XcodeTestStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepLis
 
 // XamarinUserManagementStepListItem ...
 func XamarinUserManagementStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(xamarinUserManagementID, xamarinUserManagementVersion)
+	stepIDComposite := stepIDComposite(XamarinUserManagementID, XamarinUserManagementVersion)
 	runIf := ".IsCI"
 	return stepListItem(stepIDComposite, "", runIf, inputs)
 }
 
 // NugetRestoreStepListItem ...
 func NugetRestoreStepListItem() bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(nugetRestoreID, nugetRestoreVersion)
+	stepIDComposite := stepIDComposite(NugetRestoreID, NugetRestoreVersion)
 	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // XamarinComponentsRestoreStepListItem ...
 func XamarinComponentsRestoreStepListItem() bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(xamarinComponentsRestoreID, xamarinComponentsRestoreVersion)
+	stepIDComposite := stepIDComposite(XamarinComponentsRestoreID, XamarinComponentsRestoreVersion)
 	return stepListItem(stepIDComposite, "", "", nil)
 }
 
 // XamarinArchiveStepListItem ...
 func XamarinArchiveStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
-	stepIDComposite := stepIDComposite(xamarinArchiveID, xamarinArchiveVersion)
+	stepIDComposite := stepIDComposite(XamarinArchiveID, XamarinArchiveVersion)
+	return stepListItem(stepIDComposite, "", "", inputs)
+}
+
+//------------------------
+// macOS Step List Items
+//------------------------
+
+// XcodeArchiveMacStepListItem ...
+func XcodeArchiveMacStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
+	stepIDComposite := stepIDComposite(XcodeArchiveMacID, XcodeArchiveMacVersion)
+	return stepListItem(stepIDComposite, "", "", inputs)
+}
+
+// XcodeTestMacStepListItem ...
+func XcodeTestMacStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
+	stepIDComposite := stepIDComposite(XcodeTestMacID, XcodeTestMacVersion)
 	return stepListItem(stepIDComposite, "", "", inputs)
 }

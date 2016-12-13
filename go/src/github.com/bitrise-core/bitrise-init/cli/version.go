@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/output"
 	"github.com/bitrise-core/bitrise-init/version"
 	"github.com/urfave/cli"
@@ -15,7 +16,29 @@ type VersionOutputModel struct {
 	Commit      string `json:"commit" yaml:"commit"`
 }
 
-func printVersionCmd(c *cli.Context) error {
+var versionCommand = cli.Command{
+	Name:  "version",
+	Usage: "Prints the version",
+	Action: func(c *cli.Context) error {
+		if err := printVersion(c); err != nil {
+			log.Fatal(err)
+		}
+		return nil
+	},
+	Flags: []cli.Flag{
+		cli.StringFlag{
+			Name:  "format",
+			Usage: "Output format, options [raw, json, yaml].",
+			Value: "raw",
+		},
+		cli.BoolFlag{
+			Name:  "full",
+			Usage: "Prints the build number as well.",
+		},
+	},
+}
+
+func printVersion(c *cli.Context) error {
 	fullVersion := c.Bool("full")
 	formatStr := c.String("format")
 
