@@ -106,7 +106,6 @@ func defaultConfigName() string {
 
 // Scanner ...
 type Scanner struct {
-	SearchDir string
 	Fastfiles []string
 }
 
@@ -115,16 +114,11 @@ func (scanner Scanner) Name() string {
 	return scannerName
 }
 
-// Configure ...
-func (scanner *Scanner) Configure(searchDir string) {
-	scanner.SearchDir = searchDir
-}
-
 // DetectPlatform ...
-func (scanner *Scanner) DetectPlatform() (bool, error) {
-	fileList, err := utility.FileList(scanner.SearchDir)
+func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
+	fileList, err := utility.FileList(searchDir)
 	if err != nil {
-		return false, fmt.Errorf("failed to search for files in (%s), error: %s", scanner.SearchDir, err)
+		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
 	}
 
 	// Search for Fastfile
@@ -229,7 +223,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	stepList = append(stepList, steps.GitCloneStepListItem())
 
 	// Script
-	stepList = append(stepList, steps.ScriptSteplistItem(steps.TemplateScriptStepTitiel))
+	stepList = append(stepList, steps.ScriptSteplistItem(steps.ScriptDefaultTitle))
 
 	// CertificateAndProfileInstaller
 	stepList = append(stepList, steps.CertificateAndProfileInstallerStepListItem())
@@ -249,7 +243,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		envmanModels.EnvironmentItemModel{fastlaneXcodeListTimeoutEnvKey: fastlaneXcodeListTimeoutEnvValue},
 	}
 
-	bitriseData := models.BitriseDataWithDefaultTriggerMapAndAppEnvsAndPrimaryWorkflowSteps(appEnvs, stepList)
+	bitriseData := models.BitriseDataWithCIWorkflow(appEnvs, stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
@@ -273,7 +267,7 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	stepList = append(stepList, steps.GitCloneStepListItem())
 
 	// Script
-	stepList = append(stepList, steps.ScriptSteplistItem(steps.TemplateScriptStepTitiel))
+	stepList = append(stepList, steps.ScriptSteplistItem(steps.ScriptDefaultTitle))
 
 	// CertificateAndProfileInstaller
 	stepList = append(stepList, steps.CertificateAndProfileInstallerStepListItem())
@@ -293,7 +287,7 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		envmanModels.EnvironmentItemModel{fastlaneXcodeListTimeoutEnvKey: fastlaneXcodeListTimeoutEnvValue},
 	}
 
-	bitriseData := models.BitriseDataWithDefaultTriggerMapAndAppEnvsAndPrimaryWorkflowSteps(appEnvs, stepList)
+	bitriseData := models.BitriseDataWithCIWorkflow(appEnvs, stepList)
 	data, err := yaml.Marshal(bitriseData)
 	if err != nil {
 		return models.BitriseConfigMap{}, err

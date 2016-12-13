@@ -1,4 +1,4 @@
-package ios
+package utility
 
 import (
 	"os"
@@ -250,7 +250,7 @@ func TestIsRelevantProject(t *testing.T) {
 	}
 }
 
-func TestFilterXcodeprojectFiles(t *testing.T) {
+func TestFilterRelevantXcodeProjectFiles(t *testing.T) {
 	t.Log(`embedded, .git, pod, carthage, .framework, relevant project`)
 	{
 		fileList := []string{
@@ -262,7 +262,7 @@ func TestFilterXcodeprojectFiles(t *testing.T) {
 			"/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcodeproj",
 		}
 
-		files, err := filterXcodeprojectFiles(fileList, true)
+		files, err := FilterRelevantXcodeProjectFiles(fileList, true)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(files))
 		require.Equal(t, "/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcodeproj", files[0])
@@ -279,7 +279,7 @@ func TestFilterXcodeprojectFiles(t *testing.T) {
 			"SampleAppWithCocoapods.xcodeproj",
 		}
 
-		files, err := filterXcodeprojectFiles(fileList, true)
+		files, err := FilterRelevantXcodeProjectFiles(fileList, true)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(files))
 		require.Equal(t, "SampleAppWithCocoapods.xcodeproj", files[0])
@@ -292,7 +292,7 @@ func TestFilterXcodeprojectFiles(t *testing.T) {
 			"/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcworkspace",
 		}
 
-		files, err := filterXcodeprojectFiles(fileList, true)
+		files, err := FilterRelevantXcodeProjectFiles(fileList, true)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(files))
 
@@ -308,7 +308,7 @@ func TestFilterXcodeprojectFiles(t *testing.T) {
 			"build.gradle",
 		}
 
-		files, err := filterXcodeprojectFiles(fileList, true)
+		files, err := FilterRelevantXcodeProjectFiles(fileList, true)
 		require.NoError(t, err)
 		require.Equal(t, 0, len(files))
 	}
@@ -341,7 +341,7 @@ func TestIsRelevantPodfile(t *testing.T) {
 	}
 }
 
-func TestFilterPodFiles(t *testing.T) {
+func TestFilterRelevantPodFiles(t *testing.T) {
 	t.Log(`Contains "Podfile" files`)
 	{
 		fileList := []string{
@@ -351,7 +351,7 @@ func TestFilterPodFiles(t *testing.T) {
 			"path/to/my/Podfile.lock",
 		}
 
-		files := filterPodFiles(fileList)
+		files := FilterRelevantPodFiles(fileList)
 		require.Equal(t, 2, len(files))
 
 		// Also sorts "Podfile" files by path components length
@@ -366,7 +366,7 @@ func TestFilterPodFiles(t *testing.T) {
 			"path/to/my/gradle",
 		}
 
-		files := filterPodFiles(fileList)
+		files := FilterRelevantPodFiles(fileList)
 		require.Equal(t, 0, len(files))
 	}
 }

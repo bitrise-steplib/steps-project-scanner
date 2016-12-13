@@ -523,6 +523,14 @@ func MergeEnvironmentWith(env *envmanModels.EnvironmentItemModel, otherEnv envma
 	if err != nil {
 		return err
 	}
+
+	if otherOptions.IsExpand != nil {
+		options.IsExpand = pointers.NewBoolPtr(*otherOptions.IsExpand)
+	}
+	if otherOptions.SkipIfEmpty != nil {
+		options.SkipIfEmpty = pointers.NewBoolPtr(*otherOptions.SkipIfEmpty)
+	}
+
 	if otherOptions.Title != nil {
 		options.Title = pointers.NewStringPtr(*otherOptions.Title)
 	}
@@ -532,14 +540,14 @@ func MergeEnvironmentWith(env *envmanModels.EnvironmentItemModel, otherEnv envma
 	if otherOptions.Summary != nil {
 		options.Summary = pointers.NewStringPtr(*otherOptions.Summary)
 	}
+	if otherOptions.Category != nil {
+		options.Category = pointers.NewStringPtr(*otherOptions.Category)
+	}
 	if len(otherOptions.ValueOptions) > 0 {
 		options.ValueOptions = otherOptions.ValueOptions
 	}
 	if otherOptions.IsRequired != nil {
 		options.IsRequired = pointers.NewBoolPtr(*otherOptions.IsRequired)
-	}
-	if otherOptions.IsExpand != nil {
-		options.IsExpand = pointers.NewBoolPtr(*otherOptions.IsExpand)
 	}
 	if otherOptions.IsDontChangeValue != nil {
 		options.IsDontChangeValue = pointers.NewBoolPtr(*otherOptions.IsDontChangeValue)
@@ -584,12 +592,13 @@ func MergeStepWith(step, otherStep stepmanModels.StepModel) (stepmanModels.StepM
 	if otherStep.Title != nil {
 		step.Title = pointers.NewStringPtr(*otherStep.Title)
 	}
-	if otherStep.Description != nil {
-		step.Description = pointers.NewStringPtr(*otherStep.Description)
-	}
 	if otherStep.Summary != nil {
 		step.Summary = pointers.NewStringPtr(*otherStep.Summary)
 	}
+	if otherStep.Description != nil {
+		step.Description = pointers.NewStringPtr(*otherStep.Description)
+	}
+
 	if otherStep.Website != nil {
 		step.Website = pointers.NewStringPtr(*otherStep.Website)
 	}
@@ -599,21 +608,24 @@ func MergeStepWith(step, otherStep stepmanModels.StepModel) (stepmanModels.StepM
 	if otherStep.SupportURL != nil {
 		step.SupportURL = pointers.NewStringPtr(*otherStep.SupportURL)
 	}
+
 	if otherStep.PublishedAt != nil {
 		step.PublishedAt = pointers.NewTimePtr(*otherStep.PublishedAt)
 	}
-	if otherStep.Source.Git != "" {
-		step.Source.Git = otherStep.Source.Git
+	if otherStep.Source != nil {
+		step.Source = new(stepmanModels.StepSourceModel)
+
+		if otherStep.Source.Git != "" {
+			step.Source.Git = otherStep.Source.Git
+		}
+		if otherStep.Source.Commit != "" {
+			step.Source.Commit = otherStep.Source.Commit
+		}
 	}
-	if otherStep.Source.Commit != "" {
-		step.Source.Commit = otherStep.Source.Commit
+	if len(otherStep.AssetURLs) > 0 {
+		step.AssetURLs = otherStep.AssetURLs
 	}
-	if len(otherStep.Dependencies) > 0 {
-		step.Dependencies = otherStep.Dependencies
-	}
-	if len(otherStep.Deps.Brew) > 0 || len(otherStep.Deps.AptGet) > 0 || len(otherStep.Deps.CheckOnly) > 0 {
-		step.Deps = otherStep.Deps
-	}
+
 	if len(otherStep.HostOsTags) > 0 {
 		step.HostOsTags = otherStep.HostOsTags
 	}
@@ -623,9 +635,20 @@ func MergeStepWith(step, otherStep stepmanModels.StepModel) (stepmanModels.StepM
 	if len(otherStep.TypeTags) > 0 {
 		step.TypeTags = otherStep.TypeTags
 	}
+	if len(otherStep.Dependencies) > 0 {
+		step.Dependencies = otherStep.Dependencies
+	}
+	if otherStep.Toolkit != nil {
+		step.Toolkit = new(stepmanModels.StepToolkitModel)
+		*step.Toolkit = *otherStep.Toolkit
+	}
+	if otherStep.Deps != nil && (len(otherStep.Deps.Brew) > 0 || len(otherStep.Deps.AptGet) > 0 || len(otherStep.Deps.CheckOnly) > 0) {
+		step.Deps = otherStep.Deps
+	}
 	if otherStep.IsRequiresAdminUser != nil {
 		step.IsRequiresAdminUser = pointers.NewBoolPtr(*otherStep.IsRequiresAdminUser)
 	}
+
 	if otherStep.IsAlwaysRun != nil {
 		step.IsAlwaysRun = pointers.NewBoolPtr(*otherStep.IsAlwaysRun)
 	}
@@ -634,6 +657,9 @@ func MergeStepWith(step, otherStep stepmanModels.StepModel) (stepmanModels.StepM
 	}
 	if otherStep.RunIf != nil {
 		step.RunIf = pointers.NewStringPtr(*otherStep.RunIf)
+	}
+	if otherStep.Timeout != nil {
+		step.Timeout = pointers.NewIntPtr(*otherStep.Timeout)
 	}
 
 	for _, input := range step.Inputs {
@@ -673,12 +699,12 @@ func MergeStepWith(step, otherStep stepmanModels.StepModel) (stepmanModels.StepM
 // GetStepIDStepDataPair ...
 func GetStepIDStepDataPair(stepListItem StepListItemModel) (string, stepmanModels.StepModel, error) {
 	if len(stepListItem) > 1 {
-		return "", stepmanModels.StepModel{}, errors.New("StepListItem contains more than 1 key-value pair!")
+		return "", stepmanModels.StepModel{}, errors.New("StepListItem contains more than 1 key-value pair")
 	}
 	for key, value := range stepListItem {
 		return key, value, nil
 	}
-	return "", stepmanModels.StepModel{}, errors.New("StepListItem does not contain a key-value pair!")
+	return "", stepmanModels.StepModel{}, errors.New("StepListItem does not contain a key-value pair")
 }
 
 // CreateStepIDDataFromString ...
