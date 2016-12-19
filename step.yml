@@ -17,10 +17,6 @@ support_url: https://github.com/bitrise-steplib/steps-project-scanner/issues
 host_os_tags:
   - osx-10.10
   - ubuntu
-project_type_tags:
-  - ios
-  - android
-  - xamarin
 type_tags:
   - script
 is_requires_admin_user: false
