@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.11.3)
+## Changelog (Current version: 0.11.4)
 
 -----------------
+
+### 0.11.4 (2016 Dec 19)
+
+* [7675b00] prepare for 0.11.4
+* [bed9263] remove project type tags to support all project types (#25)
 
 ### 0.11.3 (2016 Dec 14)
 
@@ -114,4 +119,4 @@
 
 -----------------
 
-Updated: 2016 Dec 14
+Updated: 2016 Dec 19
