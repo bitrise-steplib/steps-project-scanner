@@ -6,10 +6,10 @@ import (
 	"path"
 	"path/filepath"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/bitrise-core/bitrise-init/output"
 	"github.com/bitrise-core/bitrise-init/scanner"
 	"github.com/bitrise-io/go-utils/colorstring"
+	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/urfave/cli"
 )
@@ -23,7 +23,8 @@ var manualConfigCommand = cli.Command{
 	Usage: "Generates default bitrise config files.",
 	Action: func(c *cli.Context) error {
 		if err := initManualConfig(c); err != nil {
-			log.Fatal(err)
+			log.Errorft(err.Error())
+			os.Exit(1)
 		}
 		return nil
 	},
@@ -48,10 +49,10 @@ func initManualConfig(c *cli.Context) error {
 	formatStr := c.String("format")
 
 	if isCI {
-		log.Info(colorstring.Yellow("CI mode"))
+		log.Infoft(colorstring.Yellow("CI mode"))
 	}
-	log.Info(colorstring.Yellowf("output dir: %s", outputDir))
-	log.Info(colorstring.Yellowf("output format: %s", formatStr))
+	log.Infoft(colorstring.Yellowf("output dir: %s", outputDir))
+	log.Infoft(colorstring.Yellowf("output format: %s", formatStr))
 	fmt.Println()
 
 	currentDir, err := pathutil.AbsPath("./")
@@ -86,7 +87,7 @@ func initManualConfig(c *cli.Context) error {
 
 	// Write output to files
 	if isCI {
-		log.Infof(colorstring.Blue("Saving outputs:"))
+		log.Infoft(colorstring.Blue("Saving outputs:"))
 
 		if err := os.MkdirAll(outputDir, 0700); err != nil {
 			return fmt.Errorf("Failed to create (%s), error: %s", outputDir, err)
@@ -97,14 +98,14 @@ func initManualConfig(c *cli.Context) error {
 		if err != nil {
 			return fmt.Errorf("Failed to print result, error: %s", err)
 		}
-		log.Infof("  scan result: %s", colorstring.Blue(outputPth))
+		log.Infoft("  scan result: %s", colorstring.Blue(outputPth))
 
 		return nil
 	}
 	// ---
 
 	// Select option
-	log.Infof(colorstring.Blue("Collecting inputs:"))
+	log.Infoft(colorstring.Blue("Collecting inputs:"))
 
 	config, err := scanner.AskForConfig(scanResult)
 	if err != nil {
@@ -116,7 +117,7 @@ func initManualConfig(c *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to print result, error: %s", err)
 	}
-	log.Infof("  bitrise.yml template: %s", colorstring.Blue(outputPth))
+	log.Infoft("  bitrise.yml template: %s", colorstring.Blue(outputPth))
 	fmt.Println()
 	// ---
 

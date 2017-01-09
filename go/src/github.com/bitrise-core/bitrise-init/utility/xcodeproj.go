@@ -1,153 +1,177 @@
 package utility
 
 import (
-	"errors"
-	"os"
 	"path/filepath"
-	"regexp"
-	"sort"
-	"strings"
 
+	"fmt"
+
+	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-tools/go-xcode/xcodeproj"
 )
 
-var (
-	embeddedWorkspacePathRegexp    = regexp.MustCompile(`.+\.xcodeproj/.+\.xcworkspace`)
-	scanProjectPathRegexpBlackList = []*regexp.Regexp{embeddedWorkspacePathRegexp}
+const (
+	embeddedWorkspacePathPattern = `.+\.xcodeproj/.+\.xcworkspace`
 
-	gitFolderName           = ".git"
-	podsFolderName          = "Pods"
-	carthageFolderName      = "Carthage"
-	scanFolderNameBlackList = []string{gitFolderName, podsFolderName, carthageFolderName}
+	gitDirName      = ".git"
+	podsDirName     = "Pods"
+	carthageDirName = "Carthage"
 
-	frameworkExt           = ".framework"
-	scanFolderExtBlackList = []string{frameworkExt}
+	frameworkExt = ".framework"
 )
 
-func isPathMatchRegexp(pth string, regexp *regexp.Regexp) bool {
-	return (regexp.FindString(pth) != "")
+// AllowXcodeProjExtFilter ...
+var AllowXcodeProjExtFilter = ExtensionFilter(xcodeproj.XCodeProjExt, true)
+
+// AllowXCWorkspaceExtFilter ...
+var AllowXCWorkspaceExtFilter = ExtensionFilter(xcodeproj.XCWorkspaceExt, true)
+
+// AllowIsDirectoryFilter ...
+var AllowIsDirectoryFilter = IsDirectoryFilter(true)
+
+// ForbidEmbeddedWorkspaceRegexpFilter ...
+var ForbidEmbeddedWorkspaceRegexpFilter = RegexpFilter(embeddedWorkspacePathPattern, false)
+
+// ForbidGitDirComponentFilter ...
+var ForbidGitDirComponentFilter = ComponentFilter(gitDirName, false)
+
+// ForbidPodsDirComponentFilter ...
+var ForbidPodsDirComponentFilter = ComponentFilter(podsDirName, false)
+
+// ForbidCarthageDirComponentFilter ...
+var ForbidCarthageDirComponentFilter = ComponentFilter(carthageDirName, false)
+
+// ForbidFramworkComponentWithExtensionFilter ...
+var ForbidFramworkComponentWithExtensionFilter = ComponentWithExtensionFilter(frameworkExt, false)
+
+// AllowIphoneosSDKFilter ...
+var AllowIphoneosSDKFilter = SDKFilter("iphoneos", true)
+
+// AllowMacosxSDKFilter ...
+var AllowMacosxSDKFilter = SDKFilter("macosx", true)
+
+// SDKFilter ...
+func SDKFilter(sdk string, allowed bool) FilterFunc {
+	return func(pth string) (bool, error) {
+		found := false
+
+		projectFiles := []string{}
+
+		if xcodeproj.IsXCodeProj(pth) {
+			projectFiles = append(projectFiles, pth)
+		} else if xcodeproj.IsXCWorkspace(pth) {
+			projects, err := xcodeproj.WorkspaceProjectReferences(pth)
+			if err != nil {
+				return false, err
+			}
+
+			for _, project := range projects {
+				exist, err := pathutil.IsPathExists(project)
+				if err != nil {
+					return false, err
+				}
+				if !exist {
+					continue
+				}
+				projectFiles = append(projectFiles, project)
+
+			}
+		} else {
+			return false, fmt.Errorf("Not Xcode project nor workspace file: %s", pth)
+		}
+
+		for _, projectFile := range projectFiles {
+			pbxprojPth := filepath.Join(projectFile, "project.pbxproj")
+			projectSDKs, err := xcodeproj.GetBuildConfigSDKs(pbxprojPth)
+			if err != nil {
+				return false, err
+			}
+
+			for _, projectSDK := range projectSDKs {
+				if projectSDK == sdk {
+					found = true
+					break
+				}
+			}
+		}
+
+		return (allowed == found), nil
+	}
 }
 
-func isPathContainsComponent(pth, component string) bool {
-	pathComponents := strings.Split(pth, string(filepath.Separator))
-	for _, c := range pathComponents {
-		if c == component {
-			return true
+// FindWorkspaceInList ...
+func FindWorkspaceInList(workspacePth string, workspaces []xcodeproj.WorkspaceModel) (xcodeproj.WorkspaceModel, bool) {
+	for _, workspace := range workspaces {
+		if workspace.Pth == workspacePth {
+			return workspace, true
 		}
 	}
-	return false
+	return xcodeproj.WorkspaceModel{}, false
 }
 
-func isPathContainsComponentWithExtension(pth, ext string) bool {
-	pathComponents := strings.Split(pth, string(filepath.Separator))
-	for _, c := range pathComponents {
-		e := filepath.Ext(c)
-		if e == ext {
-			return true
+// FindProjectInList ...
+func FindProjectInList(projectPth string, projects []xcodeproj.ProjectModel) (xcodeproj.ProjectModel, bool) {
+	for _, project := range projects {
+		if project.Pth == projectPth {
+			return project, true
 		}
 	}
-	return false
+	return xcodeproj.ProjectModel{}, false
 }
 
-func isDir(pth string) (bool, error) {
-	fileInf, err := os.Lstat(pth)
-	if err != nil {
-		return false, err
+// RemoveProjectFromList ...
+func RemoveProjectFromList(projectPth string, projects []xcodeproj.ProjectModel) []xcodeproj.ProjectModel {
+	newProjects := []xcodeproj.ProjectModel{}
+	for _, project := range projects {
+		if project.Pth != projectPth {
+			newProjects = append(newProjects, project)
+		}
 	}
-	if fileInf == nil {
-		return false, errors.New("no file info available")
-	}
-	return fileInf.IsDir(), nil
+	return newProjects
 }
 
-func isRelevantProject(pth string, isTest bool) (bool, error) {
-	// xcodeproj & xcworkspace should be a dir
-	if !isTest {
-		if is, err := isDir(pth); err != nil {
-			return false, err
-		} else if !is {
-			return false, nil
+// ReplaceWorkspaceInList ...
+func ReplaceWorkspaceInList(workspaces []xcodeproj.WorkspaceModel, workspace xcodeproj.WorkspaceModel) []xcodeproj.WorkspaceModel {
+	updatedWorkspaces := []xcodeproj.WorkspaceModel{}
+	for _, w := range workspaces {
+		if w.Pth == workspace.Pth {
+			updatedWorkspaces = append(updatedWorkspaces, workspace)
+		} else {
+			updatedWorkspaces = append(updatedWorkspaces, w)
 		}
 	}
-
-	for _, regexp := range scanProjectPathRegexpBlackList {
-		if isPathMatchRegexp(pth, regexp) {
-			return false, nil
-		}
-	}
-
-	for _, folderName := range scanFolderNameBlackList {
-		if isPathContainsComponent(pth, folderName) {
-			return false, nil
-		}
-	}
-
-	for _, folderExt := range scanFolderExtBlackList {
-		if isPathContainsComponentWithExtension(pth, folderExt) {
-			return false, nil
-		}
-	}
-
-	return true, nil
+	return updatedWorkspaces
 }
 
-// FilterRelevantXcodeProjectFiles ...
-func FilterRelevantXcodeProjectFiles(fileList []string, isTest bool) ([]string, error) {
-	filteredFiles := FilterFilesWithExtensions(fileList, xcodeproj.XCodeProjExt, xcodeproj.XCWorkspaceExt)
-	relevantFiles := []string{}
-
-	for _, file := range filteredFiles {
-		is, err := isRelevantProject(file, isTest)
+// CreateStandaloneProjectsAndWorkspaces ...
+func CreateStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles []string) ([]xcodeproj.ProjectModel, []xcodeproj.WorkspaceModel, error) {
+	workspaces := []xcodeproj.WorkspaceModel{}
+	for _, workspaceFile := range workspaceFiles {
+		workspace, err := xcodeproj.NewWorkspace(workspaceFile, projectFiles...)
 		if err != nil {
-			return []string{}, err
-		} else if !is {
-			continue
+			return []xcodeproj.ProjectModel{}, []xcodeproj.WorkspaceModel{}, err
+		}
+		workspaces = append(workspaces, workspace)
+	}
+
+	standaloneProjects := []xcodeproj.ProjectModel{}
+	for _, projectFile := range projectFiles {
+		workspaceContains := false
+		for _, workspace := range workspaces {
+			_, found := FindProjectInList(projectFile, workspace.Projects)
+			if found {
+				workspaceContains = true
+				break
+			}
 		}
 
-		relevantFiles = append(relevantFiles, file)
-	}
-
-	sort.Sort(ByComponents(relevantFiles))
-
-	return relevantFiles, nil
-}
-
-func isRelevantPodfile(pth string) bool {
-	basename := filepath.Base(pth)
-	if !CaseInsensitiveEquals(basename, "podfile") {
-		return false
-	}
-
-	for _, folderName := range scanFolderNameBlackList {
-		if isPathContainsComponent(pth, folderName) {
-			return false
-		}
-	}
-
-	for _, folderExt := range scanFolderExtBlackList {
-		if isPathContainsComponentWithExtension(pth, folderExt) {
-			return false
+		if !workspaceContains {
+			project, err := xcodeproj.NewProject(projectFile)
+			if err != nil {
+				return []xcodeproj.ProjectModel{}, []xcodeproj.WorkspaceModel{}, err
+			}
+			standaloneProjects = append(standaloneProjects, project)
 		}
 	}
 
-	return true
-}
-
-// FilterRelevantPodFiles ...
-func FilterRelevantPodFiles(fileList []string) []string {
-	podfiles := []string{}
-
-	for _, file := range fileList {
-		if isRelevantPodfile(file) {
-			podfiles = append(podfiles, file)
-		}
-	}
-
-	if len(podfiles) == 0 {
-		return []string{}
-	}
-
-	sort.Sort(ByComponents(podfiles))
-
-	return podfiles
+	return standaloneProjects, workspaces, nil
 }

@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"errors"
 	"fmt"
 
 	yaml "gopkg.in/yaml.v1"
@@ -76,9 +77,17 @@ func AskForConfig(scanResult models.ScanResultModel) (bitriseModels.BitriseDataM
 		platforms = append(platforms, platform)
 	}
 
-	platform, err := goinp.SelectFromStrings("Select platform", platforms)
-	if err != nil {
-		return bitriseModels.BitriseDataModel{}, err
+	platform := ""
+	if len(platforms) == 0 {
+		return bitriseModels.BitriseDataModel{}, errors.New("no platform detected")
+	} else if len(platforms) == 1 {
+		platform = platforms[0]
+	} else {
+		var err error
+		platform, err = goinp.SelectFromStrings("Select platform", platforms)
+		if err != nil {
+			return bitriseModels.BitriseDataModel{}, err
+		}
 	}
 	// ---
 

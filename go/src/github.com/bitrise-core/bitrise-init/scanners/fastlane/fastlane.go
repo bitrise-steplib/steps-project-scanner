@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -15,10 +14,7 @@ import (
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/fileutil"
-)
-
-var (
-	log = utility.NewLogger()
+	"github.com/bitrise-io/go-utils/log"
 )
 
 const (
@@ -46,11 +42,14 @@ const (
 // Utility
 //--------------------------------------------------
 
-func filterFastfiles(fileList []string) []string {
-	fastfiles := utility.FilterFilesWithBasPaths(fileList, fastfileBasePath)
-	sort.Sort(utility.ByComponents(fastfiles))
+func filterFastfiles(fileList []string) ([]string, error) {
+	allowFastfileBaseFilter := utility.BaseFilter(fastfileBasePath, true)
+	fastfiles, err := utility.FilterPaths(fileList, allowFastfileBaseFilter)
+	if err != nil {
+		return []string{}, err
+	}
 
-	return fastfiles
+	return utility.SortPathsByComponents(fastfiles)
 }
 
 func inspectFastfileContent(content string) ([]string, error) {
@@ -116,28 +115,32 @@ func (scanner Scanner) Name() string {
 
 // DetectPlatform ...
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
-	fileList, err := utility.FileList(searchDir)
+	fileList, err := utility.ListPathInDirSortedByComponents(searchDir)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
 	}
 
 	// Search for Fastfile
-	log.Info("Searching for Fastfiles")
+	log.Infoft("Searching for Fastfiles")
 
-	fastfiles := filterFastfiles(fileList)
+	fastfiles, err := filterFastfiles(fileList)
+	if err != nil {
+		return false, fmt.Errorf("failed to search for Fastfile in (%s), error: %s", searchDir, err)
+	}
+
 	scanner.Fastfiles = fastfiles
 
-	log.Details("%d Fastfile(s) detected", len(fastfiles))
+	log.Printft("%d Fastfiles detected", len(fastfiles))
 	for _, file := range fastfiles {
-		log.Details("- %s", file)
+		log.Printft("- %s", file)
 	}
 
 	if len(fastfiles) == 0 {
-		log.Details("platform not detected")
+		log.Printft("platform not detected")
 		return false, nil
 	}
 
-	log.Done("Platform detected")
+	log.Doneft("Platform detected")
 
 	return true, nil
 }
@@ -151,22 +154,22 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 
 	// Inspect Fastfiles
 	for _, fastfile := range scanner.Fastfiles {
-		log.Info("Inspecting Fastfile: %s", fastfile)
+		log.Infoft("Inspecting Fastfile: %s", fastfile)
 
 		lanes, err := inspectFastfile(fastfile)
 		if err != nil {
-			log.Warn("Failed to inspect Fastfile, error: %s", err)
+			log.Warnft("Failed to inspect Fastfile, error: %s", err)
 			warnings = append(warnings, fmt.Sprintf("Failed to inspect Fastfile (%s), error: %s", fastfile, err))
 			continue
 		}
 
-		log.Details("%d lane(s) found", len(lanes))
+		log.Printft("%d lanes found", len(lanes))
 		for _, lane := range lanes {
-			log.Details("- %s", lane)
+			log.Printft("- %s", lane)
 		}
 
 		if len(lanes) == 0 {
-			log.Warn("No lanes found")
+			log.Warnft("No lanes found")
 			warnings = append(warnings, fmt.Sprintf("No lanes found for Fastfile: %s", fastfile))
 			continue
 		}
@@ -175,7 +178,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 
 		workDir := fastlaneWorkDir(fastfile)
 
-		log.Details("fastlane work dir: %s", workDir)
+		log.Printft("fastlane work dir: %s", workDir)
 
 		configOption := models.NewEmptyOptionModel()
 		configOption.Config = configName()
@@ -189,7 +192,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	}
 
 	if !isValidFastfileFound {
-		log.Error("No valid Fastfile found")
+		log.Errorft("No valid Fastfile found")
 		warnings = append(warnings, "No valid Fastfile found")
 		return models.OptionModel{}, warnings, nil
 	}

@@ -5,6 +5,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/scanners/android"
 	"github.com/bitrise-core/bitrise-init/scanners/fastlane"
 	"github.com/bitrise-core/bitrise-init/scanners/ios"
+	"github.com/bitrise-core/bitrise-init/scanners/macos"
 	"github.com/bitrise-core/bitrise-init/scanners/xamarin"
 	"github.com/bitrise-core/bitrise-init/steps"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
@@ -35,7 +36,7 @@ type ScannerInterface interface {
 	// Each branch should define a complete and valid options to build the final bitrise config model.
 	// Every OptionModel branch's last options has to be the key of the workflow (in the BitriseConfigMap), which will fulfilled with the selected options.
 	// Returns:
-	// - an OptionModel
+	// - OptionModel
 	// - Warnings (if any)
 	// - error if (if any)
 	Options() (models.OptionModel, models.Warnings, error)
@@ -58,7 +59,7 @@ type ScannerInterface interface {
 // ActiveScanners ...
 var ActiveScanners = []ScannerInterface{
 	new(ios.Scanner),
-	// new(macos.Scanner),
+	new(macos.Scanner),
 	new(android.Scanner),
 	new(xamarin.Scanner),
 	new(fastlane.Scanner),

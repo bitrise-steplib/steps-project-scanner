@@ -92,7 +92,8 @@ func TestFilterSolutionFiles(t *testing.T) {
 			"path/to/my",
 		}
 
-		files := filterSolutionFiles(fileList)
+		files, err := filterSolutionFiles(fileList)
+		require.NoError(t, err)
 		require.Equal(t, 1, len(files))
 
 		// Also sorts solution files by path components length
@@ -106,7 +107,8 @@ func TestFilterSolutionFiles(t *testing.T) {
 			"path/to/my/gradle",
 		}
 
-		files := filterSolutionFiles(fileList)
+		files, err := filterSolutionFiles(fileList)
+		require.NoError(t, err)
 		require.Equal(t, 0, len(files))
 	}
 }

@@ -1,18 +1,14 @@
 package utility
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
-	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/fileutil"
 )
-
-// CaseInsensitiveEquals ...
-func CaseInsensitiveEquals(s1, s2 string) bool {
-	s1, s2 = strings.ToLower(s1), strings.ToLower(s2)
-	return s1 == s2
-}
 
 // CaseInsensitiveContains ...
 func CaseInsensitiveContains(s, substr string) bool {
@@ -20,8 +16,8 @@ func CaseInsensitiveContains(s, substr string) bool {
 	return strings.Contains(s, substr)
 }
 
-// FileList ...
-func FileList(searchDir string) ([]string, error) {
+// ListPathInDirSortedByComponents ...
+func ListPathInDirSortedByComponents(searchDir string) ([]string, error) {
 	searchDir, err := filepath.Abs(searchDir)
 	if err != nil {
 		return []string{}, err
@@ -41,114 +37,116 @@ func FileList(searchDir string) ([]string, error) {
 	}); err != nil {
 		return []string{}, err
 	}
-	return fileList, nil
+	return SortPathsByComponents(fileList)
 }
 
-// FilterFilesWithBasPaths ...
-func FilterFilesWithBasPaths(fileList []string, basePath ...string) []string {
-	filteredFileList := []string{}
+// FilterPaths ...
+func FilterPaths(fileList []string, filters ...FilterFunc) ([]string, error) {
+	filtered := []string{}
 
-	for _, file := range fileList {
-		base := filepath.Base(file)
-
-		for _, desiredBasePath := range basePath {
-			if strings.EqualFold(base, desiredBasePath) {
-				filteredFileList = append(filteredFileList, file)
+	for _, pth := range fileList {
+		allowed := true
+		for _, filter := range filters {
+			if allows, err := filter(pth); err != nil {
+				return []string{}, err
+			} else if !allows {
+				allowed = false
 				break
 			}
 		}
+		if allowed {
+			filtered = append(filtered, pth)
+		}
 	}
 
-	return filteredFileList
+	return filtered, nil
 }
 
-// FilterFilesWithExtensions ...
-func FilterFilesWithExtensions(fileList []string, extension ...string) []string {
-	filteredFileList := []string{}
+// FilterFunc ...
+type FilterFunc func(pth string) (bool, error)
 
-	for _, file := range fileList {
-		ext := filepath.Ext(file)
+// BaseFilter ...
+func BaseFilter(base string, allowed bool) FilterFunc {
+	return func(pth string) (bool, error) {
+		b := filepath.Base(pth)
+		return (allowed == strings.EqualFold(base, b)), nil
+	}
+}
 
-		for _, desiredExt := range extension {
-			if ext == desiredExt {
-				filteredFileList = append(filteredFileList, file)
-				break
+// ExtensionFilter ...
+func ExtensionFilter(ext string, allowed bool) FilterFunc {
+	return func(pth string) (bool, error) {
+		e := filepath.Ext(pth)
+		return (allowed == strings.EqualFold(ext, e)), nil
+	}
+}
+
+// RegexpFilter ...
+func RegexpFilter(pattern string, allowed bool) FilterFunc {
+	return func(pth string) (bool, error) {
+		re := regexp.MustCompile(pattern)
+		found := re.FindString(pth) != ""
+		return (allowed == found), nil
+	}
+}
+
+// ComponentFilter ...
+func ComponentFilter(component string, allowed bool) FilterFunc {
+	return func(pth string) (bool, error) {
+		found := false
+		pathComponents := strings.Split(pth, string(filepath.Separator))
+		for _, c := range pathComponents {
+			if c == component {
+				found = true
 			}
 		}
+		return (allowed == found), nil
 	}
-
-	return filteredFileList
 }
 
-// PathDept ...
-func PathDept(pth string) (int, error) {
-	abs, err := pathutil.AbsPath(pth)
-	if err != nil {
-		return 0, err
-	}
-	comp := strings.Split(abs, string(os.PathSeparator))
-
-	fixedComp := []string{}
-	for _, c := range comp {
-		if c != "" {
-			fixedComp = append(fixedComp, c)
+// ComponentWithExtensionFilter ...
+func ComponentWithExtensionFilter(ext string, allowed bool) FilterFunc {
+	return func(pth string) (bool, error) {
+		found := false
+		pathComponents := strings.Split(pth, string(filepath.Separator))
+		for _, c := range pathComponents {
+			e := filepath.Ext(c)
+			if e == ext {
+				found = true
+			}
 		}
+		return (allowed == found), nil
 	}
-
-	return len(fixedComp), nil
 }
 
-// MapStringStringHasValue ...
-func MapStringStringHasValue(mapStringString map[string]string, value string) bool {
-	for _, v := range mapStringString {
-		if v == value {
-			return true
+// IsDirectoryFilter ...
+func IsDirectoryFilter(allowed bool) FilterFunc {
+	return func(pth string) (bool, error) {
+		fileInf, err := os.Lstat(pth)
+		if err != nil {
+			return false, err
 		}
+		if fileInf == nil {
+			return false, errors.New("no file info available")
+		}
+		return (allowed == fileInf.IsDir()), nil
 	}
-	return false
 }
 
-//--------------------------------------------------
-// Sorting
-//--------------------------------------------------
-
-// ByComponents ..
-type ByComponents []string
-
-func (s ByComponents) Len() int {
-	return len(s)
+// InDirectoryFilter ...
+func InDirectoryFilter(dir string, allowed bool) FilterFunc {
+	return func(pth string) (bool, error) {
+		in := (filepath.Dir(pth) == dir)
+		return (allowed == in), nil
+	}
 }
-func (s ByComponents) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-func (s ByComponents) Less(i, j int) bool {
-	log := NewLogger()
 
-	path1 := s[i]
-	path2 := s[j]
-
-	d1, err := PathDept(path1)
+// FileContains ...
+func FileContains(pth, str string) (bool, error) {
+	content, err := fileutil.ReadStringFromFile(pth)
 	if err != nil {
-		log.Warn("failed to calculate path depth (%s), error: %s", path1, err)
-		return false
+		return false, err
 	}
 
-	d2, err := PathDept(path2)
-	if err != nil {
-		log.Warn("failed to calculate path depth (%s), error: %s", path1, err)
-		return false
-	}
-
-	if d1 < d2 {
-		return true
-	} else if d1 > d2 {
-		return false
-	}
-
-	// if same component size,
-	// do alphabetic sort based on the last component
-	base1 := filepath.Base(path1)
-	base2 := filepath.Base(path2)
-
-	return base1 < base2
+	return strings.Contains(content, str), nil
 }
