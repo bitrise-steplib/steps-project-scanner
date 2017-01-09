@@ -78,9 +78,12 @@ func BitriseDataWithCIWorkflow(appEnvs []envmanModels.EnvironmentItemModel, step
 
 	triggerMap := []bitriseModels.TriggerMapItemModel{
 		bitriseModels.TriggerMapItemModel{
-			Pattern:              "*",
-			IsPullRequestAllowed: true,
-			WorkflowID:           primaryWorkflowID,
+			PushBranch: "*",
+			WorkflowID: primaryWorkflowID,
+		},
+		bitriseModels.TriggerMapItemModel{
+			PullRequestSourceBranch: "*",
+			WorkflowID:              primaryWorkflowID,
 		},
 	}
 

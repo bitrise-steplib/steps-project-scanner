@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func _TestMacOS(t *testing.T) {
+func TestMacOS(t *testing.T) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("__macos__")
 	require.NoError(t, err)
 	defer func() {
@@ -38,6 +38,24 @@ func _TestMacOS(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, strings.TrimSpace(sampleAppsOSX1011ResultYML), strings.TrimSpace(result))
 	}
+}
+
+var sampleAppsOSX1011Versions = []interface{}{
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.XcodeTestMacVersion,
+	steps.XcodeArchiveMacVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.XcodeTestMacVersion,
+	steps.DeployToBitriseIoVersion,
 }
 
 var sampleAppsOSX1011ResultYML = fmt.Sprintf(`options:
@@ -95,6 +113,4 @@ configs:
           - deploy-to-bitrise-io@%s: {}
 warnings:
   macos: []
-`, models.FormatVersion,
-	steps.ActivateSSHKeyVersion, steps.GitCloneVersion, steps.ScriptVersion, steps.CertificateAndProfileInstallerVersion, steps.XcodeTestMacVersion, steps.XcodeArchiveMacVersion, steps.DeployToBitriseIoVersion,
-	steps.ActivateSSHKeyVersion, steps.GitCloneVersion, steps.ScriptVersion, steps.CertificateAndProfileInstallerVersion, steps.XcodeTestMacVersion, steps.DeployToBitriseIoVersion)
+`, sampleAppsOSX1011Versions...)

@@ -12,11 +12,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/utility"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
-	"github.com/bitrise-tools/go-xcode/xcodeproj"
-)
-
-var (
-	log = utility.NewLogger()
+	"github.com/bitrise-io/go-utils/log"
 )
 
 const scannerName = "macos"
@@ -56,10 +52,9 @@ func (descriptor ConfigDescriptor) String() string {
 
 // Scanner ...
 type Scanner struct {
-	fileList []string
-
-	xcodeProjectAndWorkspaceFiles []string
-
+	searchDir         string
+	fileList          []string
+	projectFiles      []string
 	configDescriptors []ConfigDescriptor
 }
 
@@ -70,99 +65,60 @@ func (scanner Scanner) Name() string {
 
 // DetectPlatform ...
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
-	fileList, err := utility.FileList(searchDir)
+	scanner.searchDir = searchDir
+
+	fileList, err := utility.ListPathInDirSortedByComponents(searchDir)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
 	}
 	scanner.fileList = fileList
 
-	// Search for xcodeproj and xcworkspace files
-	log.Info("Searching for macOS .xcodeproj & .xcworkspace files")
+	// Search for xcodeproj
+	log.Infoft("Searching for Xcode project files")
 
-	relevantXcodeProjectFiles, err := utility.FilterRelevantXcodeProjectFiles(fileList, false)
+	xcodeprojectFiles, err := utility.FilterPaths(fileList, utility.AllowXcodeProjExtFilter)
 	if err != nil {
-		return false, fmt.Errorf("failed to collect .xcodeproj & .xcworkspace files, error: %s", err)
+		return false, err
 	}
 
-	if len(relevantXcodeProjectFiles) == 0 {
-		log.Details("platform not detected")
+	log.Printft("%d Xcode project files found", len(xcodeprojectFiles))
+	for _, xcodeprojectFile := range xcodeprojectFiles {
+		log.Printft("- %s", xcodeprojectFile)
+	}
+
+	if len(xcodeprojectFiles) == 0 {
+		log.Printft("platform not detected")
 		return false, nil
 	}
 
-	// Separate xcodeproj and xcworkspace files
-	projects := []string{}
-	workspaces := []string{}
+	log.Infoft("Filter relevant Xcode project files")
 
-	for _, projectOrWorkspace := range relevantXcodeProjectFiles {
-		if xcodeproj.IsXCodeProj(projectOrWorkspace) {
-			projects = append(projects, projectOrWorkspace)
-		} else {
-			workspaces = append(workspaces, projectOrWorkspace)
-		}
+	xcodeprojectFiles, err = utility.FilterPaths(xcodeprojectFiles,
+		utility.AllowIsDirectoryFilter,
+		utility.ForbidEmbeddedWorkspaceRegexpFilter,
+		utility.ForbidGitDirComponentFilter,
+		utility.ForbidPodsDirComponentFilter,
+		utility.ForbidCarthageDirComponentFilter,
+		utility.ForbidFramworkComponentWithExtensionFilter,
+		utility.AllowMacosxSDKFilter,
+	)
+	if err != nil {
+		return false, err
 	}
 
-	// Filter xcodeproj and xcworkspace files with iphoneos sdk
-	macosxXcodeProjectFileMap := map[string]bool{}
-
-	for _, project := range projects {
-		pbxprojPth := filepath.Join(project, "project.pbxproj")
-		sdks, err := xcodeproj.GetBuildConfigSDKs(pbxprojPth)
-		if err != nil {
-			return false, err
-		}
-		for _, sdk := range sdks {
-			if sdk == "macosx" {
-				macosxXcodeProjectFileMap[project] = true
-			}
-		}
+	log.Printft("%d Xcode macOS project files found", len(xcodeprojectFiles))
+	for _, xcodeprojectFile := range xcodeprojectFiles {
+		log.Printft("- %s", xcodeprojectFile)
 	}
 
-	for _, workspace := range workspaces {
-		referredProjects, err := xcodeproj.WorkspaceProjectReferences(workspace)
-		if err != nil {
-			return false, err
-		}
-
-		// Only deal with relevant projects
-		filteredProjects := []string{}
-		for _, project := range projects {
-			for _, projectToCheck := range projects {
-				if project == projectToCheck {
-					filteredProjects = append(filteredProjects, project)
-				}
-			}
-		}
-		referredProjects = filteredProjects
-		// ---
-
-		for _, project := range referredProjects {
-			pbxprojPth := filepath.Join(project, "project.pbxproj")
-			sdks, err := xcodeproj.GetBuildConfigSDKs(pbxprojPth)
-			if err != nil {
-				return false, err
-			}
-			for _, sdk := range sdks {
-				if sdk == "macosx" {
-					macosxXcodeProjectFileMap[project] = true
-				}
-			}
-		}
-	}
-
-	if len(macosxXcodeProjectFileMap) == 0 {
-		log.Details("platform not detected")
+	if len(xcodeprojectFiles) == 0 {
+		log.Printft("platform not detected")
 		return false, nil
 	}
 
-	log.Details("")
-	log.Done("Platform detected")
+	scanner.projectFiles = xcodeprojectFiles
 
-	macosxXcodeProjectFiles := []string{}
-	for iphoneosXcodeProjectFile := range macosxXcodeProjectFileMap {
-		macosxXcodeProjectFiles = append(macosxXcodeProjectFiles, iphoneosXcodeProjectFile)
-	}
-
-	scanner.xcodeProjectAndWorkspaceFiles = macosxXcodeProjectFiles
+	log.Doneft("Platform detected")
 
 	return true, nil
 }
@@ -171,191 +127,140 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	warnings := models.Warnings{}
 
-	// Separate workspaces and standalone projects
-	workspaces := []xcodeproj.WorkspaceModel{}
-
-	projectsToCheck := []string{}
-	for _, projectOrWorkspace := range scanner.xcodeProjectAndWorkspaceFiles {
-		if xcodeproj.IsXCodeProj(projectOrWorkspace) {
-			projectsToCheck = append(projectsToCheck, projectOrWorkspace)
-		}
+	projectFiles := scanner.projectFiles
+	workspaceFiles, err := utility.FilterPaths(scanner.fileList,
+		utility.AllowXCWorkspaceExtFilter,
+		utility.AllowIsDirectoryFilter,
+		utility.ForbidEmbeddedWorkspaceRegexpFilter,
+		utility.ForbidGitDirComponentFilter,
+		utility.ForbidPodsDirComponentFilter,
+		utility.ForbidCarthageDirComponentFilter,
+		utility.ForbidFramworkComponentWithExtensionFilter,
+		utility.AllowMacosxSDKFilter,
+	)
+	if err != nil {
+		return models.OptionModel{}, models.Warnings{}, err
 	}
 
-	for _, projectOrWorkspace := range scanner.xcodeProjectAndWorkspaceFiles {
-		if xcodeproj.IsXCWorkspace(projectOrWorkspace) {
-			workspace, err := xcodeproj.NewWorkspace(projectOrWorkspace, projectsToCheck...)
-			if err != nil {
-				return models.OptionModel{}, models.Warnings{}, fmt.Errorf("failed to analyze workspace (%s), error: %s", projectOrWorkspace, err)
-			}
-
-			workspaces = append(workspaces, workspace)
-		}
+	standaloneProjects, workspaces, err := utility.CreateStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles)
+	if err != nil {
+		return models.OptionModel{}, models.Warnings{}, err
 	}
 
-	if len(workspaces) > 0 {
-		log.Details("%d workspace file(s) detected", len(workspaces))
-		for _, workspace := range workspaces {
-			projects := []string{}
-			for _, project := range workspace.Projects {
-				projects = append(projects, project.Name)
-			}
-			log.Details("- %s (projects: %v)", workspace.Name, projects)
-		}
+	//
+	// Create cocoapods workspace-project mapping
+	log.Infoft("Searching for Podfiles")
+
+	podfiles, err := utility.FilterPaths(scanner.fileList,
+		utility.AllowPodfileBaseFilter,
+		utility.ForbidGitDirComponentFilter,
+		utility.ForbidPodsDirComponentFilter,
+		utility.ForbidCarthageDirComponentFilter,
+		utility.ForbidFramworkComponentWithExtensionFilter)
+	if err != nil {
+		return models.OptionModel{}, models.Warnings{}, err
 	}
 
-	projects := []xcodeproj.ProjectModel{}
-
-	for _, projectOrWorkspace := range scanner.xcodeProjectAndWorkspaceFiles {
-		if !xcodeproj.IsXCodeProj(projectOrWorkspace) {
-			continue
-		}
-
-		contained := false
-
-		for _, workspace := range workspaces {
-			for _, project := range workspace.Projects {
-				if project.Pth == projectOrWorkspace {
-					contained = true
-				}
-			}
-		}
-
-		if !contained {
-			project, err := xcodeproj.NewProject(projectOrWorkspace)
-			if err != nil {
-				return models.OptionModel{}, models.Warnings{}, fmt.Errorf("failed to analyze project (%s), error: %s", projectOrWorkspace, err)
-			}
-
-			projects = append(projects, project)
-		}
+	log.Printft("%d Podfiles detected", len(podfiles))
+	for _, file := range podfiles {
+		log.Printft("- %s", file)
 	}
 
-	if len(projects) > 0 {
-		log.Details("%d project file(s) detected", len(projects))
-		for _, project := range projects {
-			log.Details("- %s", project.Name)
-		}
-	}
-	// ---
-
-	// Create cocoapods project-workspace mapping
-	log.Info("Searching for Podfiles")
-
-	podFiles := utility.FilterRelevantPodFiles(scanner.fileList)
-
-	log.Details("%d Podfile(s) detected", len(podFiles))
-	for _, file := range podFiles {
-		log.Details("- %s", file)
-	}
-
-	for _, podfile := range podFiles {
-		workspaceProjectMap, err := utility.GetWorkspaceProjectMap(podfile)
+	for _, podfile := range podfiles {
+		workspaceProjectMap, err := utility.GetWorkspaceProjectMap(podfile, projectFiles)
 		if err != nil {
-			log.Warn("Analyze Podfile (%s) failed, error: %s", podfile, err)
-			warnings = append(warnings, fmt.Sprintf("Failed to analyze Podfile: (%s), error: %s", podfile, err))
-			continue
+			return models.OptionModel{}, models.Warnings{}, err
 		}
 
-		log.Details("")
-		log.Details("cocoapods workspace-project mapping:")
-		for workspacePth, linkedProjectPth := range workspaceProjectMap {
-			log.Details("- %s -> %s", workspacePth, linkedProjectPth)
-
-			podWorkspace := xcodeproj.WorkspaceModel{}
-
-			projectFound := false
-
-			for _, workspace := range workspaces {
-				if workspace.Pth == workspacePth {
-					podWorkspace = workspace
-
-					for _, project := range workspace.Projects {
-						if project.Pth == linkedProjectPth {
-							projectFound = true
-						}
-					}
-
-					if !projectFound {
-						return models.OptionModel{}, models.Warnings{}, fmt.Errorf("workspace (%s) is exists, but does not conatins project (%s)", workspace.Name, linkedProjectPth)
-					}
-				}
-			}
-			podWorkspace.IsPodWorkspace = true
-
-			if !projectFound {
-				for _, project := range projects {
-					if project.Pth == linkedProjectPth {
-						projectFound = true
-						podWorkspace.Projects = append(podWorkspace.Projects, project)
-					}
-				}
-			}
-
-			if !projectFound {
-				return models.OptionModel{}, models.Warnings{}, fmt.Errorf("project (%s) not found", linkedProjectPth)
-			}
+		standaloneProjects, workspaces, err = utility.MergePodWorkspaceProjectMap(workspaceProjectMap, standaloneProjects, workspaces)
+		if err != nil {
+			return models.OptionModel{}, models.Warnings{}, err
 		}
 	}
 	// ---
 
 	//
 	// Analyze projects and workspaces
-	for _, project := range projects {
-		log.Info("Inspecting standalone project file: %s", project.Pth)
+	defaultGitignorePth := filepath.Join(scanner.searchDir, ".gitignore")
+	isXcshareddataGitignored, err := utility.FileContains(defaultGitignorePth, "xcshareddata")
+	if err != nil {
+		log.Warnf("Failed to check if xcshareddata gitignored, error: %s", err)
+	}
 
-		log.Details("%d shared scheme(s) detected", len(project.SharedSchemes))
+	for _, project := range standaloneProjects {
+		log.Infoft("Inspecting standalone project file: %s", project.Pth)
+
+		log.Printft("%d shared schemes detected", len(project.SharedSchemes))
 		for _, scheme := range project.SharedSchemes {
-			log.Details("- %s", scheme.Name)
+			log.Printft("- %s", scheme.Name)
 		}
 
 		if len(project.SharedSchemes) == 0 {
-			log.Details("")
-			log.Error("No shared schemes found, adding recreate-user-schemes step...")
-			log.Error("The newly generated schemes may differ from the ones in your project.")
-			log.Error("Make sure to share your schemes, to have the expected behaviour.")
-			log.Details("")
+			log.Printft("")
+			log.Errorft("No shared schemes found, adding recreate-user-schemes step...")
+			log.Errorft("The newly generated schemes may differ from the ones in your project.")
+			if isXcshareddataGitignored {
+				log.Errorft("Your gitignore file (%s) contains 'xcshareddata', maybe shared schemes are gitignored?", defaultGitignorePth)
+				log.Errorft("If not, make sure to share your schemes, to have the expected behaviour.")
+			} else {
+				log.Errorft("Make sure to share your schemes, to have the expected behaviour.")
+			}
+			log.Printft("")
 
-			message := `No shared schemes found for project: ` + project.Pth + `.
-	Automatically generated schemes for this project.
-	These schemes may differ from the ones in your project.
-	Make sure to <a href="https://developer.apple.com/library/ios/recipes/xcode_help-scheme_editor/Articles/SchemeManage.html">share your schemes</a> for the expected behaviour.`
+			message := `No shared schemes found for project: ` + project.Pth + `.`
+			if isXcshareddataGitignored {
+				message += `
+Your gitignore file (` + defaultGitignorePth + `) (%s) contains 'xcshareddata', maybe shared schemes are gitignored?`
+			}
+			message += `
+Automatically generated schemes may differ from the ones in your project.
+Make sure to <a href="http://devcenter.bitrise.io/ios/frequent-ios-issues/#xcode-scheme-not-found">share your schemes</a> for the expected behaviour.`
 
 			warnings = append(warnings, fmt.Sprintf(message))
 
-			log.Warn("%d user scheme(s) will be generated", len(project.Targets))
+			log.Warnft("%d user schemes will be generated", len(project.Targets))
 			for _, target := range project.Targets {
-				log.Warn("- %s", target.Name)
+				log.Warnft("- %s", target.Name)
 			}
 		}
 	}
 
 	for _, workspace := range workspaces {
-		log.Info("Inspecting workspace file: %s", workspace.Pth)
+		log.Infoft("Inspecting workspace file: %s", workspace.Pth)
 
 		sharedSchemes := workspace.GetSharedSchemes()
-		log.Details("%d shared scheme(s) detected", len(sharedSchemes))
+		log.Printft("%d shared schemes detected", len(sharedSchemes))
 		for _, scheme := range sharedSchemes {
-			log.Details("- %s", scheme.Name)
+			log.Printft("- %s", scheme.Name)
 		}
 
 		if len(sharedSchemes) == 0 {
-			log.Details("")
-			log.Error("No shared schemes found, adding recreate-user-schemes step...")
-			log.Error("The newly generated schemes, may differs from the ones in your project.")
-			log.Error("Make sure to share your schemes, to have the expected behaviour.")
-			log.Details("")
+			log.Printft("")
+			log.Errorft("No shared schemes found, adding recreate-user-schemes step...")
+			log.Errorft("The newly generated schemes may differ from the ones in your project.")
+			if isXcshareddataGitignored {
+				log.Errorft("Your gitignore file (%s) contains 'xcshareddata', maybe shared schemes are gitignored?", defaultGitignorePth)
+				log.Errorft("If not, make sure to share your schemes, to have the expected behaviour.")
+			} else {
+				log.Errorft("Make sure to share your schemes, to have the expected behaviour.")
+			}
+			log.Printft("")
 
-			message := `No shared schemes found for project: ` + workspace.Pth + `.
-	Automatically generated schemes for this project.
-	These schemes may differ from the ones in your project.
-	Make sure to <a href="https://developer.apple.com/library/ios/recipes/xcode_help-scheme_editor/Articles/SchemeManage.html">share your schemes</a> for the expected behaviour.`
+			message := `No shared schemes found for project: ` + workspace.Pth + `.`
+			if isXcshareddataGitignored {
+				message += `
+Your gitignore file (` + defaultGitignorePth + `) contains 'xcshareddata', maybe shared schemes are gitignored?`
+			}
+			message += `
+Automatically generated schemes may differ from the ones in your project.
+Make sure to <a href="http://devcenter.bitrise.io/ios/frequent-ios-issues/#xcode-scheme-not-found">share your schemes</a> for the expected behaviour.`
 
 			warnings = append(warnings, fmt.Sprintf(message))
 
 			targets := workspace.GetTargets()
-			log.Warn("%d user scheme(s) will be generated", len(targets))
+			log.Warnft("%d user schemes will be generated", len(targets))
 			for _, target := range targets {
-				log.Warn("- %s", target.Name)
+				log.Warnft("- %s", target.Name)
 			}
 		}
 	}
@@ -366,7 +271,8 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	configDescriptors := []ConfigDescriptor{}
 	projectPathOption := models.NewOptionModel(projectPathTitle, projectPathEnvKey)
 
-	for _, project := range projects {
+	// Add Standalon Project options
+	for _, project := range standaloneProjects {
 		schemeOption := models.NewOptionModel(schemeTitle, schemeEnvKey)
 
 		if len(project.SharedSchemes) == 0 {
@@ -402,14 +308,13 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 		projectPathOption.ValueMap[project.Pth] = schemeOption
 	}
 
+	// Add Workspace options
 	for _, workspace := range workspaces {
 		schemeOption := models.NewOptionModel(schemeTitle, schemeEnvKey)
 
-		schemes := workspace.GetSharedSchemes()
-
-		if len(schemes) == 0 {
+		sharedSchemes := workspace.GetSharedSchemes()
+		if len(sharedSchemes) == 0 {
 			targets := workspace.GetTargets()
-
 			for _, target := range targets {
 				configDescriptor := ConfigDescriptor{
 					HasPodfile:           workspace.IsPodWorkspace,
@@ -424,7 +329,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 				schemeOption.ValueMap[target.Name] = configOption
 			}
 		} else {
-			for _, scheme := range schemes {
+			for _, scheme := range sharedSchemes {
 				configDescriptor := ConfigDescriptor{
 					HasPodfile:           workspace.IsPodWorkspace,
 					HasTest:              scheme.HasXCTest,
@@ -444,8 +349,8 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	// -----
 
 	if len(configDescriptors) == 0 {
-		log.Error("No valid iOS config found")
-		return models.OptionModel{}, warnings, errors.New("No valid config found")
+		log.Errorft("No valid macOS config found")
+		return models.OptionModel{}, warnings, errors.New("No valid macOS config found")
 	}
 
 	scanner.configDescriptors = configDescriptors
@@ -610,7 +515,7 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	deploySteps := append([]bitriseModels.StepListItemModel{}, prepareSteps...)
 
 	// XcodeTestMac
-	deploySteps = append(deploySteps, steps.XcodeTestStepListItem([]envmanModels.EnvironmentItemModel{
+	deploySteps = append(deploySteps, steps.XcodeTestMacStepListItem([]envmanModels.EnvironmentItemModel{
 		envmanModels.EnvironmentItemModel{projectPathKey: "$" + projectPathEnvKey},
 		envmanModels.EnvironmentItemModel{schemeKey: "$" + schemeEnvKey},
 	}))

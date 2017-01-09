@@ -1,6 +1,22 @@
-## Changelog (Current version: 0.11.1)
+## Changelog (Current version: 0.12.0)
 
 -----------------
+
+### 0.12.0 (2017 Jan 09)
+
+* [4abfb33] prepare for 0.12.0
+* [5d708a2] custom config test (#62)
+* [f19f162] step version updates
+* [7aafd86] warn if xcshareddata is gitignored (#61)
+* [570a2a9] Review (#60)
+* [750ad77] shared scheme link fix (#59)
+* [a84ca68] trigger map fix (#58)
+* [b978e1a] Android deps (#57)
+* [e8f1347] Macos (#56)
+* [60ec76f] Podfile fix (#55)
+* [24faf9c] Plugin (#54)
+* [a96564a] bump xamarin-archive version
+* [577e779] update android extra packages step (#53)
 
 ### 0.11.1 (2016 Nov 02)
 
@@ -164,4 +180,4 @@
 
 -----------------
 
-Updated: 2016 Nov 02
+Updated: 2017 Jan 09

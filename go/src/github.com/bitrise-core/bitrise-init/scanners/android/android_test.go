@@ -66,7 +66,8 @@ func TestFilterGradlewFiles(t *testing.T) {
 			"path/to/my",
 		}
 
-		files := filterGradlewFiles(fileList)
+		files, err := filterGradlewFiles(fileList)
+		require.NoError(t, err)
 		require.Equal(t, 2, len(files))
 
 		// Also sorts "gradlew" files by path components length
@@ -81,7 +82,8 @@ func TestFilterGradlewFiles(t *testing.T) {
 			"path/to/my/gradle",
 		}
 
-		files := filterGradlewFiles(fileList)
+		files, err := filterGradlewFiles(fileList)
+		require.NoError(t, err)
 		require.Equal(t, 0, len(files))
 	}
 }

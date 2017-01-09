@@ -4,9 +4,12 @@ import (
 	"errors"
 	"path"
 
+	"os"
+
 	"github.com/bitrise-io/go-utils/cmdex"
 	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/fileutil"
+	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 )
 
@@ -15,6 +18,11 @@ func runRubyScriptForOutput(scriptContent, gemfileContent, inDir string, withEnv
 	if err != nil {
 		return "", err
 	}
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			log.Errorf("Failed to remove tmp dir (%s), error: %s", tmpDir, err)
+		}
+	}()
 
 	// Write Gemfile to file and install
 	if gemfileContent != "" {

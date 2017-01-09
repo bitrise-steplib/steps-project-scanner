@@ -74,119 +74,18 @@ func TestXamarin(t *testing.T) {
 	}
 }
 
-var sampleAppsXamarinAndroidResultYML = fmt.Sprintf(`options:
-  xamarin:
-    title: Path to the Xamarin Solution file
-    env_key: BITRISE_PROJECT_PATH
-    value_map:
-      CreditCardValidator.Droid.sln:
-        title: Xamarin solution configuration
-        env_key: BITRISE_XAMARIN_CONFIGURATION
-        value_map:
-          Debug:
-            title: Xamarin solution platform
-            env_key: BITRISE_XAMARIN_PLATFORM
-            value_map:
-              Any CPU:
-                config: xamarin-nuget-config
-          Release:
-            title: Xamarin solution platform
-            env_key: BITRISE_XAMARIN_PLATFORM
-            value_map:
-              Any CPU:
-                config: xamarin-nuget-config
-configs:
-  xamarin:
-    xamarin-nuget-config: |
-      format_version: %s
-      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-      trigger_map:
-      - workflow: primary
-        pattern: '*'
-        is_pull_request_allowed: true
-      workflows:
-        primary:
-          steps:
-          - activate-ssh-key@%s:
-              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-          - git-clone@%s: {}
-          - script@%s:
-              title: Do anything with Script step
-          - certificate-and-profile-installer@%s: {}
-          - xamarin-user-management@%s:
-              run_if: .IsCI
-          - nuget-restore@%s: {}
-          - xamarin-archive@%s:
-              inputs:
-              - xamarin_solution: $BITRISE_PROJECT_PATH
-              - xamarin_configuration: $BITRISE_XAMARIN_CONFIGURATION
-              - xamarin_platform: $BITRISE_XAMARIN_PLATFORM
-          - deploy-to-bitrise-io@%s: {}
-warnings:
-  xamarin: []
-`, models.FormatVersion,
-	steps.ActivateSSHKeyVersion, steps.GitCloneVersion, steps.ScriptVersion, steps.CertificateAndProfileInstallerVersion, steps.XamarinUserManagementVersion, steps.NugetRestoreVersion, steps.XamarinArchiveVersion, steps.DeployToBitriseIoVersion)
-
-var sampleAppsXamarinIosResultYML = fmt.Sprintf(`options:
-  xamarin:
-    title: Path to the Xamarin Solution file
-    env_key: BITRISE_PROJECT_PATH
-    value_map:
-      CreditCardValidator.iOS.sln:
-        title: Xamarin solution configuration
-        env_key: BITRISE_XAMARIN_CONFIGURATION
-        value_map:
-          Debug:
-            title: Xamarin solution platform
-            env_key: BITRISE_XAMARIN_PLATFORM
-            value_map:
-              Any CPU:
-                config: xamarin-nuget-config
-              iPhone:
-                config: xamarin-nuget-config
-              iPhoneSimulator:
-                config: xamarin-nuget-config
-          Release:
-            title: Xamarin solution platform
-            env_key: BITRISE_XAMARIN_PLATFORM
-            value_map:
-              Any CPU:
-                config: xamarin-nuget-config
-              iPhone:
-                config: xamarin-nuget-config
-              iPhoneSimulator:
-                config: xamarin-nuget-config
-configs:
-  xamarin:
-    xamarin-nuget-config: |
-      format_version: %s
-      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-      trigger_map:
-      - workflow: primary
-        pattern: '*'
-        is_pull_request_allowed: true
-      workflows:
-        primary:
-          steps:
-          - activate-ssh-key@%s:
-              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-          - git-clone@%s: {}
-          - script@%s:
-              title: Do anything with Script step
-          - certificate-and-profile-installer@%s: {}
-          - xamarin-user-management@%s:
-              run_if: .IsCI
-          - nuget-restore@%s: {}
-          - xamarin-archive@%s:
-              inputs:
-              - xamarin_solution: $BITRISE_PROJECT_PATH
-              - xamarin_configuration: $BITRISE_XAMARIN_CONFIGURATION
-              - xamarin_platform: $BITRISE_XAMARIN_PLATFORM
-          - deploy-to-bitrise-io@%s: {}
-warnings:
-  xamarin: []
-`, models.FormatVersion,
-	steps.ActivateSSHKeyVersion, steps.GitCloneVersion, steps.ScriptVersion, steps.CertificateAndProfileInstallerVersion, steps.XamarinUserManagementVersion, steps.NugetRestoreVersion, steps.XamarinArchiveVersion, steps.DeployToBitriseIoVersion)
+var xamarinSampleAppVersions = []interface{}{
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.XamarinUserManagementVersion,
+	steps.NugetRestoreVersion,
+	steps.XamarinComponentsRestoreVersion,
+	steps.XamarinArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+}
 
 var xamarinSampleAppResultYML = fmt.Sprintf(`options:
   xamarin:
@@ -223,9 +122,10 @@ configs:
       format_version: %s
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
       trigger_map:
-      - workflow: primary
-        pattern: '*'
-        is_pull_request_allowed: true
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
       workflows:
         primary:
           steps:
@@ -247,5 +147,142 @@ configs:
           - deploy-to-bitrise-io@%s: {}
 warnings:
   xamarin: []
-`, models.FormatVersion,
-	steps.ActivateSSHKeyVersion, steps.GitCloneVersion, steps.ScriptVersion, steps.CertificateAndProfileInstallerVersion, steps.XamarinUserManagementVersion, steps.NugetRestoreVersion, steps.XamarinComponentsRestoreVersion, steps.XamarinArchiveVersion, steps.DeployToBitriseIoVersion)
+`, xamarinSampleAppVersions...)
+
+var sampleAppsXamarinIosVersions = []interface{}{
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.XamarinUserManagementVersion,
+	steps.NugetRestoreVersion,
+	steps.XamarinArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+}
+
+var sampleAppsXamarinIosResultYML = fmt.Sprintf(`options:
+  xamarin:
+    title: Path to the Xamarin Solution file
+    env_key: BITRISE_PROJECT_PATH
+    value_map:
+      CreditCardValidator.iOS.sln:
+        title: Xamarin solution configuration
+        env_key: BITRISE_XAMARIN_CONFIGURATION
+        value_map:
+          Debug:
+            title: Xamarin solution platform
+            env_key: BITRISE_XAMARIN_PLATFORM
+            value_map:
+              Any CPU:
+                config: xamarin-nuget-config
+              iPhone:
+                config: xamarin-nuget-config
+              iPhoneSimulator:
+                config: xamarin-nuget-config
+          Release:
+            title: Xamarin solution platform
+            env_key: BITRISE_XAMARIN_PLATFORM
+            value_map:
+              Any CPU:
+                config: xamarin-nuget-config
+              iPhone:
+                config: xamarin-nuget-config
+              iPhoneSimulator:
+                config: xamarin-nuget-config
+configs:
+  xamarin:
+    xamarin-nuget-config: |
+      format_version: %s
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
+          - xamarin-user-management@%s:
+              run_if: .IsCI
+          - nuget-restore@%s: {}
+          - xamarin-archive@%s:
+              inputs:
+              - xamarin_solution: $BITRISE_PROJECT_PATH
+              - xamarin_configuration: $BITRISE_XAMARIN_CONFIGURATION
+              - xamarin_platform: $BITRISE_XAMARIN_PLATFORM
+          - deploy-to-bitrise-io@%s: {}
+warnings:
+  xamarin: []
+`, sampleAppsXamarinIosVersions...)
+
+var sampleAppsXamarinAndroidVersions = []interface{}{
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.XamarinUserManagementVersion,
+	steps.NugetRestoreVersion,
+	steps.XamarinArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+}
+
+var sampleAppsXamarinAndroidResultYML = fmt.Sprintf(`options:
+  xamarin:
+    title: Path to the Xamarin Solution file
+    env_key: BITRISE_PROJECT_PATH
+    value_map:
+      CreditCardValidator.Droid.sln:
+        title: Xamarin solution configuration
+        env_key: BITRISE_XAMARIN_CONFIGURATION
+        value_map:
+          Debug:
+            title: Xamarin solution platform
+            env_key: BITRISE_XAMARIN_PLATFORM
+            value_map:
+              Any CPU:
+                config: xamarin-nuget-config
+          Release:
+            title: Xamarin solution platform
+            env_key: BITRISE_XAMARIN_PLATFORM
+            value_map:
+              Any CPU:
+                config: xamarin-nuget-config
+configs:
+  xamarin:
+    xamarin-nuget-config: |
+      format_version: %s
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
+          - xamarin-user-management@%s:
+              run_if: .IsCI
+          - nuget-restore@%s: {}
+          - xamarin-archive@%s:
+              inputs:
+              - xamarin_solution: $BITRISE_PROJECT_PATH
+              - xamarin_configuration: $BITRISE_XAMARIN_CONFIGURATION
+              - xamarin_platform: $BITRISE_XAMARIN_PLATFORM
+          - deploy-to-bitrise-io@%s: {}
+warnings:
+  xamarin: []
+`, sampleAppsXamarinAndroidVersions...)

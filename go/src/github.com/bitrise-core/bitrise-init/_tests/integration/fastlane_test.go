@@ -24,7 +24,7 @@ func TestFastlane(t *testing.T) {
 
 	t.Log("fastlane")
 	{
-		sampleAppDir := filepath.Join(tmpDir, "fastlane")
+		sampleAppDir := filepath.Join(tmpDir, "__fastlane__")
 		sampleAppURL := "https://github.com/bitrise-samples/fastlane.git"
 		require.NoError(t, cmdex.GitClone(sampleAppURL, sampleAppDir))
 
@@ -38,6 +38,34 @@ func TestFastlane(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, strings.TrimSpace(fastlaneResultYML), strings.TrimSpace(result))
 	}
+}
+
+var fastlaneVersions = []interface{}{
+	// fastlane
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.FastlaneVersion,
+	steps.DeployToBitriseIoVersion,
+
+	// ios
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.XcodeTestVersion,
+	steps.XcodeArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.XcodeTestVersion,
+	steps.DeployToBitriseIoVersion,
 }
 
 var fastlaneResultYML = fmt.Sprintf(`options:
@@ -70,9 +98,10 @@ configs:
         envs:
         - FASTLANE_XCODE_LIST_TIMEOUT: "120"
       trigger_map:
-      - workflow: primary
-        pattern: '*'
-        is_pull_request_allowed: true
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
       workflows:
         primary:
           steps:
@@ -130,8 +159,4 @@ configs:
 warnings:
   fastlane: []
   ios: []
-`, models.FormatVersion,
-	steps.ActivateSSHKeyVersion, steps.GitCloneVersion, steps.ScriptVersion, steps.CertificateAndProfileInstallerVersion, steps.FastlaneVersion, steps.DeployToBitriseIoVersion,
-	models.FormatVersion,
-	steps.ActivateSSHKeyVersion, steps.GitCloneVersion, steps.ScriptVersion, steps.CertificateAndProfileInstallerVersion, steps.XcodeTestVersion, steps.XcodeArchiveVersion, steps.DeployToBitriseIoVersion,
-	steps.ActivateSSHKeyVersion, steps.GitCloneVersion, steps.ScriptVersion, steps.CertificateAndProfileInstallerVersion, steps.XcodeTestVersion, steps.DeployToBitriseIoVersion)
+`, fastlaneVersions...)
