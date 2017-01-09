@@ -1,6 +1,11 @@
-## Changelog (Current version: 0.11.4)
+## Changelog (Current version: 0.12.0)
 
 -----------------
+
+### 0.12.0 (2017 Jan 09)
+
+* [22b75fd] prepare for 0.12.0
+* [af23d15] bitrise-init update (#26)
 
 ### 0.11.4 (2016 Dec 19)
 
@@ -119,4 +124,4 @@
 
 -----------------
 
-Updated: 2016 Dec 19
+Updated: 2017 Jan 09
