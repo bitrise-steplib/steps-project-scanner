@@ -9,7 +9,7 @@ import (
 
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
-	"github.com/bitrise-io/go-utils/cmdex"
+	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -26,9 +26,9 @@ func TestAndroid(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-android-sdk22")
 		sampleAppURL := "https://github.com/bitrise-samples/sample-apps-android-sdk22.git"
-		require.NoError(t, cmdex.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
 
-		cmd := cmdex.NewCommand(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
+		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		require.NoError(t, err, out)
 
@@ -43,9 +43,9 @@ func TestAndroid(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "android-non-executable-gradlew")
 		sampleAppURL := "https://github.com/bitrise-samples/android-non-executable-gradlew.git"
-		require.NoError(t, cmdex.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
 
-		cmd := cmdex.NewCommand(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
+		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		require.NoError(t, err, out)
 
@@ -62,7 +62,7 @@ var sampleAppsAndroid22Versions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
-	steps.ScriptVersion,
+	steps.InstallMissingAndroidToolsVersion,
 	steps.GradleRunnerVersion,
 	steps.DeployToBitriseIoVersion,
 }
@@ -112,18 +112,7 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - script@%s:
-              title: Update Android Extra packages
-              inputs:
-              - content: |
-                  #!/bin/bash
-                  set -ex
-
-                  echo y | android update sdk --no-ui --all --filter platform-tools | grep 'package installed'
-
-                  echo y | android update sdk --no-ui --all --filter extra-android-m2repository | grep 'package installed'
-                  echo y | android update sdk --no-ui --all --filter extra-google-m2repository | grep 'package installed'
-                  echo y | android update sdk --no-ui --all --filter extra-google-google_play_services | grep 'package installed'
+          - install-missing-android-tools@%s: {}
           - gradle-runner@%s:
               inputs:
               - gradle_file: $GRADLE_BUILD_FILE_PATH
@@ -139,7 +128,7 @@ var androidNonExecutableGradlewVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
-	steps.ScriptVersion,
+	steps.InstallMissingAndroidToolsVersion,
 	steps.GradleRunnerVersion,
 	steps.DeployToBitriseIoVersion,
 }
@@ -189,18 +178,7 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - script@%s:
-              title: Update Android Extra packages
-              inputs:
-              - content: |
-                  #!/bin/bash
-                  set -ex
-
-                  echo y | android update sdk --no-ui --all --filter platform-tools | grep 'package installed'
-
-                  echo y | android update sdk --no-ui --all --filter extra-android-m2repository | grep 'package installed'
-                  echo y | android update sdk --no-ui --all --filter extra-google-m2repository | grep 'package installed'
-                  echo y | android update sdk --no-ui --all --filter extra-google-google_play_services | grep 'package installed'
+          - install-missing-android-tools@%s: {}
           - gradle-runner@%s:
               inputs:
               - gradle_file: $GRADLE_BUILD_FILE_PATH

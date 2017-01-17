@@ -9,7 +9,7 @@ import (
 
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
-	"github.com/bitrise-io/go-utils/cmdex"
+	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -26,9 +26,9 @@ func TestMacOS(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-osx-10-11")
 		sampleAppURL := "https://github.com/bitrise-samples/sample-apps-osx-10-11.git"
-		require.NoError(t, cmdex.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
 
-		cmd := cmdex.NewCommand(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
+		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		require.NoError(t, err, out)
 

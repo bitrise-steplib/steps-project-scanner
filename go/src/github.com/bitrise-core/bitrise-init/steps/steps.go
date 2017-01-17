@@ -39,6 +39,11 @@ const (
 
 	// Android Steps
 
+	// InstallMissingAndroidToolsID ...
+	InstallMissingAndroidToolsID = "install-missing-android-tools"
+	// InstallMissingAndroidToolsVersion ...
+	InstallMissingAndroidToolsVersion = "0.9.1"
+
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
@@ -49,14 +54,14 @@ const (
 	// FastlaneID ...
 	FastlaneID = "fastlane"
 	// FastlaneVersion ...
-	FastlaneVersion = "2.2.0"
+	FastlaneVersion = "2.3.3"
 
 	// iOS Steps
 
 	// CocoapodsInstallID ...
 	CocoapodsInstallID = "cocoapods-install"
 	// CocoapodsInstallVersion ...
-	CocoapodsInstallVersion = "1.5.9"
+	CocoapodsInstallVersion = "1.6.1"
 
 	// RecreateUserSchemesID ...
 	RecreateUserSchemesID = "recreate-user-schemes"
@@ -167,6 +172,12 @@ func ScriptSteplistItem(title string, inputs ...envman.EnvironmentItemModel) bit
 //------------------------
 // Android Step List Items
 //------------------------
+
+// InstallMissingAndroidToolsStepListItem ....
+func InstallMissingAndroidToolsStepListItem() bitrise.StepListItemModel {
+	stepIDComposite := stepIDComposite(InstallMissingAndroidToolsID, InstallMissingAndroidToolsVersion)
+	return stepListItem(stepIDComposite, "", "", nil)
+}
 
 // GradleRunnerStepListItem ...
 func GradleRunnerStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
