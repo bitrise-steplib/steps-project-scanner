@@ -66,7 +66,7 @@ var ActiveScanners = []ScannerInterface{
 }
 
 func customConfigName() string {
-	return "custom-config"
+	return "other-config"
 }
 
 // CustomConfig ...

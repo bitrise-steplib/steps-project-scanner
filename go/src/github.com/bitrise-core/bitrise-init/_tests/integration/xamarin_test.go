@@ -9,7 +9,7 @@ import (
 
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
-	"github.com/bitrise-io/go-utils/cmdex"
+	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -26,9 +26,9 @@ func TestXamarin(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "xamarin-sample-app")
 		sampleAppURL := "https://github.com/bitrise-samples/xamarin-sample-app.git"
-		require.NoError(t, cmdex.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
 
-		cmd := cmdex.NewCommand(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
+		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		require.NoError(t, err, out)
 
@@ -43,9 +43,9 @@ func TestXamarin(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-xamarin-ios")
 		sampleAppURL := "https://github.com/bitrise-io/sample-apps-xamarin-ios.git"
-		require.NoError(t, cmdex.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
 
-		cmd := cmdex.NewCommand(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
+		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		require.NoError(t, err, out)
 
@@ -60,9 +60,9 @@ func TestXamarin(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-xamarin-android")
 		sampleAppURL := "https://github.com/bitrise-io/sample-apps-xamarin-android.git"
-		require.NoError(t, cmdex.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
 
-		cmd := cmdex.NewCommand(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
+		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		require.NoError(t, err, out)
 

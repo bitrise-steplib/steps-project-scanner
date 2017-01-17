@@ -36,22 +36,6 @@ const (
 	gradlewPathKey    = "gradlew_path"
 	gradlewPathTitle  = "Gradlew file path"
 	gradlewPathEnvKey = "GRADLEW_PATH"
-
-	scriptContentKey = "content"
-)
-
-const (
-	updateAndroidExtraPackagesScriptContent = `#!/bin/bash
-set -ex
-
-echo y | android update sdk --no-ui --all --filter platform-tools | grep 'package installed'
-
-echo y | android update sdk --no-ui --all --filter extra-android-m2repository | grep 'package installed'
-echo y | android update sdk --no-ui --all --filter extra-google-m2repository | grep 'package installed'
-echo y | android update sdk --no-ui --all --filter extra-google-google_play_services | grep 'package installed'
-`
-
-	updateAndroidExtraPackagesScriptTite = "Update Android Extra packages"
 )
 
 var defaultGradleTasks = []string{
@@ -151,7 +135,7 @@ func (scanner Scanner) Name() string {
 
 // DetectPlatform ...
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
-	fileList, err := utility.ListPathInDirSortedByComponents(searchDir)
+	fileList, err := utility.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
 	}
@@ -268,10 +252,8 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	// Script
 	stepList = append(stepList, steps.ScriptSteplistItem(steps.ScriptDefaultTitle))
 
-	// Script - Update unversioned main android packages
-	stepList = append(stepList, steps.ScriptSteplistItem(updateAndroidExtraPackagesScriptTite, envmanModels.EnvironmentItemModel{
-		scriptContentKey: updateAndroidExtraPackagesScriptContent,
-	}))
+	// Install missing Android tools
+	stepList = append(stepList, steps.InstallMissingAndroidToolsStepListItem())
 
 	// GradleRunner
 	inputs := []envmanModels.EnvironmentItemModel{
@@ -311,10 +293,8 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	// Script
 	stepList = append(stepList, steps.ScriptSteplistItem(steps.ScriptDefaultTitle))
 
-	// Script - Update unversioned main android packages
-	stepList = append(stepList, steps.ScriptSteplistItem(updateAndroidExtraPackagesScriptTite, envmanModels.EnvironmentItemModel{
-		scriptContentKey: updateAndroidExtraPackagesScriptContent,
-	}))
+	// Install missing Android tools
+	stepList = append(stepList, steps.InstallMissingAndroidToolsStepListItem())
 
 	// GradleRunner
 	inputs := []envmanModels.EnvironmentItemModel{

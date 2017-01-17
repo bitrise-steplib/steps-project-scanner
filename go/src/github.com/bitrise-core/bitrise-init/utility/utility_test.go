@@ -35,9 +35,78 @@ func TestCaseInsensitiveContains(t *testing.T) {
 }
 
 func TestListPathInDirSortedByComponents(t *testing.T) {
-	files, err := ListPathInDirSortedByComponents("./")
-	require.NoError(t, err)
-	require.NotEqual(t, 0, len(files))
+	t.Log()
+	{
+		files, err := ListPathInDirSortedByComponents("./", true)
+		require.NoError(t, err)
+		require.NotEqual(t, 0, len(files))
+	}
+
+	t.Log()
+	{
+		tmpDir, err := pathutil.NormalizedOSTempDirPath("__lis_path_test__")
+		require.NoError(t, err)
+		defer func() {
+			require.NoError(t, os.RemoveAll(tmpDir))
+		}()
+
+		pths := []string{
+			filepath.Join(tmpDir, "testdir/testfile"),
+			filepath.Join(tmpDir, "testdir/testdir/testfile"),
+		}
+
+		for _, pth := range pths {
+			dir := filepath.Dir(pth)
+			require.NoError(t, os.MkdirAll(dir, 0700))
+
+			require.NoError(t, fileutil.WriteStringToFile(pth, "test"))
+		}
+
+		expected := []string{
+			".",
+			"testdir",
+			"testdir/testdir",
+			"testdir/testfile",
+			"testdir/testdir/testfile",
+		}
+
+		files, err := ListPathInDirSortedByComponents(tmpDir, true)
+		require.NoError(t, err)
+		require.Equal(t, expected, files)
+	}
+
+	t.Log()
+	{
+		tmpDir, err := pathutil.NormalizedOSTempDirPath("__lis_path_test1__")
+		require.NoError(t, err)
+		defer func() {
+			require.NoError(t, os.RemoveAll(tmpDir))
+		}()
+
+		pths := []string{
+			filepath.Join(tmpDir, "testdir/testfile"),
+			filepath.Join(tmpDir, "testdir/testdir/testfile"),
+		}
+
+		for _, pth := range pths {
+			dir := filepath.Dir(pth)
+			require.NoError(t, os.MkdirAll(dir, 0700))
+
+			require.NoError(t, fileutil.WriteStringToFile(pth, "test"))
+		}
+
+		expected := []string{
+			tmpDir,
+			filepath.Join(tmpDir, "testdir"),
+			filepath.Join(tmpDir, "testdir/testdir"),
+			filepath.Join(tmpDir, "testdir/testfile"),
+			filepath.Join(tmpDir, "testdir/testdir/testfile"),
+		}
+
+		files, err := ListPathInDirSortedByComponents(tmpDir, false)
+		require.NoError(t, err)
+		require.Equal(t, expected, files)
+	}
 }
 
 func TestFilterPaths(t *testing.T) {

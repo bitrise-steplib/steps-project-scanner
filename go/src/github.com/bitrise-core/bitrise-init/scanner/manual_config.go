@@ -31,7 +31,7 @@ func ManualConfig() (models.ScanResultModel, error) {
 		return models.ScanResultModel{}, fmt.Errorf("Failed create default custom configs, error: %s", err)
 	}
 
-	projectTypeConfigMap["custom"] = customConfig
+	projectTypeConfigMap["other"] = customConfig
 
 	return models.ScanResultModel{
 		OptionsMap: projectTypeOptionMap,

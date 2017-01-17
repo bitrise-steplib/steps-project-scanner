@@ -6,7 +6,7 @@ import (
 
 	"os"
 
-	"github.com/bitrise-io/go-utils/cmdex"
+	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
@@ -31,14 +31,14 @@ func runRubyScriptForOutput(scriptContent, gemfileContent, inDir string, withEnv
 			return "", err
 		}
 
-		cmd := cmdex.NewCommand("bundle", "install")
+		cmd := command.New("bundle", "install")
 
 		if inDir != "" {
 			cmd.SetDir(inDir)
 		}
 
 		withEnvs = append(withEnvs, "BUNDLE_GEMFILE="+gemfilePth)
-		cmd.AppendEnvs(withEnvs)
+		cmd.AppendEnvs(withEnvs...)
 
 		if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
 			if errorutil.IsExitStatusError(err) {
@@ -54,12 +54,12 @@ func runRubyScriptForOutput(scriptContent, gemfileContent, inDir string, withEnv
 		return "", err
 	}
 
-	var cmd *cmdex.CommandModel
+	var cmd *command.Model
 
 	if gemfileContent != "" {
-		cmd = cmdex.NewCommand("bundle", "exec", "ruby", rubyScriptPth)
+		cmd = command.New("bundle", "exec", "ruby", rubyScriptPth)
 	} else {
-		cmd = cmdex.NewCommand("ruby", rubyScriptPth)
+		cmd = command.New("ruby", rubyScriptPth)
 	}
 
 	if inDir != "" {
@@ -67,7 +67,7 @@ func runRubyScriptForOutput(scriptContent, gemfileContent, inDir string, withEnv
 	}
 
 	if len(withEnvs) > 0 {
-		cmd.AppendEnvs(withEnvs)
+		cmd.AppendEnvs(withEnvs...)
 	}
 
 	out, err := cmd.RunAndReturnTrimmedCombinedOutput()

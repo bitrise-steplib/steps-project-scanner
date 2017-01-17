@@ -10,7 +10,7 @@ import (
 
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
-	"github.com/bitrise-io/go-utils/cmdex"
+	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -27,9 +27,9 @@ func TestIOS(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "ios-no-shared-scheme")
 		sampleAppURL := "https://github.com/bitrise-samples/ios-no-shared-schemes.git"
-		require.NoError(t, cmdex.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
 
-		cmd := cmdex.NewCommand(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
+		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		require.NoError(t, err, out)
 
@@ -44,9 +44,9 @@ func TestIOS(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "ios-cocoapods-at-root")
 		sampleAppURL := "https://github.com/bitrise-samples/ios-cocoapods-at-root.git"
-		require.NoError(t, cmdex.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
 
-		cmd := cmdex.NewCommand(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
+		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		require.NoError(t, err, out)
 
@@ -61,9 +61,9 @@ func TestIOS(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-ios-watchkit")
 		sampleAppURL := "https://github.com/bitrise-io/sample-apps-ios-watchkit.git"
-		require.NoError(t, cmdex.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
 
-		cmd := cmdex.NewCommand(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
+		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		require.NoError(t, err, out)
 

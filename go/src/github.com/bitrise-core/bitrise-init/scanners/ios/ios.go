@@ -68,7 +68,7 @@ func (scanner Scanner) Name() string {
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	scanner.searchDir = searchDir
 
-	fileList, err := utility.ListPathInDirSortedByComponents(searchDir)
+	fileList, err := utility.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
 	}

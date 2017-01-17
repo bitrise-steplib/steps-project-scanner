@@ -1,6 +1,14 @@
-## Changelog (Current version: 0.12.0)
+## Changelog (Current version: 1.0.0)
 
 -----------------
+
+### 1.0.0 (2017 Jan 17)
+
+* [065ff67] prepare for 1.0.0
+* [bfe6444] InstallMissingAndroidTools step (#66)
+* [579eae8] ListPathInDirSortedByComponents allow to list with/without rel paths (#65)
+* [0383a2d] godeps-update (#64)
+* [ab226f9] custom config -> other config (#63)
 
 ### 0.12.0 (2017 Jan 09)
 
@@ -180,4 +188,4 @@
 
 -----------------
 
-Updated: 2017 Jan 09
+Updated: 2017 Jan 17

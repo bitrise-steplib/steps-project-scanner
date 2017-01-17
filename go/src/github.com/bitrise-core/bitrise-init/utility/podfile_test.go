@@ -39,6 +39,7 @@ func TestAllowPodfileBaseFilter(t *testing.T) {
 	t.Log("rel path")
 	{
 		relPaths := []string{
+			".",
 			"Test.txt",
 			".git/Podfile",
 			"sample-apps-ios-cocoapods/Pods/Podfile",
