@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.0.0)
+## Changelog (Current version: 1.0.1)
 
 -----------------
+
+### 1.0.1 (2017 Jan 18)
+
+* [93ca2dd] prepare for 1.0.1
+* [ed57669] init update (#28)
 
 ### 1.0.0 (2017 Jan 17)
 
@@ -129,4 +134,4 @@
 
 -----------------
 
-Updated: 2017 Jan 17
+Updated: 2017 Jan 18
