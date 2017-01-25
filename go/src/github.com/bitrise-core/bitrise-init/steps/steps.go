@@ -28,7 +28,7 @@ const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.2.6"
+	DeployToBitriseIoVersion = "1.2.7"
 
 	// ScriptID ...
 	ScriptID = "script"
@@ -62,6 +62,11 @@ const (
 	CocoapodsInstallID = "cocoapods-install"
 	// CocoapodsInstallVersion ...
 	CocoapodsInstallVersion = "1.6.1"
+
+	// CarthageID ...
+	CarthageID = "carthage"
+	// CarthageVersion ...
+	CarthageVersion = "3.0.4"
 
 	// RecreateUserSchemesID ...
 	RecreateUserSchemesID = "recreate-user-schemes"
@@ -98,7 +103,7 @@ const (
 	// XamarinArchiveID ...
 	XamarinArchiveID = "xamarin-archive"
 	// XamarinArchiveVersion ...
-	XamarinArchiveVersion = "1.2.0"
+	XamarinArchiveVersion = "1.3.1"
 
 	// macOS Setps
 
@@ -203,6 +208,12 @@ func FastlaneStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepList
 func CocoapodsInstallStepListItem() bitrise.StepListItemModel {
 	stepIDComposite := stepIDComposite(CocoapodsInstallID, CocoapodsInstallVersion)
 	return stepListItem(stepIDComposite, "", "", nil)
+}
+
+// CarthageStepListItem ...
+func CarthageStepListItem(inputs []envman.EnvironmentItemModel) bitrise.StepListItemModel {
+	stepIDComposite := stepIDComposite(CarthageID, CarthageVersion)
+	return stepListItem(stepIDComposite, "", "", inputs)
 }
 
 // RecreateUserSchemesStepListItem ...

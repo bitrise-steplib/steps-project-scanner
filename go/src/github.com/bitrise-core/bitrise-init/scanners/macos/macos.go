@@ -27,11 +27,15 @@ const (
 	schemeKey    = "scheme"
 	schemeTitle  = "Scheme name"
 	schemeEnvKey = "BITRISE_SCHEME"
+
+	carthageCommandKey   = "carthage_command"
+	carthageCommandTitle = "Carthage command to run"
 )
 
 // ConfigDescriptor ...
 type ConfigDescriptor struct {
 	HasPodfile           bool
+	CarthageCommand      string
 	HasTest              bool
 	MissingSharedSchemes bool
 }
@@ -40,6 +44,9 @@ func (descriptor ConfigDescriptor) String() string {
 	name := "macos-"
 	if descriptor.HasPodfile {
 		name = name + "pod-"
+	}
+	if descriptor.CarthageCommand != "" {
+		name = name + "carthage-"
 	}
 	if descriptor.HasTest {
 		name = name + "test-"
@@ -180,6 +187,26 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	// ---
 
 	//
+	// Carthage
+	log.Infof("Searching for Cartfile")
+
+	cartfiles, err := utility.FilterPaths(scanner.fileList,
+		utility.AllowCartfileBaseFilter,
+		utility.ForbidGitDirComponentFilter,
+		utility.ForbidPodsDirComponentFilter,
+		utility.ForbidCarthageDirComponentFilter,
+		utility.ForbidFramworkComponentWithExtensionFilter)
+	if err != nil {
+		return models.OptionModel{}, models.Warnings{}, err
+	}
+
+	log.Printf("%d Cartfiles detected", len(cartfiles))
+	for _, file := range cartfiles {
+		log.Printft("- %s", file)
+	}
+	// ----
+
+	//
 	// Analyze projects and workspaces
 	defaultGitignorePth := filepath.Join(scanner.searchDir, ".gitignore")
 	isXcshareddataGitignored, err := utility.FileContains(defaultGitignorePth, "xcshareddata")
@@ -216,7 +243,7 @@ Your gitignore file (` + defaultGitignorePth + `) (%s) contains 'xcshareddata', 
 Automatically generated schemes may differ from the ones in your project.
 Make sure to <a href="http://devcenter.bitrise.io/ios/frequent-ios-issues/#xcode-scheme-not-found">share your schemes</a> for the expected behaviour.`
 
-			warnings = append(warnings, fmt.Sprintf(message))
+			warnings = append(warnings, message)
 
 			log.Warnft("%d user schemes will be generated", len(project.Targets))
 			for _, target := range project.Targets {
@@ -255,7 +282,7 @@ Your gitignore file (` + defaultGitignorePth + `) contains 'xcshareddata', maybe
 Automatically generated schemes may differ from the ones in your project.
 Make sure to <a href="http://devcenter.bitrise.io/ios/frequent-ios-issues/#xcode-scheme-not-found">share your schemes</a> for the expected behaviour.`
 
-			warnings = append(warnings, fmt.Sprintf(message))
+			warnings = append(warnings, message)
 
 			targets := workspace.GetTargets()
 			log.Warnft("%d user schemes will be generated", len(targets))
@@ -275,10 +302,26 @@ Make sure to <a href="http://devcenter.bitrise.io/ios/frequent-ios-issues/#xcode
 	for _, project := range standaloneProjects {
 		schemeOption := models.NewOptionModel(schemeTitle, schemeEnvKey)
 
+		carthageCommand := ""
+		if utility.HasCartfileInDirectoryOf(project.Pth) {
+			if utility.HasCartfileResolvedInDirectoryOf(project.Pth) {
+				carthageCommand = "bootstrap"
+			} else {
+				dir := filepath.Dir(project.Pth)
+				cartfilePth := filepath.Join(dir, "Cartfile")
+
+				warnings = append(warnings, fmt.Sprintf(`Cartfile found at (%s), but no Cartfile.resolved exists in the same directory.
+It is <a href="https://github.com/Carthage/Carthage/blob/master/Documentation/Artifacts.md#cartfileresolved">strongly recommended to commit this file to your repository</a>`, cartfilePth))
+
+				carthageCommand = "update"
+			}
+		}
+
 		if len(project.SharedSchemes) == 0 {
 			for _, target := range project.Targets {
 				configDescriptor := ConfigDescriptor{
 					HasPodfile:           false,
+					CarthageCommand:      carthageCommand,
 					HasTest:              target.HasXCTest,
 					MissingSharedSchemes: true,
 				}
@@ -293,6 +336,7 @@ Make sure to <a href="http://devcenter.bitrise.io/ios/frequent-ios-issues/#xcode
 			for _, scheme := range project.SharedSchemes {
 				configDescriptor := ConfigDescriptor{
 					HasPodfile:           false,
+					CarthageCommand:      carthageCommand,
 					HasTest:              scheme.HasXCTest,
 					MissingSharedSchemes: false,
 				}
@@ -312,12 +356,28 @@ Make sure to <a href="http://devcenter.bitrise.io/ios/frequent-ios-issues/#xcode
 	for _, workspace := range workspaces {
 		schemeOption := models.NewOptionModel(schemeTitle, schemeEnvKey)
 
+		carthageCommand := ""
+		if utility.HasCartfileInDirectoryOf(workspace.Pth) {
+			if utility.HasCartfileResolvedInDirectoryOf(workspace.Pth) {
+				carthageCommand = "bootstrap"
+			} else {
+				dir := filepath.Dir(workspace.Pth)
+				cartfilePth := filepath.Join(dir, "Cartfile")
+
+				warnings = append(warnings, fmt.Sprintf(`Cartfile found at (%s), but no Cartfile.resolved exists in the same directory.
+It is <a href="https://github.com/Carthage/Carthage/blob/master/Documentation/Artifacts.md#cartfileresolved">strongly recommended to commit this file to your repository</a>`, cartfilePth))
+
+				carthageCommand = "update"
+			}
+		}
+
 		sharedSchemes := workspace.GetSharedSchemes()
 		if len(sharedSchemes) == 0 {
 			targets := workspace.GetTargets()
 			for _, target := range targets {
 				configDescriptor := ConfigDescriptor{
 					HasPodfile:           workspace.IsPodWorkspace,
+					CarthageCommand:      carthageCommand,
 					HasTest:              target.HasXCTest,
 					MissingSharedSchemes: true,
 				}
@@ -332,6 +392,7 @@ Make sure to <a href="http://devcenter.bitrise.io/ios/frequent-ios-issues/#xcode
 			for _, scheme := range sharedSchemes {
 				configDescriptor := ConfigDescriptor{
 					HasPodfile:           workspace.IsPodWorkspace,
+					CarthageCommand:      carthageCommand,
 					HasTest:              scheme.HasXCTest,
 					MissingSharedSchemes: false,
 				}
@@ -372,7 +433,7 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 	return projectPathOption
 }
 
-func generateConfig(hasPodfile, hasTest, missingSharedSchemes bool) bitriseModels.BitriseDataModel {
+func generateConfig(hasPodfile, hasTest, missingSharedSchemes bool, carthageCommand string) bitriseModels.BitriseDataModel {
 	//
 	// Prepare steps
 	prepareSteps := []bitriseModels.StepListItemModel{}
@@ -389,13 +450,20 @@ func generateConfig(hasPodfile, hasTest, missingSharedSchemes bool) bitriseModel
 	// CertificateAndProfileInstaller
 	prepareSteps = append(prepareSteps, steps.CertificateAndProfileInstallerStepListItem())
 
+	// CocoapodsInstall
 	if hasPodfile {
-		// CocoapodsInstall
 		prepareSteps = append(prepareSteps, steps.CocoapodsInstallStepListItem())
 	}
 
+	// Carthage
+	if carthageCommand != "" {
+		prepareSteps = append(prepareSteps, steps.CarthageStepListItem([]envmanModels.EnvironmentItemModel{
+			envmanModels.EnvironmentItemModel{carthageCommandKey: carthageCommand},
+		}))
+	}
+
+	// RecreateUserSchemes
 	if missingSharedSchemes {
-		// RecreateUserSchemes
 		prepareSteps = append(prepareSteps, steps.RecreateUserSchemesStepListItem([]envmanModels.EnvironmentItemModel{
 			envmanModels.EnvironmentItemModel{projectPathKey: "$" + projectPathEnvKey},
 		}))
@@ -406,8 +474,8 @@ func generateConfig(hasPodfile, hasTest, missingSharedSchemes bool) bitriseModel
 	// CI steps
 	ciSteps := append([]bitriseModels.StepListItemModel{}, prepareSteps...)
 
+	// XcodeTestMac
 	if hasTest {
-		// XcodeTestMac
 		ciSteps = append(ciSteps, steps.XcodeTestMacStepListItem([]envmanModels.EnvironmentItemModel{
 			envmanModels.EnvironmentItemModel{projectPathKey: "$" + projectPathEnvKey},
 			envmanModels.EnvironmentItemModel{schemeKey: "$" + schemeEnvKey},
@@ -422,8 +490,8 @@ func generateConfig(hasPodfile, hasTest, missingSharedSchemes bool) bitriseModel
 	// Deploy steps
 	deploySteps := append([]bitriseModels.StepListItemModel{}, prepareSteps...)
 
+	// XcodeTestMac
 	if hasTest {
-		// XcodeTestMac
 		deploySteps = append(deploySteps, steps.XcodeTestMacStepListItem([]envmanModels.EnvironmentItemModel{
 			envmanModels.EnvironmentItemModel{projectPathKey: "$" + projectPathEnvKey},
 			envmanModels.EnvironmentItemModel{schemeKey: "$" + schemeEnvKey},
@@ -458,7 +526,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	bitriseDataMap := models.BitriseConfigMap{}
 	for _, descriptor := range descriptors {
 		configName := descriptor.String()
-		bitriseData := generateConfig(descriptor.HasPodfile, descriptor.HasTest, descriptor.MissingSharedSchemes)
+		bitriseData := generateConfig(descriptor.HasPodfile, descriptor.HasTest, descriptor.MissingSharedSchemes, descriptor.CarthageCommand)
 		data, err := yaml.Marshal(bitriseData)
 		if err != nil {
 			return models.BitriseConfigMap{}, err

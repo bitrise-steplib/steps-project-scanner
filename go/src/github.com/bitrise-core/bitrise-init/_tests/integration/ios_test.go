@@ -73,6 +73,24 @@ func TestIOS(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, strings.TrimSpace(sampleAppsIosWatchkitResultYML), strings.TrimSpace(result))
 	}
+
+	t.Log("sample-apps-carthage")
+	{
+		//
+		sampleAppDir := filepath.Join(tmpDir, "sample-apps-carthage")
+		sampleAppURL := "https://github.com/bitrise-samples/sample-apps-carthage.git"
+		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+
+		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
+		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
+		require.NoError(t, err, out)
+
+		scanResultPth := filepath.Join(sampleAppDir, "result.yml")
+
+		result, err := fileutil.ReadStringFromFile(scanResultPth)
+		require.NoError(t, err)
+		require.Equal(t, strings.TrimSpace(sampleAppsCarthageResultYML), strings.TrimSpace(result))
+	}
 }
 
 var iosNoSharedSchemesVersions = []interface{}{
@@ -365,3 +383,85 @@ configs:
 warnings:
   ios: []
 `, sampleAppsIosWatchkitVersions...)
+
+var sampleAppsCarthageVersions = []interface{}{
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.CarthageVersion,
+	steps.XcodeTestVersion,
+	steps.XcodeArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.CarthageVersion,
+	steps.XcodeTestVersion,
+	steps.DeployToBitriseIoVersion,
+}
+
+var sampleAppsCarthageResultYML = fmt.Sprintf(`options:
+  ios:
+    title: Project (or Workspace) path
+    env_key: BITRISE_PROJECT_PATH
+    value_map:
+      sample-apps-carthage.xcodeproj:
+        title: Scheme name
+        env_key: BITRISE_SCHEME
+        value_map:
+          sample-apps-carthage:
+            config: ios-carthage-test-config
+configs:
+  ios:
+    ios-carthage-test-config: |
+      format_version: %s
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        deploy:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
+          - carthage@%s:
+              inputs:
+              - carthage_command: bootstrap
+          - xcode-test@%s:
+              inputs:
+              - project_path: $BITRISE_PROJECT_PATH
+              - scheme: $BITRISE_SCHEME
+          - xcode-archive@%s:
+              inputs:
+              - project_path: $BITRISE_PROJECT_PATH
+              - scheme: $BITRISE_SCHEME
+          - deploy-to-bitrise-io@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
+          - carthage@%s:
+              inputs:
+              - carthage_command: bootstrap
+          - xcode-test@%s:
+              inputs:
+              - project_path: $BITRISE_PROJECT_PATH
+              - scheme: $BITRISE_SCHEME
+          - deploy-to-bitrise-io@%s: {}
+warnings:
+  ios: []
+`, sampleAppsCarthageVersions...)

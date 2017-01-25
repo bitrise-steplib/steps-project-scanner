@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/bitrise-core/bitrise-init",
 	"GoVersion": "go1.7",
-	"GodepVersion": "v76",
+	"GodepVersion": "v78",
 	"Packages": [
 		"./..."
 	],
@@ -13,8 +13,12 @@
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/bitrise/models",
-			"Comment": "1.5.2",
-			"Rev": "e47cd073729c31e18610fc951d79f810388781c6"
+			"Comment": "1.5.2-4-g74cc0f6",
+			"Rev": "74cc0f66f40fd9b8f0fcf5d04137acb01f5ed4a4"
+		},
+		{
+			"ImportPath": "github.com/bitrise-io/depman/pathutil",
+			"Rev": "4c59bc31f02a2ae78ce5d8d96a006289cd3e6beb"
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/envman/models",
@@ -59,12 +63,12 @@
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/stepman/models",
-			"Comment": "0.9.26",
-			"Rev": "dc8c6c9696a3bd8f98dd727d21a4f79a30d8939e"
+			"Comment": "0.9.26-1-g876ce6f",
+			"Rev": "876ce6f9cc81d9286c10604b50a086e9de222091"
 		},
 		{
 			"ImportPath": "github.com/bitrise-tools/go-xcode/xcodeproj",
-			"Rev": "3f50256af6281dbf2b3b688abe153432a089d8d4"
+			"Rev": "dfe3c2b59593ee83ef605fba21fa92501d1c68bf"
 		},
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
@@ -83,13 +87,13 @@
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
-			"Comment": "v1.1.4-6-g18a02ba",
-			"Rev": "18a02ba4a312f95da08ff4cfc0055750ce50ae9e"
+			"Comment": "v1.1.4-25-g2402e8e",
+			"Rev": "2402e8e7a02fc811447d11f881aa9746cdc57983"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/require",
-			"Comment": "v1.1.4-6-g18a02ba",
-			"Rev": "18a02ba4a312f95da08ff4cfc0055750ce50ae9e"
+			"Comment": "v1.1.4-25-g2402e8e",
+			"Rev": "2402e8e7a02fc811447d11f881aa9746cdc57983"
 		},
 		{
 			"ImportPath": "github.com/urfave/cli",
