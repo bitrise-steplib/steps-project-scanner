@@ -10,6 +10,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/output"
 	"github.com/bitrise-core/bitrise-init/scanner"
 	"github.com/bitrise-io/go-utils/colorstring"
+	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/urfave/cli"
@@ -107,6 +108,19 @@ func initConfig(c *cli.Context) error {
 	}
 
 	if len(platforms) == 0 {
+		cmd := command.New("which", "tree")
+		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
+		if err != nil || out == "" {
+			log.Errorf("tree not installed, can not list files")
+		} else {
+			fmt.Println()
+			cmd := command.NewWithStandardOuts("tree", ".", "-L", "3")
+			log.Printf("$ %s", cmd.PrintableCommandArgs())
+			if err := cmd.Run(); err != nil {
+				log.Errorf("Failed to list files in current directory, error: %s", err)
+			}
+		}
+
 		return errors.New("No known platform detected")
 	}
 

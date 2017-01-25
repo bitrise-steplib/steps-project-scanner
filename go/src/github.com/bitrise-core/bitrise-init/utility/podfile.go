@@ -47,12 +47,17 @@ rescue => e
 end
 `
 
-	envs := []string{fmt.Sprintf("PODFILE_PATH=%s", podfilePth)}
-	podfileDir := filepath.Dir(podfilePth)
+	absPodfilePth, err := filepath.Abs(podfilePth)
+	if err != nil {
+		return map[string]string{}, fmt.Errorf("failed to expand path (%s), error: %s", podfilePth, err)
+	}
+
+	envs := []string{fmt.Sprintf("PODFILE_PATH=%s", absPodfilePth)}
+	podfileDir := filepath.Dir(absPodfilePth)
 
 	out, err := runRubyScriptForOutput(rubyScriptContent, gemfileContent, podfileDir, envs)
 	if err != nil {
-		return map[string]string{}, err
+		return map[string]string{}, fmt.Errorf("ruby script failed, error: %s", err)
 	}
 
 	if out == "" {
@@ -66,11 +71,11 @@ end
 
 	var targetDefinitionOutput targetDefinitionOutputModel
 	if err := json.Unmarshal([]byte(out), &targetDefinitionOutput); err != nil {
-		return map[string]string{}, err
+		return map[string]string{}, fmt.Errorf("failed to parse target definition output, error: %s", err)
 	}
 
 	if targetDefinitionOutput.Error != "" {
-		return map[string]string{}, errors.New(targetDefinitionOutput.Error)
+		return map[string]string{}, fmt.Errorf("failed to read target defintion map, error: %s", targetDefinitionOutput.Error)
 	}
 
 	return targetDefinitionOutput.Data, nil
@@ -79,7 +84,7 @@ end
 func getUserDefinedProjectRelavtivePath(podfilePth string) (string, error) {
 	targetProjectMap, err := getTargetDefinitionProjectMap(podfilePth)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get target definition map, error: %s", err)
 	}
 
 	for target, project := range targetProjectMap {
@@ -110,13 +115,17 @@ rescue => e
 	puts "#{{ :error => e.to_s }.to_json}"
 end
 `
+	absPodfilePth, err := filepath.Abs(podfilePth)
+	if err != nil {
+		return "", fmt.Errorf("failed to expand path (%s), error: %s", podfilePth, err)
+	}
 
-	envs := []string{fmt.Sprintf("PODFILE_PATH=%s", podfilePth)}
-	podfileDir := filepath.Dir(podfilePth)
+	envs := []string{fmt.Sprintf("PODFILE_PATH=%s", absPodfilePth)}
+	podfileDir := filepath.Dir(absPodfilePth)
 
 	out, err := runRubyScriptForOutput(getWorkspacePathRubyScriptContent, getWorkspacePathGemfileContent, podfileDir, envs)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("ruby script failed, error: %s", err)
 	}
 
 	if out == "" {
@@ -130,11 +139,11 @@ end
 
 	var workspacePathOutput workspacePathOutputModel
 	if err := json.Unmarshal([]byte(out), &workspacePathOutput); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to parse workspace path output, error: %s", err)
 	}
 
 	if workspacePathOutput.Error != "" {
-		return "", errors.New(workspacePathOutput.Error)
+		return "", fmt.Errorf("failed to readworkspace path, error: %s", workspacePathOutput.Error)
 	}
 
 	return workspacePathOutput.Data, nil
@@ -149,7 +158,7 @@ func GetWorkspaceProjectMap(podfilePth string, projects []string) (map[string]st
 	// fix podfile quotation
 	podfileContent, err := fileutil.ReadStringFromFile(podfilePth)
 	if err != nil {
-		return map[string]string{}, err
+		return map[string]string{}, fmt.Errorf("failed to read podfile (%s), error: %s", podfilePth, err)
 	}
 
 	podfileContent = strings.Replace(podfileContent, `‘`, `'`, -1)
@@ -158,7 +167,7 @@ func GetWorkspaceProjectMap(podfilePth string, projects []string) (map[string]st
 	podfileContent = strings.Replace(podfileContent, `”`, `"`, -1)
 
 	if err := fileutil.WriteStringToFile(podfilePth, podfileContent); err != nil {
-		return map[string]string{}, err
+		return map[string]string{}, fmt.Errorf("failed to apply Podfile quotation fix, error: %s", err)
 	}
 	// ----
 
@@ -166,13 +175,13 @@ func GetWorkspaceProjectMap(podfilePth string, projects []string) (map[string]st
 
 	projectRelPth, err := getUserDefinedProjectRelavtivePath(podfilePth)
 	if err != nil {
-		return map[string]string{}, err
+		return map[string]string{}, fmt.Errorf("failed to get user defined project path, error: %s", err)
 	}
 
 	if projectRelPth == "" {
 		projects, err := FilterPaths(projects, InDirectoryFilter(podfileDir, true))
 		if err != nil {
-			return map[string]string{}, err
+			return map[string]string{}, fmt.Errorf("failed to filter projects, error: %s", err)
 		}
 
 		if len(projects) == 0 {
@@ -186,14 +195,14 @@ func GetWorkspaceProjectMap(podfilePth string, projects []string) (map[string]st
 	projectPth := filepath.Join(podfileDir, projectRelPth)
 
 	if exist, err := pathutil.IsPathExists(projectPth); err != nil {
-		return map[string]string{}, err
+		return map[string]string{}, fmt.Errorf("failed to check if path (%s) exists, error: %s", projectPth, err)
 	} else if !exist {
 		return map[string]string{}, fmt.Errorf("project not found at: %s", projectPth)
 	}
 
 	workspaceRelPth, err := getUserDefinedWorkspaceRelativePath(podfilePth)
 	if err != nil {
-		return map[string]string{}, err
+		return map[string]string{}, fmt.Errorf("failed to get user defined workspace path, error: %s", err)
 	}
 
 	if workspaceRelPth == "" {

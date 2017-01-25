@@ -1,6 +1,16 @@
-## Changelog (Current version: 1.0.0)
+## Changelog (Current version: 1.1.0)
 
 -----------------
+
+### 1.1.0 (2017 Jan 25)
+
+* [942eddb] tree file list, if no platform detetcted (#71)
+* [191cb9a] Merge branch 'master' of github.com:bitrise-core/bitrise-init
+* [7ce11fd] Podfile fix (#70)
+* [9d0de5b] prepare for 1.1.0
+* [f7475d3] step version updates (#69)
+* [e3e400d] Carthage (#68)
+* [ece4643] step version update (#67)
 
 ### 1.0.0 (2017 Jan 17)
 
@@ -188,4 +198,4 @@
 
 -----------------
 
-Updated: 2017 Jan 17
+Updated: 2017 Jan 25
