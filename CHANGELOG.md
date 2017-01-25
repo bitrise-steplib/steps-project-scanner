@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.0.1)
+## Changelog (Current version: 1.1.0)
 
 -----------------
+
+### 1.1.0 (2017 Jan 25)
+
+* [917dbdf] prepare for 1.1.0
+* [6768da5] godeps update (#29)
 
 ### 1.0.1 (2017 Jan 18)
 
@@ -134,4 +139,4 @@
 
 -----------------
 
-Updated: 2017 Jan 18
+Updated: 2017 Jan 25
