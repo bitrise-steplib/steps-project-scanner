@@ -47,7 +47,7 @@ const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.5.2"
+	GradleRunnerVersion = "1.5.4"
 
 	// Fastlane Steps
 
@@ -66,7 +66,7 @@ const (
 	// CarthageID ...
 	CarthageID = "carthage"
 	// CarthageVersion ...
-	CarthageVersion = "3.0.4"
+	CarthageVersion = "3.0.5"
 
 	// RecreateUserSchemesID ...
 	RecreateUserSchemesID = "recreate-user-schemes"

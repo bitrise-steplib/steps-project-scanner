@@ -8,6 +8,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"bufio"
+
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-core/bitrise-init/utility"
@@ -53,17 +55,57 @@ func filterFastfiles(fileList []string) ([]string, error) {
 }
 
 func inspectFastfileContent(content string) ([]string, error) {
-	lanes := []string{}
+	commonLanes := []string{}
+	laneMap := map[string][]string{}
+
+	// platform :ios do ...
+	platformSectionStartRegexp := regexp.MustCompile(`platform\s+:(?P<platform>.*)\s+do`)
+	platformSectionEndPattern := "end"
+	platform := ""
 
 	// lane :test_and_snapshot do
-	regexp := regexp.MustCompile(`^ *lane :(.+) do`)
+	laneRegexp := regexp.MustCompile(`^[\s]*lane\s+:(?P<lane>.*)\s+do`)
 
-	lines := strings.Split(content, "\n")
-	for _, line := range lines {
-		matches := regexp.FindStringSubmatch(line)
-		if len(matches) == 2 {
-			lane := matches[1]
-			lanes = append(lanes, lane)
+	reader := strings.NewReader(content)
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		line := strings.TrimRight(scanner.Text(), " ")
+
+		if platform != "" && line == platformSectionEndPattern {
+			platform = ""
+			continue
+		}
+
+		if platform == "" {
+			if match := platformSectionStartRegexp.FindStringSubmatch(line); len(match) == 2 {
+				platform = match[1]
+				continue
+			}
+		}
+
+		if match := laneRegexp.FindStringSubmatch(line); len(match) == 2 {
+			lane := match[1]
+
+			if platform != "" {
+				lanes, found := laneMap[platform]
+				if !found {
+					lanes = []string{}
+				}
+				lanes = append(lanes, lane)
+				laneMap[platform] = lanes
+			} else {
+				commonLanes = append(commonLanes, lane)
+			}
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return []string{}, err
+	}
+
+	lanes := commonLanes
+	for platform, platformLanes := range laneMap {
+		for _, lane := range platformLanes {
+			lanes = append(lanes, platform+" "+lane)
 		}
 	}
 

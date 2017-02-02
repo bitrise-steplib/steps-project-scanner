@@ -77,7 +77,7 @@ var fastlaneResultYML = fmt.Sprintf(`options:
         title: Fastlane lane
         env_key: FASTLANE_LANE
         value_map:
-          test:
+          ios test:
             config: fastlane-config
   ios:
     title: Project (or Workspace) path
