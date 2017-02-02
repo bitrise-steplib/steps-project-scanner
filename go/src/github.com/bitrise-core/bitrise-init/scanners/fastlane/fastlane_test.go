@@ -1,7 +1,6 @@
 package fastlane
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -60,22 +59,52 @@ func TestInspectFastFileContent(t *testing.T) {
 	}
 	content := strings.Join(lines, "\n")
 
-	expectedMap := map[string]bool{
-		"xcode":      false,
-		"deploy":     false,
-		"unit_tests": false,
+	expectedLanes := []string{
+		"xcode",
+		"deploy",
+		"unit_tests",
 	}
 
 	lanes, err := inspectFastfileContent(content)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(lanes), strings.Join(lanes, "; "))
+	require.Equal(t, expectedLanes, lanes)
 
-	for _, lane := range lanes {
-		expectedMap[lane] = true
+	t.Log("ios test")
+	{
+		lanes, err := inspectFastfileContent(iosTesFastfileContent)
+		require.NoError(t, err)
+
+		expectedLanes := []string{
+			"ios test",
+		}
+
+		require.Equal(t, expectedLanes, lanes)
 	}
 
-	for lane, found := range expectedMap {
-		require.Equal(t, true, found, fmt.Sprintf("lane: %s not found", lane))
+	t.Log("experimental ios test")
+	{
+		lanes, err := inspectFastfileContent(complexIosTestFastFileContent)
+		require.NoError(t, err)
+
+		expectedLanes := []string{
+			"ios analyze",
+			"ios testAndPushBeta",
+			"ios submitAndPushToMaster",
+			"ios verifyTestPlatforms",
+			"ios verify",
+			"ios bumpPatch",
+			"ios bumpMinor",
+			"ios bumpMajor",
+			"ios bump",
+			"ios bumpAndTagBeta",
+			"ios bumpAndTagRelease",
+			"ios default_changelog",
+			"ios beta",
+			"ios store",
+			"ios dev",
+		}
+
+		require.Equal(t, expectedLanes, lanes)
 	}
 }
 

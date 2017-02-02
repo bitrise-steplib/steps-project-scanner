@@ -1,6 +1,17 @@
-## Changelog (Current version: 1.1.0)
+## Changelog (Current version: 1.1.2)
 
 -----------------
+
+### 1.1.2 (2017 Feb 02)
+
+* [2310097] prepare for 1.1.2
+* [1fe7afe] step version updates (#73)
+
+### 1.1.1 (2017 Feb 01)
+
+* [384aa95] prepare for 1.1.1
+* [f6ac946] test update
+* [f8c5eac] Fastfile inspect fixes (#72)
 
 ### 1.1.0 (2017 Jan 25)
 
@@ -198,4 +209,4 @@
 
 -----------------
 
-Updated: 2017 Jan 25
+Updated: 2017 Feb 02
