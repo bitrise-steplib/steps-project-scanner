@@ -12,13 +12,15 @@ import (
 )
 
 // Config ...
-func Config(searchDir string) (models.ScanResultModel, error) {
+func Config(searchDir string) models.ScanResultModel {
+	result := models.ScanResultModel{}
 
 	//
 	// Setup
 	currentDir, err := os.Getwd()
 	if err != nil {
-		return models.ScanResultModel{}, fmt.Errorf("Failed to expand current directory path, error: %s", err)
+		result.AddError("general", fmt.Sprintf("Failed to expand current directory path, error: %s", err))
+		return result
 	}
 
 	if searchDir == "" {
@@ -26,14 +28,16 @@ func Config(searchDir string) (models.ScanResultModel, error) {
 	} else {
 		absScerach, err := pathutil.AbsPath(searchDir)
 		if err != nil {
-			return models.ScanResultModel{}, fmt.Errorf("Failed to expand path (%s), error: %s", searchDir, err)
+			result.AddError("general", fmt.Sprintf("Failed to expand path (%s), error: %s", searchDir, err))
+			return result
 		}
 		searchDir = absScerach
 	}
 
 	if searchDir != currentDir {
 		if err := os.Chdir(searchDir); err != nil {
-			return models.ScanResultModel{}, fmt.Errorf("Failed to change dir, to (%s), error: %s", searchDir, err)
+			result.AddError("general", fmt.Sprintf("Failed to change dir, to (%s), error: %s", searchDir, err))
+			return result
 		}
 		defer func() {
 			if err := os.Chdir(currentDir); err != nil {
@@ -46,6 +50,8 @@ func Config(searchDir string) (models.ScanResultModel, error) {
 	//
 	// Scan
 	projectScanners := scanners.ActiveScanners
+
+	projectTypeErrorMap := map[string]models.Errors{}
 	projectTypeWarningMap := map[string]models.Warnings{}
 	projectTypeOptionMap := map[string]models.OptionModel{}
 	projectTypeConfigMap := map[string]models.BitriseConfigMap{}
@@ -55,12 +61,13 @@ func Config(searchDir string) (models.ScanResultModel, error) {
 
 	for _, detector := range projectScanners {
 		detectorName := detector.Name()
-		log.Infoft("Scanner: %s", colorstring.Blue(detectorName))
+		detectorWarnings := []string{}
+		detectorErrors := []string{}
 
+		log.Infoft("Scanner: %s", colorstring.Blue(detectorName))
 		log.Printft("+------------------------------------------------------------------------------+")
 		log.Printft("|                                                                              |")
 
-		detectorWarnings := []string{}
 		detected, err := detector.DetectPlatform(searchDir)
 		if err != nil {
 			log.Errorft("Scanner failed, error: %s", err)
@@ -96,7 +103,10 @@ func Config(searchDir string) (models.ScanResultModel, error) {
 		// Generate configs
 		configs, err := detector.Configs()
 		if err != nil {
-			return models.ScanResultModel{}, fmt.Errorf("Failed create configs, error: %s", err)
+			log.Errorft("Failed to generate config, error: %s", err)
+			detectorErrors = append(detectorErrors, err.Error())
+			projectTypeErrorMap[detectorName] = detectorErrors
+			continue
 		}
 
 		projectTypeConfigMap[detectorName] = configs
@@ -111,5 +121,5 @@ func Config(searchDir string) (models.ScanResultModel, error) {
 		OptionsMap:  projectTypeOptionMap,
 		ConfigsMap:  projectTypeConfigMap,
 		WarningsMap: projectTypeWarningMap,
-	}, nil
+	}
 }

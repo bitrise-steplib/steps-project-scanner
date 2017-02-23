@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/output"
 	"github.com/bitrise-core/bitrise-init/scanner"
 	"github.com/bitrise-io/go-utils/colorstring"
@@ -49,6 +50,11 @@ var configCommand = cli.Command{
 	},
 }
 
+func writeScanResult(scanResult models.ScanResultModel, outputDir string, format output.Format) (string, error) {
+	pth := path.Join(outputDir, "result")
+	return output.WriteToFile(scanResult, format, pth)
+}
+
 func initConfig(c *cli.Context) error {
 	// Config
 	isCI := c.GlobalBool("ci")
@@ -84,6 +90,13 @@ func initConfig(c *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to expand path (%s), error: %s", outputDir, err)
 	}
+	if exist, err := pathutil.IsDirExists(outputDir); err != nil {
+		return err
+	} else if !exist {
+		if err := os.MkdirAll(outputDir, 0700); err != nil {
+			return fmt.Errorf("Failed to create (%s), error: %s", outputDir, err)
+		}
+	}
 
 	if formatStr == "" {
 		formatStr = output.YAMLFormat.String()
@@ -97,10 +110,7 @@ func initConfig(c *cli.Context) error {
 	}
 	// ---
 
-	scanResult, err := scanner.Config(searchDir)
-	if err != nil {
-		return err
-	}
+	scanResult := scanner.Config(searchDir)
 
 	platforms := []string{}
 	for platform := range scanResult.OptionsMap {
@@ -121,34 +131,34 @@ func initConfig(c *cli.Context) error {
 			}
 		}
 
+		log.Infoft("Saving outputs:")
+		scanResult.AddError("general", "No known platform detected")
+		outputPth, err := writeScanResult(scanResult, outputDir, format)
+		if err != nil {
+			log.Errorf("Failed to write output, error: %s", err)
+		} else {
+			log.Printft("  scan result: %s", outputPth)
+		}
+
 		return errors.New("No known platform detected")
 	}
 
 	// Write output to files
 	if isCI {
-		log.Infoft(colorstring.Blue("Saving outputs:"))
+		log.Infoft("Saving outputs:")
 
-		if exist, err := pathutil.IsDirExists(outputDir); err != nil {
-			return err
-		} else if !exist {
-			if err := os.MkdirAll(outputDir, 0700); err != nil {
-				return fmt.Errorf("Failed to create (%s), error: %s", outputDir, err)
-			}
-		}
-
-		pth := path.Join(outputDir, "result")
-		outputPth, err := output.WriteToFile(scanResult, format, pth)
+		outputPth, err := writeScanResult(scanResult, outputDir, format)
 		if err != nil {
-			return fmt.Errorf("Failed to print result, error: %s", err)
+			return fmt.Errorf("Failed to write output, error: %s", err)
 		}
-		log.Infoft("  scan result: %s", colorstring.Blue(outputPth))
 
+		log.Printft("  scan result: %s", outputPth)
 		return nil
 	}
 	// ---
 
 	// Select option
-	log.Infoft(colorstring.Blue("Collecting inputs:"))
+	log.Infoft("Collecting inputs:")
 
 	config, err := scanner.AskForConfig(scanResult)
 	if err != nil {
@@ -168,7 +178,7 @@ func initConfig(c *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to print result, error: %s", err)
 	}
-	log.Infoft("  bitrise.yml template: %s", colorstring.Blue(outputPth))
+	log.Infoft("  bitrise.yml template: %s", outputPth)
 	fmt.Println()
 	// ---
 

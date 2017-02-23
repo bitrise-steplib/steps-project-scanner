@@ -14,6 +14,7 @@ import (
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/pathutil"
 )
 
 const scannerName = "ios"
@@ -209,10 +210,18 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 
 	//
 	// Analyze projects and workspaces
+	isXcshareddataGitignored := false
 	defaultGitignorePth := filepath.Join(scanner.searchDir, ".gitignore")
-	isXcshareddataGitignored, err := utility.FileContains(defaultGitignorePth, "xcshareddata")
-	if err != nil {
-		log.Warnf("Failed to check if xcshareddata gitignored, error: %s", err)
+
+	if exist, err := pathutil.IsPathExists(defaultGitignorePth); err != nil {
+		log.Warnf("Failed to check if .gitignore file exists at: %s, error: %s", defaultGitignorePth, err)
+	} else if exist {
+		isGitignored, err := utility.FileContains(defaultGitignorePth, "xcshareddata")
+		if err != nil {
+			log.Warnf("Failed to check if xcshareddata gitignored, error: %s", err)
+		} else {
+			isXcshareddataGitignored = isGitignored
+		}
 	}
 
 	for _, project := range standaloneProjects {
