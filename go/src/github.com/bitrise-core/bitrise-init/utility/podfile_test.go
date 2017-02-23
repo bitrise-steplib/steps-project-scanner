@@ -82,7 +82,7 @@ pod 'Alamofire', '~> 3.4'
 		expectedTargetDefinition := map[string]string{
 			"Pods": "MyXcodeProject.xcodeproj",
 		}
-		actualTargetDefinition, err := getTargetDefinitionProjectMap(podfilePth)
+		actualTargetDefinition, err := getTargetDefinitionProjectMap(podfilePth, "")
 		require.NoError(t, err)
 		require.Equal(t, expectedTargetDefinition, actualTargetDefinition)
 	}
@@ -99,7 +99,38 @@ pod 'Alamofire', '~> 3.4'
 		require.NoError(t, fileutil.WriteStringToFile(podfilePth, podfile))
 
 		expectedTargetDefinition := map[string]string{}
-		actualTargetDefinition, err := getTargetDefinitionProjectMap(podfilePth)
+		actualTargetDefinition, err := getTargetDefinitionProjectMap(podfilePth, "")
+		require.NoError(t, err)
+		require.Equal(t, expectedTargetDefinition, actualTargetDefinition)
+	}
+
+	t.Log("cocoapods 0.38.0")
+	{
+		tmpDir = filepath.Join(tmpDir, "xcodeproj_not_defined")
+		require.NoError(t, os.MkdirAll(tmpDir, 0777))
+
+		podfile := `source 'https://github.com/CocoaPods/Specs.git'
+platform :ios, '8.0'
+
+# pod 'Functional.m', '~> 1.0'
+
+# Add Kiwi as an exclusive dependency for the Test target
+target :SampleAppWithCocoapodsTests, :exclusive => true do
+  pod 'Kiwi'
+end
+
+# post_install do |installer_representation|
+#   installer_representation.project.targets.each do |target|
+#     target.build_configurations.each do |config|
+#       config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
+#     end
+#   end
+# end`
+		podfilePth := filepath.Join(tmpDir, "Podfile")
+		require.NoError(t, fileutil.WriteStringToFile(podfilePth, podfile))
+
+		expectedTargetDefinition := map[string]string{}
+		actualTargetDefinition, err := getTargetDefinitionProjectMap(podfilePth, "0.38.0")
 		require.NoError(t, err)
 		require.Equal(t, expectedTargetDefinition, actualTargetDefinition)
 	}
@@ -125,7 +156,7 @@ pod 'Alamofire', '~> 3.4'
 		require.NoError(t, fileutil.WriteStringToFile(podfilePth, podfile))
 
 		expectedProject := "MyXcodeProject.xcodeproj"
-		actualProject, err := getUserDefinedProjectRelavtivePath(podfilePth)
+		actualProject, err := getUserDefinedProjectRelavtivePath(podfilePth, "")
 		require.NoError(t, err)
 		require.Equal(t, expectedProject, actualProject)
 	}
@@ -142,7 +173,7 @@ pod 'Alamofire', '~> 3.4'
 		require.NoError(t, fileutil.WriteStringToFile(podfilePth, podfile))
 
 		expectedProject := ""
-		actualProject, err := getUserDefinedProjectRelavtivePath(podfilePth)
+		actualProject, err := getUserDefinedProjectRelavtivePath(podfilePth, "")
 		require.NoError(t, err)
 		require.Equal(t, expectedProject, actualProject)
 	}
@@ -168,7 +199,7 @@ pod 'Alamofire', '~> 3.4'
 		require.NoError(t, fileutil.WriteStringToFile(podfilePth, podfile))
 
 		expectedWorkspace := "MyWorkspace.xcworkspace"
-		actualWorkspace, err := getUserDefinedWorkspaceRelativePath(podfilePth)
+		actualWorkspace, err := getUserDefinedWorkspaceRelativePath(podfilePth, "")
 		require.NoError(t, err)
 		require.Equal(t, expectedWorkspace, actualWorkspace)
 	}
@@ -185,7 +216,7 @@ pod 'Alamofire', '~> 3.4'
 		require.NoError(t, fileutil.WriteStringToFile(podfilePth, podfile))
 
 		expectedWorkspace := ""
-		actualWorkspace, err := getUserDefinedWorkspaceRelativePath(podfilePth)
+		actualWorkspace, err := getUserDefinedWorkspaceRelativePath(podfilePth, "")
 		require.NoError(t, err)
 		require.Equal(t, expectedWorkspace, actualWorkspace)
 	}
