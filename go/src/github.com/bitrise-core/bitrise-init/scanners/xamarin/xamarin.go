@@ -292,6 +292,11 @@ type Scanner struct {
 	HasTVOSProject    bool
 }
 
+// NewScanner ...
+func NewScanner() *Scanner {
+	return &Scanner{}
+}
+
 // Name ...
 func (scanner Scanner) Name() string {
 	return scannerName

@@ -18,17 +18,17 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "3.4.1"
+	GitCloneVersion = "3.4.2"
 
 	// CertificateAndProfileInstallerID ...
 	CertificateAndProfileInstallerID = "certificate-and-profile-installer"
 	// CertificateAndProfileInstallerVersion ...
-	CertificateAndProfileInstallerVersion = "1.8.2"
+	CertificateAndProfileInstallerVersion = "1.8.4"
 
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.2.7"
+	DeployToBitriseIoVersion = "1.2.9"
 
 	// ScriptID ...
 	ScriptID = "script"
@@ -54,7 +54,7 @@ const (
 	// FastlaneID ...
 	FastlaneID = "fastlane"
 	// FastlaneVersion ...
-	FastlaneVersion = "2.3.3"
+	FastlaneVersion = "2.3.7"
 
 	// iOS Steps
 
@@ -66,7 +66,7 @@ const (
 	// CarthageID ...
 	CarthageID = "carthage"
 	// CarthageVersion ...
-	CarthageVersion = "3.0.5"
+	CarthageVersion = "3.0.6"
 
 	// RecreateUserSchemesID ...
 	RecreateUserSchemesID = "recreate-user-schemes"
@@ -76,7 +76,7 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.0.4"
+	XcodeArchiveVersion = "2.0.5"
 
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
@@ -103,19 +103,19 @@ const (
 	// XamarinArchiveID ...
 	XamarinArchiveID = "xamarin-archive"
 	// XamarinArchiveVersion ...
-	XamarinArchiveVersion = "1.3.1"
+	XamarinArchiveVersion = "1.3.2"
 
 	// macOS Setps
 
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...
-	XcodeArchiveMacVersion = "1.3.3"
+	XcodeArchiveMacVersion = "1.4.0"
 
 	// XcodeTestMacID ...
 	XcodeTestMacID = "xcode-test-mac"
 	// XcodeTestMacVersion ...
-	XcodeTestMacVersion = "1.0.6"
+	XcodeTestMacVersion = "1.1.0"
 )
 
 func stepIDComposite(ID, version string) string {

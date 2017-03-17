@@ -128,6 +128,11 @@ type Scanner struct {
 	GradleFiles []string
 }
 
+// NewScanner ...
+func NewScanner() *Scanner {
+	return &Scanner{}
+}
+
 // Name ...
 func (scanner Scanner) Name() string {
 	return scannerName

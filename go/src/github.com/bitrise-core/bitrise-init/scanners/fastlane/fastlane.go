@@ -150,6 +150,11 @@ type Scanner struct {
 	Fastfiles []string
 }
 
+// NewScanner ...
+func NewScanner() *Scanner {
+	return &Scanner{}
+}
+
 // Name ...
 func (scanner Scanner) Name() string {
 	return scannerName
