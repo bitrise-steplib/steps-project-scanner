@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.1.2)
+## Changelog (Current version: 1.1.3)
 
 -----------------
+
+### 1.1.3 (2017 Mar 17)
+
+* [f417771] prepare for 1.1.3
+* [ff417a1] bitrise-init update (#33)
 
 ### 1.1.2 (2017 Feb 23)
 
@@ -149,4 +154,4 @@
 
 -----------------
 
-Updated: 2017 Feb 23
+Updated: 2017 Mar 17
