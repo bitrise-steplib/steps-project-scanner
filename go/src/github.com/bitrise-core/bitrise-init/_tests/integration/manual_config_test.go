@@ -282,7 +282,6 @@ configs:
     default-macos-config: |
       format_version: %s
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-      app: {}
       trigger_map:
       - push_branch: '*'
         workflow: primary

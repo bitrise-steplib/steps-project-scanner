@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -133,14 +132,14 @@ func initConfig(c *cli.Context) error {
 
 		log.Infoft("Saving outputs:")
 		scanResult.AddError("general", "No known platform detected")
+
 		outputPth, err := writeScanResult(scanResult, outputDir, format)
 		if err != nil {
-			log.Errorf("Failed to write output, error: %s", err)
-		} else {
-			log.Printft("  scan result: %s", outputPth)
+			return fmt.Errorf("Failed to write output, error: %s", err)
 		}
 
-		return errors.New("No known platform detected")
+		log.Printft("  scan result: %s", outputPth)
+		return nil
 	}
 
 	// Write output to files

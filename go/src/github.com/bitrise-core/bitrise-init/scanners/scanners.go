@@ -58,11 +58,11 @@ type ScannerInterface interface {
 
 // ActiveScanners ...
 var ActiveScanners = []ScannerInterface{
-	new(ios.Scanner),
-	new(macos.Scanner),
-	new(android.Scanner),
-	new(xamarin.Scanner),
-	new(fastlane.Scanner),
+	ios.NewScanner(),
+	macos.NewScanner(),
+	android.NewScanner(),
+	xamarin.NewScanner(),
+	fastlane.NewScanner(),
 }
 
 func customConfigName() string {
