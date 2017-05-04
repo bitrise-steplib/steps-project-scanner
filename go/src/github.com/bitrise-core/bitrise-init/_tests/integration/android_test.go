@@ -60,8 +60,8 @@ func TestAndroid(t *testing.T) {
 		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
-		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
-		require.NoError(t, err, out)
+		_, err := cmd.RunAndReturnTrimmedCombinedOutput()
+		require.EqualError(t, err, "exit status 1")
 
 		scanResultPth := filepath.Join(sampleAppDir, "result.yml")
 
@@ -78,7 +78,8 @@ var sampleAppsSDK22NoGradlewResultYML = `warnings:
     is installed and used for the build. More info/guide: <a>https://docs.gradle.org/current/userguide/gradle_wrapper.html</a>"
 errors:
   general:
-  - No known platform detected`
+  - No known platform detected
+`
 
 var sampleAppsAndroid22Versions = []interface{}{
 	models.FormatVersion,

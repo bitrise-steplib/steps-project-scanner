@@ -139,7 +139,7 @@ func initConfig(c *cli.Context) error {
 		}
 
 		log.Printft("  scan result: %s", outputPth)
-		return nil
+		return fmt.Errorf("No known platform detected")
 	}
 
 	// Write output to files
