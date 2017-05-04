@@ -65,7 +65,14 @@ func initManualConfig(c *cli.Context) error {
 	}
 	outputDir, err = pathutil.AbsPath(outputDir)
 	if err != nil {
-		return fmt.Errorf("Failed to get abs path (%s), error: %s", outputDir, err)
+		return fmt.Errorf("Failed to expand path (%s), error: %s", outputDir, err)
+	}
+	if exist, err := pathutil.IsDirExists(outputDir); err != nil {
+		return err
+	} else if !exist {
+		if err := os.MkdirAll(outputDir, 0700); err != nil {
+			return fmt.Errorf("Failed to create (%s), error: %s", outputDir, err)
+		}
 	}
 
 	if formatStr == "" {

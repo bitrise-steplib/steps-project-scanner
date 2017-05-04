@@ -2,7 +2,6 @@ package integration
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -10,6 +9,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/command/git"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -18,15 +18,12 @@ import (
 func TestFastlane(t *testing.T) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("fastlane")
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.RemoveAll(tmpDir))
-	}()
 
 	t.Log("fastlane")
 	{
 		sampleAppDir := filepath.Join(tmpDir, "__fastlane__")
 		sampleAppURL := "https://github.com/bitrise-samples/fastlane.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -92,8 +89,9 @@ var fastlaneResultYML = fmt.Sprintf(`options:
 configs:
   fastlane:
     fastlane-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: fastlane
       app:
         envs:
         - FASTLANE_XCODE_LIST_TIMEOUT: "120"
@@ -118,8 +116,9 @@ configs:
           - deploy-to-bitrise-io@%s: {}
   ios:
     ios-test-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: ios
       trigger_map:
       - push_branch: '*'
         workflow: primary

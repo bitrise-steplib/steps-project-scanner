@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testGemVersionFromGemfileLockContent(t *testing.T) {
+func TestGemVersionFromGemfileLockContent(t *testing.T) {
 	version := GemVersionFromGemfileLockContent("fastlane", gemfileLockContent)
 	require.Equal(t, "2.13.0", version)
 }

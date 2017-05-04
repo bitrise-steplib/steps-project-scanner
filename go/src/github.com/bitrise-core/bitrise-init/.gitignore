@@ -3,3 +3,4 @@ _defaults/
 _tmp/
 _bin/
 .bitrise*
+.gows*

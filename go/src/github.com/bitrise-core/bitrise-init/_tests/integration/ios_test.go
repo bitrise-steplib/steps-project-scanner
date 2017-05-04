@@ -2,7 +2,6 @@ package integration
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/command/git"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -19,15 +19,12 @@ import (
 func TestIOS(t *testing.T) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("__ios__")
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.RemoveAll(tmpDir))
-	}()
 
 	t.Log("ios-no-shared-schemes")
 	{
 		sampleAppDir := filepath.Join(tmpDir, "ios-no-shared-scheme")
 		sampleAppURL := "https://github.com/bitrise-samples/ios-no-shared-schemes.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -44,7 +41,7 @@ func TestIOS(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "ios-cocoapods-at-root")
 		sampleAppURL := "https://github.com/bitrise-samples/ios-cocoapods-at-root.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -61,7 +58,7 @@ func TestIOS(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-ios-watchkit")
 		sampleAppURL := "https://github.com/bitrise-io/sample-apps-ios-watchkit.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -79,7 +76,7 @@ func TestIOS(t *testing.T) {
 		//
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-carthage")
 		sampleAppURL := "https://github.com/bitrise-samples/sample-apps-carthage.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -127,8 +124,9 @@ var iosNoSharedSchemesResultYML = fmt.Sprintf(`options:
 configs:
   ios:
     ios-test-missing-shared-schemes-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: ios
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -213,8 +211,9 @@ var iosCocoapodsAtRootResultYML = fmt.Sprintf(`options:
 configs:
   ios:
     ios-pod-test-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: ios
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -311,8 +310,9 @@ var sampleAppsIosWatchkitResultYML = fmt.Sprintf(`options:
 configs:
   ios:
     ios-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: ios
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -342,8 +342,9 @@ configs:
           - certificate-and-profile-installer@%s: {}
           - deploy-to-bitrise-io@%s: {}
     ios-test-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: ios
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -418,8 +419,9 @@ var sampleAppsCarthageResultYML = fmt.Sprintf(`options:
 configs:
   ios:
     ios-carthage-test-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: ios
       trigger_map:
       - push_branch: '*'
         workflow: primary
