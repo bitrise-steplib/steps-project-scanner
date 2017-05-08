@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.1.3)
+## Changelog (Current version: 1.2.0)
 
 -----------------
+
+### 1.2.0 (2017 May 08)
+
+* [739bd56] prepare for 1.2.0
+* [3f30b84] cordova support (#34)
 
 ### 1.1.3 (2017 Mar 17)
 
@@ -154,4 +159,4 @@
 
 -----------------
 
-Updated: 2017 Mar 17
+Updated: 2017 May 08
