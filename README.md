@@ -1,8 +1,6 @@
-# My Awesome Step
+# Project Scanner
 
-My Awesome Step is a solid starting code base for
-a new Step.
-
+Scans repository for iOS, macOS, Android, Xamarin, Fastlane and Cordova projects.
 
 ## How to use this Step
 
@@ -41,6 +39,8 @@ envs:
 6. Provide test values for the inputs in the `bitrise.yml`
 7. Run your step with `bitrise run test` - if it works, you're ready
 
+__For Step development guidelines & best practices__ check this documentation: [https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md](https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md).
+
 **NOTE:**
 
 If you want to use your step in your project's `bitrise.yml`:
@@ -77,4 +77,15 @@ in the [bitrise CLI repository](https://github.com/bitrise-io/bitrise/blob/maste
 
 ## Share your own Step
 
-You can share your Step or step version with the [bitrise CLI](https://github.com/bitrise-io/bitrise). Just run `bitrise share` and follow the guide it prints.
+You can share your Step or step version with the [bitrise CLI](https://github.com/bitrise-io/bitrise). If you use the `bitrise.yml` included in this repository, all you have to do is:
+
+1. In your Terminal / Command Line `cd` into this directory (where the `bitrise.yml` of the step is located)
+1. Run: `bitrise run test` to test the step
+1. Run: `bitrise run audit-this-step` to audit the `step.yml`
+1. Check the `share-this-step` workflow in the `bitrise.yml`, and fill out the
+   `envs` if you haven't done so already (don't forget to bump the version number if this is an update
+   of your step!)
+1. Then run: `bitrise run share-this-step` to share the step (version) you specified in the `envs`
+1. Send the Pull Request, as described in the logs of `bitrise run share-this-step`
+
+That's all ;)

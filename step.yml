@@ -1,7 +1,7 @@
 title: "Project scanner"
-summary: Scans repository for iOS, Android, Xamarin and Fastlane projects
+summary: Scans repository for iOS, macOS, Android, Xamarin, Fastlane and Cordova projects
 description: |-
-  For iOS projects detects CocoaPods and scan Xcode project files
+  For iOS and macOS projects detects CocoaPods and scan Xcode project files
   for valid Xcode command line configurations.
 
   For Android projects checks for build.gradle files and lists all the gradle tasks,
@@ -10,15 +10,14 @@ description: |-
   For Xamarin projects checks the solution files and lists the configuration options,
   also checks for NuGet and Xamarin Components packages.
 
+  For Cordova projects checks for config.xml file.
+
   For Fastlane detects Fastfile and lists the available lanes.
 website: https://github.com/bitrise-steplib/steps-project-scanner
 source_code_url: https://github.com/bitrise-steplib/steps-project-scanner
 support_url: https://github.com/bitrise-steplib/steps-project-scanner/issues
-host_os_tags:
-  - osx-10.10
-  - ubuntu
 type_tags:
-  - script
+  - utility
 is_requires_admin_user: false
 is_always_run: false
 is_skippable: false
