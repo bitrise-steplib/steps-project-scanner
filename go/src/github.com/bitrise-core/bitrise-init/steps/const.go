@@ -58,7 +58,7 @@ const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.5.4"
+	GradleRunnerVersion = "1.5.6"
 )
 
 const (
