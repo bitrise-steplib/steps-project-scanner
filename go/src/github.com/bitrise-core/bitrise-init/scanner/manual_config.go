@@ -34,7 +34,7 @@ func ManualConfig() (models.ScanResultModel, error) {
 	projectTypeConfigMap["other"] = customConfig
 
 	return models.ScanResultModel{
-		OptionsMap: projectTypeOptionMap,
-		ConfigsMap: projectTypeConfigMap,
+		PlatformOptionMap:    projectTypeOptionMap,
+		PlatformConfigMapMap: projectTypeConfigMap,
 	}, nil
 }

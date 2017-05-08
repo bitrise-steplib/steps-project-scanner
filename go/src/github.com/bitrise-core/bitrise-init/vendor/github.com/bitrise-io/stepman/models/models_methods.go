@@ -8,6 +8,8 @@ import (
 	"time"
 
 	envmanModels "github.com/bitrise-io/envman/models"
+	"github.com/bitrise-io/go-utils/colorstring"
+	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pointers"
 )
 
@@ -22,6 +24,42 @@ const (
 	DefaultTimeout = 0
 )
 
+// String ...
+func (stepInfo StepInfoModel) String() string {
+	str := ""
+	if stepInfo.GroupInfo.DeprecateNotes != "" {
+		str += colorstring.Red("This step is deprecated")
+
+		if stepInfo.GroupInfo.RemovalDate != "" {
+			str += colorstring.Redf(" and will be removed: %s", stepInfo.GroupInfo.RemovalDate)
+		}
+		str += "\n"
+	}
+	str += fmt.Sprintf("%s %s\n", colorstring.Blue("Library:"), stepInfo.Library)
+	str += fmt.Sprintf("%s %s\n", colorstring.Blue("ID:"), stepInfo.ID)
+	str += fmt.Sprintf("%s %s\n", colorstring.Blue("Version:"), stepInfo.Version)
+	str += fmt.Sprintf("%s %s\n", colorstring.Blue("LatestVersion:"), stepInfo.LatestVersion)
+	str += fmt.Sprintf("%s\n\n", colorstring.Blue("Definition:"))
+
+	definition, err := fileutil.ReadStringFromFile(stepInfo.DefinitionPth)
+	if err != nil {
+		str += colorstring.Redf("Failed to read step definition, error: %s", err)
+		return str
+	}
+
+	str += definition
+	return str
+}
+
+// JSON ...
+func (stepInfo StepInfoModel) JSON() string {
+	bytes, err := json.Marshal(stepInfo)
+	if err != nil {
+		return fmt.Sprintf(`"Failed to marshal step info (%#v), err: %s"`, stepInfo, err)
+	}
+	return string(bytes)
+}
+
 // CreateFromJSON ...
 func (stepInfo StepInfoModel) CreateFromJSON(jsonStr string) (StepInfoModel, error) {
 	info := StepInfoModel{}
@@ -30,9 +68,6 @@ func (stepInfo StepInfoModel) CreateFromJSON(jsonStr string) (StepInfoModel, err
 	}
 	return info, nil
 }
-
-// -------------------
-// --- Struct methods
 
 // Normalize ...
 func (step StepModel) Normalize() error {
@@ -197,45 +232,50 @@ func (step *StepModel) FillMissingDefaults() error {
 
 // IsStepExist ...
 func (collection StepCollectionModel) IsStepExist(id, version string) bool {
-	_, found := collection.GetStep(id, version)
-	return found
+	_, stepFound, versionFound := collection.GetStep(id, version)
+	return (stepFound && versionFound)
 }
 
 // GetStep ...
-func (collection StepCollectionModel) GetStep(id, version string) (StepModel, bool) {
-	stepVer, isFound := collection.GetStepVersion(id, version)
-	return stepVer.Step, isFound
+func (collection StepCollectionModel) GetStep(id, version string) (StepModel, bool, bool) {
+	stepVer, isStepFound, isVersionFound := collection.GetStepVersion(id, version)
+	return stepVer.Step, isStepFound, isVersionFound
 }
 
 // GetStepVersion ...
-func (collection StepCollectionModel) GetStepVersion(id, version string) (StepVersionModel, bool) {
+func (collection StepCollectionModel) GetStepVersion(id, version string) (StepVersionModel, bool, bool) {
 	stepHash := collection.Steps
-	stepVersions, found := stepHash[id]
-	if !found {
-		return StepVersionModel{}, false
+	stepVersions, stepFound := stepHash[id]
+
+	if !stepFound {
+		return StepVersionModel{}, stepFound, false
 	}
 
 	if version == "" {
 		version = stepVersions.LatestVersionNumber
 	}
 
-	step, found := stepVersions.Versions[version]
-	if !found {
-		return StepVersionModel{}, false
+	step, versionFound := stepVersions.Versions[version]
+
+	if !stepFound || !versionFound {
+		return StepVersionModel{}, stepFound, versionFound
 	}
 
 	return StepVersionModel{
 		Step:                   step,
 		Version:                version,
 		LatestAvailableVersion: stepVersions.LatestVersionNumber,
-	}, true
+	}, true, true
 }
 
 // GetDownloadLocations ...
 func (collection StepCollectionModel) GetDownloadLocations(id, version string) ([]DownloadLocationModel, error) {
-	step, found := collection.GetStep(id, version)
-	if found == false {
-		return []DownloadLocationModel{}, fmt.Errorf("Collection (%s) doesn't contains step %s (%s)", collection.SteplibSource, id, version)
+	step, stepFound, versionFound := collection.GetStep(id, version)
+	if !stepFound {
+		return []DownloadLocationModel{}, fmt.Errorf("Collection (%s) doesn't contains step with id: %s", collection.SteplibSource, id)
+	}
+	if !versionFound {
+		return []DownloadLocationModel{}, fmt.Errorf("Collection (%s) doesn't contains step (%s) with version: %s", collection.SteplibSource, id, version)
 	}
 
 	if step.Source == nil {
@@ -259,11 +299,11 @@ func (collection StepCollectionModel) GetDownloadLocations(id, version string) (
 			}
 			locations = append(locations, location)
 		default:
-			return []DownloadLocationModel{}, fmt.Errorf("[STEPMAN] - Invalid download location (%#v) for step (%#v)", downloadLocation, id)
+			return []DownloadLocationModel{}, fmt.Errorf("Invalid download location (%#v) for step (%#v)", downloadLocation, id)
 		}
 	}
 	if len(locations) < 1 {
-		return []DownloadLocationModel{}, fmt.Errorf("[STEPMAN] - No download location found for step (%#v)", id)
+		return []DownloadLocationModel{}, fmt.Errorf("No download location found for step (%#v)", id)
 	}
 	return locations, nil
 }

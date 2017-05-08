@@ -9,6 +9,7 @@ import (
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/sliceutil"
 )
 
 // Config ...
@@ -56,6 +57,8 @@ func Config(searchDir string) models.ScanResultModel {
 	projectTypeOptionMap := map[string]models.OptionModel{}
 	projectTypeConfigMap := map[string]models.BitriseConfigMap{}
 
+	excludedScannerNames := []string{}
+
 	log.Infoft(colorstring.Blue("Running scanners:"))
 	fmt.Println()
 
@@ -65,6 +68,13 @@ func Config(searchDir string) models.ScanResultModel {
 		detectorErrors := []string{}
 
 		log.Infoft("Scanner: %s", colorstring.Blue(detectorName))
+
+		if sliceutil.IsStringInSlice(detectorName, excludedScannerNames) {
+			log.Warnft("scanner is marked as excluded, skipping...")
+			fmt.Println()
+			continue
+		}
+
 		log.Printft("+------------------------------------------------------------------------------+")
 		log.Printft("|                                                                              |")
 
@@ -113,13 +123,21 @@ func Config(searchDir string) models.ScanResultModel {
 
 		log.Printft("|                                                                              |")
 		log.Printft("+------------------------------------------------------------------------------+")
+
+		exludedScanners := detector.ExcludedScannerNames()
+		if len(exludedScanners) > 0 {
+			log.Warnft("Scanner will exclude scanners: %v", exludedScanners)
+			excludedScannerNames = append(excludedScannerNames, exludedScanners...)
+		}
+
 		fmt.Println()
 	}
 	// ---
 
 	return models.ScanResultModel{
-		OptionsMap:  projectTypeOptionMap,
-		ConfigsMap:  projectTypeConfigMap,
-		WarningsMap: projectTypeWarningMap,
+		PlatformOptionMap:    projectTypeOptionMap,
+		PlatformConfigMapMap: projectTypeConfigMap,
+		PlatformWarningsMap:  projectTypeWarningMap,
+		PlatformErrorsMap:    projectTypeErrorMap,
 	}
 }

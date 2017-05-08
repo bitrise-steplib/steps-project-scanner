@@ -54,6 +54,28 @@ workflows:
               fi
             done <<< "$GOLIST_WITHOUT_VENDOR"
     - script:
+        title: Search for unused constants, variables, functions and types
+        inputs:
+        - content: |-
+            #!/bin/bash
+            unused_out=$(for pkg in $(go list ./... | grep -v vendor); do unused "$pkg"; done)
+            if [[ "${unused_out}" != "" ]] ; then
+              echo "=> Unused output:"
+              echo "${unused_out}"
+              exit 1
+            fi
+    - script:
+        title: Run gosimple
+        inputs:
+        - content: |-
+            #!/bin/bash
+            gosimple_out=$(for pkg in $(go list ./... | grep -v vendor); do gosimple "$pkg"; done)
+            if [[ "${gosimple_out}" != "" ]] ; then
+              echo "=> gosimple output:"
+              echo "${gosimple_out}"
+              exit 1
+            fi
+    - script:
         title: Go test
         inputs:
         - content: go test ./...
@@ -109,6 +131,12 @@ workflows:
             # Go lint
             go get -u github.com/golang/lint/golint
 
+            # Check for unused constants, variables, functions and types
+            go get honnef.co/go/tools/cmd/unused
+
+            # Search for what could be simplified
+            go get honnef.co/go/tools/cmd/gosimple
+
   godeps-update:
     title: Godeps update
     description: |
@@ -130,6 +158,7 @@ workflows:
             go get github.com/davecgh/go-spew/spew
             go get github.com/pmezard/go-difflib/difflib
             go get github.com/ryanuber/go-glob
+            go get github.com/bitrise-io/go-utils/command/git
             godep save ./...
 
   # ----------------------------------------------------------------

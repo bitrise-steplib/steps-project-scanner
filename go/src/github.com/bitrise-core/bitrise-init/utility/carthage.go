@@ -3,7 +3,7 @@ package utility
 import (
 	"path/filepath"
 
-	"github.com/bitrise-io/depman/pathutil"
+	"github.com/bitrise-io/go-utils/pathutil"
 )
 
 const cartfileBase = "Cartfile"

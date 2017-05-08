@@ -2,7 +2,6 @@ package integration
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -10,6 +9,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/command/git"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -18,15 +18,12 @@ import (
 func TestXamarin(t *testing.T) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("__xamarin__")
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.RemoveAll(tmpDir))
-	}()
 
 	t.Log("xamarin-sample-app")
 	{
 		sampleAppDir := filepath.Join(tmpDir, "xamarin-sample-app")
 		sampleAppURL := "https://github.com/bitrise-samples/xamarin-sample-app.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -43,7 +40,7 @@ func TestXamarin(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-xamarin-ios")
 		sampleAppURL := "https://github.com/bitrise-io/sample-apps-xamarin-ios.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -60,7 +57,7 @@ func TestXamarin(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-xamarin-android")
 		sampleAppURL := "https://github.com/bitrise-io/sample-apps-xamarin-android.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -119,8 +116,9 @@ var xamarinSampleAppResultYML = fmt.Sprintf(`options:
 configs:
   xamarin:
     xamarin-nuget-components-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: xamarin
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -155,7 +153,6 @@ var sampleAppsXamarinIosVersions = []interface{}{
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
-	steps.XamarinUserManagementVersion,
 	steps.NugetRestoreVersion,
 	steps.XamarinArchiveVersion,
 	steps.DeployToBitriseIoVersion,
@@ -193,8 +190,9 @@ var sampleAppsXamarinIosResultYML = fmt.Sprintf(`options:
 configs:
   xamarin:
     xamarin-nuget-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: xamarin
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -209,8 +207,6 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
-          - xamarin-user-management@%s:
-              run_if: .IsCI
           - nuget-restore@%s: {}
           - xamarin-archive@%s:
               inputs:
@@ -228,7 +224,6 @@ var sampleAppsXamarinAndroidVersions = []interface{}{
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
-	steps.XamarinUserManagementVersion,
 	steps.NugetRestoreVersion,
 	steps.XamarinArchiveVersion,
 	steps.DeployToBitriseIoVersion,
@@ -258,8 +253,9 @@ var sampleAppsXamarinAndroidResultYML = fmt.Sprintf(`options:
 configs:
   xamarin:
     xamarin-nuget-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: xamarin
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -274,8 +270,6 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
-          - xamarin-user-management@%s:
-              run_if: .IsCI
           - nuget-restore@%s: {}
           - xamarin-archive@%s:
               inputs:

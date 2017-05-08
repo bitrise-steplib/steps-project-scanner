@@ -2,7 +2,6 @@ package integration
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -10,6 +9,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/command/git"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -18,15 +18,12 @@ import (
 func TestAndroid(t *testing.T) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("__android__")
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.RemoveAll(tmpDir))
-	}()
 
 	t.Log("sample-apps-android-sdk22")
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-android-sdk22")
 		sampleAppURL := "https://github.com/bitrise-samples/sample-apps-android-sdk22.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -43,7 +40,7 @@ func TestAndroid(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "android-non-executable-gradlew")
 		sampleAppURL := "https://github.com/bitrise-samples/android-non-executable-gradlew.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -60,11 +57,11 @@ func TestAndroid(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "android-sdk22-no-gradlew")
 		sampleAppURL := "https://github.com/bitrise-samples/android-sdk22-no-gradlew.git"
-		require.NoError(t, command.GitClone(sampleAppURL, sampleAppDir))
+		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
-		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
-		require.NoError(t, err, out)
+		_, err := cmd.RunAndReturnTrimmedCombinedOutput()
+		require.EqualError(t, err, "exit status 1")
 
 		scanResultPth := filepath.Join(sampleAppDir, "result.yml")
 
@@ -81,7 +78,8 @@ var sampleAppsSDK22NoGradlewResultYML = `warnings:
     is installed and used for the build. More info/guide: <a>https://docs.gradle.org/current/userguide/gradle_wrapper.html</a>"
 errors:
   general:
-  - No known platform detected`
+  - No known platform detected
+`
 
 var sampleAppsAndroid22Versions = []interface{}{
 	models.FormatVersion,
@@ -95,36 +93,29 @@ var sampleAppsAndroid22Versions = []interface{}{
 
 var sampleAppsAndroid22ResultYML = fmt.Sprintf(`options:
   android:
-    title: Path to the gradle file to use
-    env_key: GRADLE_BUILD_FILE_PATH
+    title: Gradlew file path
+    env_key: GRADLEW_PATH
     value_map:
-      build.gradle:
-        title: Gradle task to run
-        env_key: GRADLE_TASK
+      ./gradlew:
+        title: Path to the gradle file to use
+        env_key: GRADLE_BUILD_FILE_PATH
         value_map:
-          assemble:
-            title: Gradlew file path
-            env_key: GRADLEW_PATH
+          build.gradle:
+            title: Gradle task to run
+            env_key: GRADLE_TASK
             value_map:
-              ./gradlew:
+              assemble:
                 config: android-config
-          assembleDebug:
-            title: Gradlew file path
-            env_key: GRADLEW_PATH
-            value_map:
-              ./gradlew:
+              assembleDebug:
                 config: android-config
-          assembleRelease:
-            title: Gradlew file path
-            env_key: GRADLEW_PATH
-            value_map:
-              ./gradlew:
+              assembleRelease:
                 config: android-config
 configs:
   android:
     android-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: android
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -161,36 +152,29 @@ var androidNonExecutableGradlewVersions = []interface{}{
 
 var androidNonExecutableGradlewResultYML = fmt.Sprintf(`options:
   android:
-    title: Path to the gradle file to use
-    env_key: GRADLE_BUILD_FILE_PATH
+    title: Gradlew file path
+    env_key: GRADLEW_PATH
     value_map:
-      build.gradle:
-        title: Gradle task to run
-        env_key: GRADLE_TASK
+      ./gradlew:
+        title: Path to the gradle file to use
+        env_key: GRADLE_BUILD_FILE_PATH
         value_map:
-          assemble:
-            title: Gradlew file path
-            env_key: GRADLEW_PATH
+          build.gradle:
+            title: Gradle task to run
+            env_key: GRADLE_TASK
             value_map:
-              ./gradlew:
+              assemble:
                 config: android-config
-          assembleDebug:
-            title: Gradlew file path
-            env_key: GRADLEW_PATH
-            value_map:
-              ./gradlew:
+              assembleDebug:
                 config: android-config
-          assembleRelease:
-            title: Gradlew file path
-            env_key: GRADLEW_PATH
-            value_map:
-              ./gradlew:
+              assembleRelease:
                 config: android-config
 configs:
   android:
     android-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: android
       trigger_map:
       - push_branch: '*'
         workflow: primary

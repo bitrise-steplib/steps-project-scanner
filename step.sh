@@ -93,7 +93,7 @@ bin_pth="$tmp_dir/scanner"
 scanner_go_path="$THIS_SCRIPTDIR/go/src/github.com/bitrise-core/bitrise-init"
 
 cd $scanner_go_path
-go build -o "$bin_pth"
+GOPATH="$THIS_SCRIPTDIR/go" go build -o "$bin_pth"
 cd $current_dir
 
 echo_done "ceated at: ${bin_pth}"
@@ -102,10 +102,12 @@ echo_done "ceated at: ${bin_pth}"
 # Running scanner
 echo_info "Running scanner..."
 
-$bin_pth --ci config --dir $scan_dir --output-dir $output_dir --format json
+set +e
 
-echo
-echo_done "scan finished"
+$bin_pth --ci config --dir $scan_dir --output-dir $output_dir --format json
+scanner_exit_code=$?
+
+set -e
 
 #
 # Submitting results
@@ -129,3 +131,13 @@ if [ ! -z "${scan_result_submit_url}" ] ; then
 	echo
 	echo_done "submitted"
 fi
+
+if [[ $scanner_exit_code -eq 0 ]] ; then
+	echo
+	echo_done "scan finished"
+else
+	echo
+	echo_fail "scanner failed"
+fi
+
+

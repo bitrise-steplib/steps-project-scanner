@@ -2,11 +2,10 @@ package integration
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"os"
 
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
@@ -19,14 +18,12 @@ import (
 func TestManualConfig(t *testing.T) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("__manual-config__")
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.RemoveAll(tmpDir))
-	}()
 
 	t.Log("manual-config")
 	{
 		manualConfigDir := filepath.Join(tmpDir, "manual-config")
 		require.NoError(t, os.MkdirAll(manualConfigDir, 0777))
+		fmt.Printf("manualConfigDir: %s\n", manualConfigDir)
 
 		cmd := command.New(binPath(), "--ci", "manual-config", "--output-dir", manualConfigDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -47,7 +44,17 @@ var customConfigVersions = []interface{}{
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
 	steps.InstallMissingAndroidToolsVersion,
+	steps.ChangeWorkDirVersion,
 	steps.GradleRunnerVersion,
+	steps.DeployToBitriseIoVersion,
+
+	// cordova
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.GenerateCordovaBuildConfigVersion,
+	steps.CordovaArchiveVersion,
 	steps.DeployToBitriseIoVersion,
 
 	// fastlane
@@ -65,8 +72,8 @@ var customConfigVersions = []interface{}{
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
-	steps.CocoapodsInstallVersion,
 	steps.RecreateUserSchemesVersion,
+	steps.CocoapodsInstallVersion,
 	steps.XcodeTestVersion,
 	steps.XcodeArchiveVersion,
 	steps.DeployToBitriseIoVersion,
@@ -75,8 +82,8 @@ var customConfigVersions = []interface{}{
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
-	steps.CocoapodsInstallVersion,
 	steps.RecreateUserSchemesVersion,
+	steps.CocoapodsInstallVersion,
 	steps.XcodeTestVersion,
 	steps.DeployToBitriseIoVersion,
 
@@ -86,8 +93,8 @@ var customConfigVersions = []interface{}{
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
-	steps.CocoapodsInstallVersion,
 	steps.RecreateUserSchemesVersion,
+	steps.CocoapodsInstallVersion,
 	steps.XcodeTestMacVersion,
 	steps.XcodeArchiveMacVersion,
 	steps.DeployToBitriseIoVersion,
@@ -96,8 +103,8 @@ var customConfigVersions = []interface{}{
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
-	steps.CocoapodsInstallVersion,
 	steps.RecreateUserSchemesVersion,
+	steps.CocoapodsInstallVersion,
 	steps.XcodeTestMacVersion,
 	steps.DeployToBitriseIoVersion,
 
@@ -106,6 +113,7 @@ var customConfigVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
+	steps.DeployToBitriseIoVersion,
 
 	// xamarin
 	models.FormatVersion,
@@ -122,19 +130,37 @@ var customConfigVersions = []interface{}{
 
 var customConfigResultYML = fmt.Sprintf(`options:
   android:
-    title: Path to the gradle file to use
-    env_key: GRADLE_BUILD_FILE_PATH
+    title: Gradlew file path
+    env_key: GRADLEW_PATH
     value_map:
       _:
-        title: Gradle task to run
-        env_key: GRADLE_TASK
+        title: Directory of gradle wrapper
+        env_key: GRADLEW_DIR_PATH
         value_map:
           _:
-            title: Gradlew file path
-            env_key: GRADLEW_PATH
+            title: Path to the gradle file to use
+            env_key: GRADLE_BUILD_FILE_PATH
             value_map:
               _:
-                config: default-android-config
+                title: Gradle task to run
+                env_key: GRADLE_TASK
+                value_map:
+                  _:
+                    config: default-android-config
+  cordova:
+    title: Directory of Cordova Config.xml
+    env_key: CORDOVA_WORK_DIR
+    value_map:
+      _:
+        title: Platform to use in cordova-cli commands
+        env_key: CORDOVA_PLATFORM
+        value_map:
+          android:
+            config: default-cordova-config
+          ios:
+            config: default-cordova-config
+          ios,android:
+            config: default-cordova-config
   fastlane:
     title: Working directory
     env_key: FASTLANE_WORK_DIR
@@ -182,8 +208,9 @@ var customConfigResultYML = fmt.Sprintf(`options:
 configs:
   android:
     default-android-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: android
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -198,16 +225,49 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - install-missing-android-tools@%s: {}
+          - change-workdir@%s:
+              inputs:
+              - path: $GRADLEW_DIR_PATH
+              - is_create_path: "false"
           - gradle-runner@%s:
               inputs:
               - gradle_file: $GRADLE_BUILD_FILE_PATH
               - gradle_task: $GRADLE_TASK
               - gradlew_path: $GRADLEW_PATH
           - deploy-to-bitrise-io@%s: {}
+  cordova:
+    default-cordova-config: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: cordova
+      app:
+        envs:
+        - CORDOVA_TARGET: emulator
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - generate-cordova-build-configuration@%s: {}
+          - cordova-archive@%s:
+              inputs:
+              - workdir: $CORDOVA_WORK_DIR
+              - platform: $CORDOVA_PLATFORM
+              - target: $CORDOVA_TARGET
+          - deploy-to-bitrise-io@%s: {}
   fastlane:
     default-fastlane-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: fastlane
       app:
         envs:
         - FASTLANE_XCODE_LIST_TIMEOUT: "120"
@@ -232,8 +292,9 @@ configs:
           - deploy-to-bitrise-io@%s: {}
   ios:
     default-ios-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: ios
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -248,10 +309,10 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
-          - cocoapods-install@%s: {}
           - recreate-user-schemes@%s:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
+          - cocoapods-install@%s: {}
           - xcode-test@%s:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
@@ -269,10 +330,10 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
-          - cocoapods-install@%s: {}
           - recreate-user-schemes@%s:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
+          - cocoapods-install@%s: {}
           - xcode-test@%s:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
@@ -280,8 +341,9 @@ configs:
           - deploy-to-bitrise-io@%s: {}
   macos:
     default-macos-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: macos
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -296,10 +358,10 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
-          - cocoapods-install@%s: {}
           - recreate-user-schemes@%s:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
+          - cocoapods-install@%s: {}
           - xcode-test-mac@%s:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
@@ -317,10 +379,10 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
-          - cocoapods-install@%s: {}
           - recreate-user-schemes@%s:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
+          - cocoapods-install@%s: {}
           - xcode-test-mac@%s:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
@@ -328,8 +390,9 @@ configs:
           - deploy-to-bitrise-io@%s: {}
   other:
     other-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: other
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -343,10 +406,12 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
+          - deploy-to-bitrise-io@%s: {}
   xamarin:
     default-xamarin-config: |
-      format_version: %s
+      format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: xamarin
       trigger_map:
       - push_branch: '*'
         workflow: primary

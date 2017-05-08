@@ -112,7 +112,7 @@ func initConfig(c *cli.Context) error {
 	scanResult := scanner.Config(searchDir)
 
 	platforms := []string{}
-	for platform := range scanResult.OptionsMap {
+	for platform := range scanResult.PlatformOptionMap {
 		platforms = append(platforms, platform)
 	}
 
@@ -120,13 +120,13 @@ func initConfig(c *cli.Context) error {
 		cmd := command.New("which", "tree")
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		if err != nil || out == "" {
-			log.Errorf("tree not installed, can not list files")
+			log.Errorft("tree not installed, can not list files")
 		} else {
 			fmt.Println()
 			cmd := command.NewWithStandardOuts("tree", ".", "-L", "3")
-			log.Printf("$ %s", cmd.PrintableCommandArgs())
+			log.Printft("$ %s", cmd.PrintableCommandArgs())
 			if err := cmd.Run(); err != nil {
-				log.Errorf("Failed to list files in current directory, error: %s", err)
+				log.Errorft("Failed to list files in current directory, error: %s", err)
 			}
 		}
 
@@ -139,7 +139,7 @@ func initConfig(c *cli.Context) error {
 		}
 
 		log.Printft("  scan result: %s", outputPth)
-		return nil
+		return fmt.Errorf("No known platform detected")
 	}
 
 	// Write output to files

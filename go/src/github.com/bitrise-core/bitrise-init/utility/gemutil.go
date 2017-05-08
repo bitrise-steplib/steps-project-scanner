@@ -32,7 +32,7 @@ func GemVersionFromGemfileLockContent(gem, content string) string {
 	exp := regexp.MustCompile(fmt.Sprintf(`%s \((.+)\)`, gem))
 	for _, line := range relevantLines {
 		match := exp.FindStringSubmatch(line)
-		if match != nil && len(match) == 2 {
+		if len(match) == 2 {
 			return match[1]
 		}
 	}
