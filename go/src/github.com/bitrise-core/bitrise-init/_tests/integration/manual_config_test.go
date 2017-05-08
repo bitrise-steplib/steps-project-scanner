@@ -240,9 +240,6 @@ configs:
       format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
       project_type: cordova
-      app:
-        envs:
-        - CORDOVA_TARGET: emulator
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -261,7 +258,7 @@ configs:
               inputs:
               - workdir: $CORDOVA_WORK_DIR
               - platform: $CORDOVA_PLATFORM
-              - target: $CORDOVA_TARGET
+              - target: emulator
           - deploy-to-bitrise-io@%s: {}
   fastlane:
     default-fastlane-config: |

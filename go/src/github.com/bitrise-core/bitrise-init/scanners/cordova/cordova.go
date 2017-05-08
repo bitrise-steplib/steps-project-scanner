@@ -37,9 +37,8 @@ const (
 )
 
 const (
-	targetInputKey    = "target"
-	targetInputEnvKey = "CORDOVA_TARGET"
-	targetEmulator    = "emulator"
+	targetInputKey = "target"
+	targetEmulator = "emulator"
 )
 
 //------------------
@@ -308,14 +307,14 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 		cordovaArchiveEnvs := []envmanModels.EnvironmentItemModel{
 			envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
-			envmanModels.EnvironmentItemModel{targetInputKey: "$" + targetInputEnvKey},
+			envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator},
 		}
 		if scanner.relCordovaConfigDir != "" {
 			cordovaArchiveEnvs = append(cordovaArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 		}
 		configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.CordovaArchiveStepListItem(cordovaArchiveEnvs...))
 
-		config, err := configBuilder.Generate(scannerName, envmanModels.EnvironmentItemModel{targetInputEnvKey: targetEmulator})
+		config, err := configBuilder.Generate(scannerName)
 		if err != nil {
 			return models.BitriseConfigMap{}, err
 		}
@@ -334,14 +333,14 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 	cordovaArchiveEnvs := []envmanModels.EnvironmentItemModel{
 		envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
-		envmanModels.EnvironmentItemModel{targetInputKey: "$" + targetInputEnvKey},
+		envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator},
 	}
 	if scanner.relCordovaConfigDir != "" {
 		cordovaArchiveEnvs = append(cordovaArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 	}
 	configBuilder.AppendMainStepList(steps.CordovaArchiveStepListItem(cordovaArchiveEnvs...))
 
-	config, err := configBuilder.Generate(scannerName, envmanModels.EnvironmentItemModel{targetInputEnvKey: targetEmulator})
+	config, err := configBuilder.Generate(scannerName)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
 	}
@@ -364,14 +363,11 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	cordovaArchiveEnvs := []envmanModels.EnvironmentItemModel{
 		envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
 		envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
-		envmanModels.EnvironmentItemModel{targetInputKey: "$" + targetInputEnvKey},
+		envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator},
 	}
 	configBuilder.AppendMainStepList(steps.CordovaArchiveStepListItem(cordovaArchiveEnvs...))
 
-	appEnvs := []envmanModels.EnvironmentItemModel{
-		envmanModels.EnvironmentItemModel{targetInputEnvKey: targetEmulator},
-	}
-	config, err := configBuilder.Generate(scannerName, appEnvs...)
+	config, err := configBuilder.Generate(scannerName)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
 	}

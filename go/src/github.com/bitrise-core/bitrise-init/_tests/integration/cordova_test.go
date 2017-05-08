@@ -88,9 +88,6 @@ configs:
       format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
       project_type: cordova
-      app:
-        envs:
-        - CORDOVA_TARGET: emulator
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -109,7 +106,7 @@ configs:
           - cordova-archive@%s:
               inputs:
               - platform: $CORDOVA_PLATFORM
-              - target: $CORDOVA_TARGET
+              - target: emulator
           - deploy-to-bitrise-io@%s: {}
         primary:
           steps:
@@ -158,9 +155,6 @@ configs:
       format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
       project_type: cordova
-      app:
-        envs:
-        - CORDOVA_TARGET: emulator
       trigger_map:
       - push_branch: '*'
         workflow: primary
@@ -179,7 +173,7 @@ configs:
           - cordova-archive@%s:
               inputs:
               - platform: $CORDOVA_PLATFORM
-              - target: $CORDOVA_TARGET
+              - target: emulator
           - deploy-to-bitrise-io@%s: {}
         primary:
           steps:
