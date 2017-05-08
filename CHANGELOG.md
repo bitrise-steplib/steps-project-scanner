@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.2.1)
+## Changelog (Current version: 1.2.2)
 
 -----------------
+
+### 1.2.2 (2017 May 08)
+
+* [27d97a7] prepare for 1.2.2
+* [3fdc386] bitrise-init update
 
 ### 1.2.1 (2017 May 08)
 
