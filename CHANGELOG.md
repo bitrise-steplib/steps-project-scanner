@@ -1,6 +1,10 @@
-## Changelog (Current version: 1.2.0)
+## Changelog (Current version: 1.2.1)
 
 -----------------
+
+### 1.2.1 (2017 May 08)
+
+* [547ce84] step.yml, readme.md updates & prepare for 1.2.1
 
 ### 1.2.0 (2017 May 08)
 
