@@ -179,3 +179,10 @@ const (
 	// KarmaJasmineTestRunnerVersion ...
 	KarmaJasmineTestRunnerVersion = "0.9.1"
 )
+
+const (
+	// Ionic Build ...
+	IonicBuildID = "ionic-build"
+	// IonicBuildVersion ...
+	IonicBuildVersion = "1.0.0"
+)

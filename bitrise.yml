@@ -171,6 +171,23 @@ workflows:
         - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
+    - script:
+        title: "Scan test: ionic-conference-app"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf $CLONE_INTO_DIR
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/driftyco/ionic-conference-app.git
+            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
+    - path::./:
+        title: Step Test
+        inputs:
+        - scan_dir: $CLONE_INTO_DIR
+        - output_dir: ../result
+        - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
+        - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
 
   # ----------------------------------------------------------------
   # --- workflows to create Release

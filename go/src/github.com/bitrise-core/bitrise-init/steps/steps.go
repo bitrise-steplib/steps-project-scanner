@@ -199,3 +199,9 @@ func KarmaJasmineTestRunnerStepListItem(inputs ...envmanModels.EnvironmentItemMo
 	stepIDComposite := stepIDComposite(KarmaJasmineTestRunnerID, KarmaJasmineTestRunnerVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
+
+// IonicBuildStepListItem ...
+func IonicBuildStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(IonicBuildID, IonicBuildVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
