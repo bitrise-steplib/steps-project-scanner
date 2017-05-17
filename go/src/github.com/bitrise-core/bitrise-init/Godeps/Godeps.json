@@ -8,13 +8,13 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.11.5-12-g10f801e",
-			"Rev": "10f801ebc38b33738c9d17d50860f484a0988ff5"
+			"Comment": "v0.11.5-46-g5e5dc89",
+			"Rev": "5e5dc898656f695e2a086b8e12559febbfc01562"
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/bitrise/models",
-			"Comment": "1.5.6-6-ga3be4d7",
-			"Rev": "a3be4d75bf55c8ed547735aaaa17dc4e6cb8bea7"
+			"Comment": "1.6.1",
+			"Rev": "0e54ba3f440e2eaa87664f01a051a097eb386446"
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/envman/models",
@@ -101,12 +101,12 @@
 		},
 		{
 			"ImportPath": "github.com/urfave/cli",
-			"Comment": "v1.19.1-34-gab403a5",
-			"Rev": "ab403a54a148f2d857920810291539e1f817ee7b"
+			"Comment": "v1.19.1-36-gd70f47e",
+			"Rev": "d70f47eeca3afd795160003bc6e28b001d60c67c"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "9ccfe848b9db8435a24c424abbc07a921adf1df5"
+			"Rev": "98b5b1e7e80eb60271c8dc4eba6521ec2c3e811e"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

@@ -3,7 +3,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  - RELEASE_VERSION: 1.1.2
+  - RELEASE_VERSION: 1.2.0
 
 workflows:
   # ----------------------------------------------------------------
@@ -168,21 +168,21 @@ workflows:
     description: |
         Creates new version with specified $RELEASE_VERSION environment
 
-        1, Create CHANGELOG and git release
+        1, Create CHANGELOG
         2, Create binaries
     after_run:
     - create-binaries
     steps:
     - script:
-        title: Create CHANGELOG and git release
+        title: Create CHANGELOG
         inputs:
-        - content: |-
+        - content: |
             #!/bin/bash
-            set -e
-
+            set -ex
+            go get -u github.com/bitrise-tools/releaseman
             export CI=true
-            releaseman create \
-              --version $RELEASE_VERSION \
+            releaseman create-changelog \
+              --version "$RELEASE_VERSION" \
               --set-version-script "bash _scripts/set_version.sh version/version.go"
 
   create-binaries:

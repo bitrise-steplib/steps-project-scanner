@@ -67,15 +67,17 @@ var ActiveScanners = []ScannerInterface{
 	fastlane.NewScanner(),
 }
 
-func customConfigName() string {
-	return "other-config"
-}
+// CustomProjectType ...
+const CustomProjectType = "other"
+
+// CustomConfigName ...
+const CustomConfigName = "other-config"
 
 // CustomConfig ...
 func CustomConfig() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 
-	config, err := configBuilder.Generate("other")
+	config, err := configBuilder.Generate(CustomProjectType)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
 	}
@@ -86,6 +88,6 @@ func CustomConfig() (models.BitriseConfigMap, error) {
 	}
 
 	return models.BitriseConfigMap{
-		customConfigName(): string(data),
+		CustomConfigName: string(data),
 	}, nil
 }

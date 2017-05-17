@@ -44,7 +44,6 @@ var customConfigVersions = []interface{}{
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
 	steps.InstallMissingAndroidToolsVersion,
-	steps.ChangeWorkDirVersion,
 	steps.GradleRunnerVersion,
 	steps.DeployToBitriseIoVersion,
 
@@ -134,19 +133,15 @@ var customConfigResultYML = fmt.Sprintf(`options:
     env_key: GRADLEW_PATH
     value_map:
       _:
-        title: Directory of gradle wrapper
-        env_key: GRADLEW_DIR_PATH
+        title: Path to the gradle file to use
+        env_key: GRADLE_BUILD_FILE_PATH
         value_map:
           _:
-            title: Path to the gradle file to use
-            env_key: GRADLE_BUILD_FILE_PATH
+            title: Gradle task to run
+            env_key: GRADLE_TASK
             value_map:
               _:
-                title: Gradle task to run
-                env_key: GRADLE_TASK
-                value_map:
-                  _:
-                    config: default-android-config
+                config: default-android-config
   cordova:
     title: Directory of Cordova Config.xml
     env_key: CORDOVA_WORK_DIR
@@ -225,10 +220,6 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - install-missing-android-tools@%s: {}
-          - change-workdir@%s:
-              inputs:
-              - path: $GRADLEW_DIR_PATH
-              - is_create_path: "false"
           - gradle-runner@%s:
               inputs:
               - gradle_file: $GRADLE_BUILD_FILE_PATH
