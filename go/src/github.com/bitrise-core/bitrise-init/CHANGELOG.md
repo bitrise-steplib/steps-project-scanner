@@ -1,6 +1,25 @@
-## Changelog (Current version: 1.1.2)
+## Changelog (Current version: 1.2.0)
 
 -----------------
+
+### 1.2.0 (2017 May 17)
+
+* [42bff70] prepare for 1.2.0
+* [767f9ca] godeps-update, Release notes in README.md, bitrise.yml update (#86)
+* [27978a1] remove change work-dir step from android workflows (#85)
+* [9cabca5] define customeConfigName & CustomProjectType as const (#84)
+* [e9893f9] add default target as value to cordova config
+* [9968152] gradle runner update
+* [4b3192e] fail if no platform detected (#83)
+* [398e070] cordova scanner & general revision (#82)
+* [6b22a64] Added change-workdir in android workflows (#81)
+* [29363cd] public FilterRootBuildGradleFiles function
+* [f50c6f0] godeps update (#80)
+* [76885b9] dependency fix
+* [9d8de83] step updates (#79)
+* [a699087] do not fail if no platform detected (#78)
+* [8122079] Shared xcode scanner (#76)
+* [39458b2] gitignore check fix (#75)
 
 ### 1.1.2 (2017 Feb 02)
 
@@ -209,4 +228,4 @@
 
 -----------------
 
-Updated: 2017 Feb 02
+Updated: 2017 May 17

@@ -5,8 +5,6 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"path/filepath"
-
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-core/bitrise-init/utility"
@@ -27,12 +25,6 @@ const (
 	gradlewPathInputKey    = "gradlew_path"
 	gradlewPathInputEnvKey = "GRADLEW_PATH"
 	gradlewPathInputTitle  = "Gradlew file path"
-)
-
-const (
-	pathInputKey          = "path"
-	gradlewDirInputEnvKey = "GRADLEW_DIR_PATH"
-	gradlewDirInputTitle  = "Directory of gradle wrapper"
 )
 
 const (
@@ -62,7 +54,6 @@ type Scanner struct {
 	FileList         []string
 	BuildGradleFiles []string
 	SearchDir        string
-	RelGradlewDir    string
 }
 
 // NewScanner ...
@@ -150,32 +141,11 @@ that the right Gradle version is installed and used for the build. More info/gui
 	}
 	// ---
 
-	// Get relative gradle wrapper dir
-	gradlewDir := filepath.Dir(rootGradlewPath)
-	relGradlewDir, err := utility.RelPath(scanner.SearchDir, gradlewDir)
-	if err != nil {
-		return models.OptionModel{}, warnings, fmt.Errorf("Failed to get relative gradle wrapper dir path, error: %s", err)
-	}
-	if relGradlewDir == "." {
-		// gradlew placed in the search dir, no need to change-dir in the workflows
-		relGradlewDir = ""
-	}
-	scanner.RelGradlewDir = relGradlewDir
-	// ---
-
 	// Options
 	gradlewPthOption := models.NewOption(gradlewPathInputTitle, gradlewPathInputEnvKey)
 
 	gradleFileOption := models.NewOption(gradleFileInputTitle, gradleFileInputEnvKey)
-
-	if relGradlewDir != "" {
-		gradlewDirOption := models.NewOption(gradlewDirInputTitle, gradlewDirInputEnvKey)
-		gradlewPthOption.AddOption(rootGradlewPath, gradlewDirOption)
-
-		gradlewDirOption.AddOption(relGradlewDir, gradleFileOption)
-	} else {
-		gradlewPthOption.AddOption(rootGradlewPath, gradleFileOption)
-	}
+	gradlewPthOption.AddOption(rootGradlewPath, gradleFileOption)
 
 	for _, gradleFile := range scanner.BuildGradleFiles {
 		log.Infoft("Inspecting gradle file: %s", gradleFile)
@@ -201,11 +171,8 @@ that the right Gradle version is installed and used for the build. More info/gui
 func (scanner *Scanner) DefaultOptions() models.OptionModel {
 	gradlewPthOption := models.NewOption(gradlewPathInputTitle, gradlewPathInputEnvKey)
 
-	gradlewDirOption := models.NewOption(gradlewDirInputTitle, gradlewDirInputEnvKey)
-	gradlewPthOption.AddOption("_", gradlewDirOption)
-
 	gradleFileOption := models.NewOption(gradleFileInputTitle, gradleFileInputEnvKey)
-	gradlewDirOption.AddOption("_", gradleFileOption)
+	gradlewPthOption.AddOption("_", gradleFileOption)
 
 	gradleTaskOption := models.NewOption(gradleTaskInputTitle, gradleTaskInputEnvKey)
 	gradleFileOption.AddOption("_", gradleTaskOption)
@@ -221,10 +188,6 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	configBuilder.AppendPreparStepList(steps.InstallMissingAndroidToolsStepListItem())
-
-	if scanner.RelGradlewDir != "" {
-		configBuilder.AppendPreparStepList(steps.ChangeWorkDirStepListItem(envmanModels.EnvironmentItemModel{pathInputKey: "$" + gradlewDirInputEnvKey}))
-	}
 
 	configBuilder.AppendMainStepList(steps.GradleRunnerStepListItem(
 		envmanModels.EnvironmentItemModel{gradleFileInputKey: "$" + gradleFileInputEnvKey},
@@ -252,7 +215,6 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	configBuilder.AppendPreparStepList(steps.InstallMissingAndroidToolsStepListItem())
-	configBuilder.AppendPreparStepList(steps.ChangeWorkDirStepListItem(envmanModels.EnvironmentItemModel{pathInputKey: "$" + gradlewDirInputEnvKey}))
 	configBuilder.AppendMainStepList(steps.GradleRunnerStepListItem(
 		envmanModels.EnvironmentItemModel{gradleFileInputKey: "$" + gradleFileInputEnvKey},
 		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "$" + gradleTaskInputEnvKey},
