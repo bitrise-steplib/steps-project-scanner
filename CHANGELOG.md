@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.2.3)
+## Changelog (Current version: 1.2.4)
 
 -----------------
+
+### 1.2.4 (2017 May 19)
+
+* [b299746] prepare for 1.2.4
+* [dac8a6a] tmp switch back to format version 2, to support rollbacked xamarin stable stack (#37)
 
 ### 1.2.3 (2017 May 17)
 
@@ -173,4 +178,4 @@
 
 -----------------
 
-Updated: 2017 May 17
+Updated: 2017 May 19
