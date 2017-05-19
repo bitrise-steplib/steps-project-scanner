@@ -12,7 +12,7 @@ import (
 
 const (
 	// FormatVersion ...
-	FormatVersion = "2"
+	FormatVersion = bitriseModels.Version
 
 	defaultSteplibSource = "https://github.com/bitrise-io/bitrise-steplib.git"
 )
