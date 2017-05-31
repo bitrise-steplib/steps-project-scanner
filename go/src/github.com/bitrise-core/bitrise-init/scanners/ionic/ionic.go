@@ -1,4 +1,4 @@
-package cordova
+package ionic
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/scanners/android"
+	"github.com/bitrise-core/bitrise-init/scanners/cordova"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-core/bitrise-init/utility"
 	envmanModels "github.com/bitrise-io/envman/models"
@@ -16,25 +17,24 @@ import (
 	"github.com/bitrise-io/go-utils/pathutil"
 )
 
-// ScannerName ...
-const ScannerName = "cordova"
+const scannerName = "ionic"
 
 const (
-	configName        = "cordova-config"
-	defaultConfigName = "default-cordova-config"
+	configName        = "ionic-config"
+	defaultConfigName = "default-ionic-config"
 )
 
 // Step Inputs
 const (
 	workDirInputKey    = "workdir"
-	workDirInputTitle  = "Directory of Cordova Config.xml"
-	workDirInputEnvKey = "CORDOVA_WORK_DIR"
+	workDirInputTitle  = "Directory of Ionic Config.xml"
+	workDirInputEnvKey = "IONIC_WORK_DIR"
 )
 
 const (
 	platformInputKey    = "platform"
-	platformInputTitle  = "Platform to use in cordova-cli commands"
-	platformInputEnvKey = "CORDOVA_PLATFORM"
+	platformInputTitle  = "Platform to use in ionic-cli commands"
+	platformInputEnvKey = "IONIC_PLATFORM"
 )
 
 const (
@@ -62,7 +62,7 @@ func NewScanner() *Scanner {
 
 // Name ...
 func (scanner Scanner) Name() string {
-	return ScannerName
+	return scannerName
 }
 
 // DetectPlatform ...
@@ -101,20 +101,21 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		return false, nil
 	}
 
-	// ensure it is not an ionic project
+	// ensure it is an ionic project
 	projectBaseDir := filepath.Dir(configXMLPth)
 
-	if exist, err := pathutil.IsPathExists(filepath.Join(projectBaseDir, "ionic.project")); err != nil {
+	ionicProjectExist, err := pathutil.IsPathExists(filepath.Join(projectBaseDir, "ionic.project"))
+	if err != nil {
 		return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
-	} else if exist {
-		log.Printft("ionic.project file found seems to be an ionic project")
-		return false, nil
 	}
 
-	if exist, err := pathutil.IsPathExists(filepath.Join(projectBaseDir, "ionic.config.json")); err != nil {
+	ionicConfigExist, err := pathutil.IsPathExists(filepath.Join(projectBaseDir, "ionic.config.json"))
+	if err != nil {
 		return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
-	} else if exist {
-		log.Printft("ionic.config.json file found seems to be an ionic project")
+	}
+
+	if !ionicProjectExist && !ionicConfigExist {
+		log.Printf("no ionic.project file nor ionic.config.json found, seems to be a cordova project")
 		return false, nil
 	}
 
@@ -131,6 +132,7 @@ func (scanner *Scanner) ExcludedScannerNames() []string {
 	return []string{
 		string(utility.XcodeProjectTypeIOS),
 		string(utility.XcodeProjectTypeMacOS),
+		cordova.ScannerName,
 		android.ScannerName,
 	}
 }
@@ -310,16 +312,16 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 		configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.GenerateCordovaBuildConfigStepListItem())
 
-		cordovaArchiveEnvs := []envmanModels.EnvironmentItemModel{
+		ionicArchiveEnvs := []envmanModels.EnvironmentItemModel{
 			envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
 			envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator},
 		}
 		if scanner.relCordovaConfigDir != "" {
-			cordovaArchiveEnvs = append(cordovaArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
+			ionicArchiveEnvs = append(ionicArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 		}
-		configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.CordovaArchiveStepListItem(cordovaArchiveEnvs...))
+		configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.IonicArchiveStepListItem(ionicArchiveEnvs...))
 
-		config, err := configBuilder.Generate(ScannerName)
+		config, err := configBuilder.Generate(scannerName)
 		if err != nil {
 			return models.BitriseConfigMap{}, err
 		}
@@ -336,16 +338,16 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 	configBuilder.AppendMainStepList(steps.GenerateCordovaBuildConfigStepListItem())
 
-	cordovaArchiveEnvs := []envmanModels.EnvironmentItemModel{
+	ionicArchiveEnvs := []envmanModels.EnvironmentItemModel{
 		envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
 		envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator},
 	}
 	if scanner.relCordovaConfigDir != "" {
-		cordovaArchiveEnvs = append(cordovaArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
+		ionicArchiveEnvs = append(ionicArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 	}
-	configBuilder.AppendMainStepList(steps.CordovaArchiveStepListItem(cordovaArchiveEnvs...))
+	configBuilder.AppendMainStepList(steps.IonicArchiveStepListItem(ionicArchiveEnvs...))
 
-	config, err := configBuilder.Generate(ScannerName)
+	config, err := configBuilder.Generate(scannerName)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
 	}
@@ -369,13 +371,12 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey}))
 
 	configBuilder.AppendMainStepList(steps.GenerateCordovaBuildConfigStepListItem())
-
-	configBuilder.AppendMainStepList(steps.CordovaArchiveStepListItem(
+	configBuilder.AppendMainStepList(steps.IonicArchiveStepListItem(
 		envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
 		envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
 		envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator}))
 
-	config, err := configBuilder.Generate(ScannerName)
+	config, err := configBuilder.Generate(scannerName)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
 	}

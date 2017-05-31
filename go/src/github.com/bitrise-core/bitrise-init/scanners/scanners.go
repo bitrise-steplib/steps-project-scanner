@@ -5,6 +5,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/scanners/android"
 	"github.com/bitrise-core/bitrise-init/scanners/cordova"
 	"github.com/bitrise-core/bitrise-init/scanners/fastlane"
+	"github.com/bitrise-core/bitrise-init/scanners/ionic"
 	"github.com/bitrise-core/bitrise-init/scanners/ios"
 	"github.com/bitrise-core/bitrise-init/scanners/macos"
 	"github.com/bitrise-core/bitrise-init/scanners/xamarin"
@@ -59,6 +60,7 @@ type ScannerInterface interface {
 
 // ActiveScanners ...
 var ActiveScanners = []ScannerInterface{
+	ionic.NewScanner(),
 	cordova.NewScanner(),
 	ios.NewScanner(),
 	macos.NewScanner(),

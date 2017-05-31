@@ -59,6 +59,7 @@ var sampleAppsCordovaWithJasmineVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
+	steps.NpmVersion,
 	steps.JasmineTestRunnerVersion,
 	steps.GenerateCordovaBuildConfigVersion,
 	steps.CordovaArchiveVersion,
@@ -67,6 +68,7 @@ var sampleAppsCordovaWithJasmineVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
+	steps.NpmVersion,
 	steps.JasmineTestRunnerVersion,
 	steps.DeployToBitriseIoVersion,
 }
@@ -101,6 +103,9 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
+          - npm@%s:
+              inputs:
+              - command: install
           - jasmine-runner@%s: {}
           - generate-cordova-build-configuration@%s: {}
           - cordova-archive@%s:
@@ -115,6 +120,9 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
+          - npm@%s:
+              inputs:
+              - command: install
           - jasmine-runner@%s: {}
           - deploy-to-bitrise-io@%s: {}
 warnings:
@@ -126,6 +134,7 @@ var sampleAppsCordovaWithKarmaJasmineVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
+	steps.NpmVersion,
 	steps.KarmaJasmineTestRunnerVersion,
 	steps.GenerateCordovaBuildConfigVersion,
 	steps.CordovaArchiveVersion,
@@ -134,6 +143,7 @@ var sampleAppsCordovaWithKarmaJasmineVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
+	steps.NpmVersion,
 	steps.KarmaJasmineTestRunnerVersion,
 	steps.DeployToBitriseIoVersion,
 }
@@ -168,6 +178,9 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
+          - npm@%s:
+              inputs:
+              - command: install
           - karma-jasmine-runner@%s: {}
           - generate-cordova-build-configuration@%s: {}
           - cordova-archive@%s:
@@ -182,6 +195,9 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
+          - npm@%s:
+              inputs:
+              - command: install
           - karma-jasmine-runner@%s: {}
           - deploy-to-bitrise-io@%s: {}
 warnings:
