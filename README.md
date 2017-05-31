@@ -1,6 +1,6 @@
 # Project Scanner
 
-Scans repository for iOS, macOS, Android, Xamarin, Fastlane and Cordova projects.
+Scans repository for iOS, macOS, Android, Xamarin, Fastlane, Cordova and Ionic projects
 
 ## How to use this Step
 

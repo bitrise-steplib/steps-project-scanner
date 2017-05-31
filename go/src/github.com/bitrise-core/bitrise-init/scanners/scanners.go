@@ -8,6 +8,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/scanners/ios"
 	"github.com/bitrise-core/bitrise-init/scanners/macos"
 	"github.com/bitrise-core/bitrise-init/scanners/xamarin"
+	"github.com/bitrise-core/bitrise-init/scanners/ionic"
 	"gopkg.in/yaml.v2"
 )
 
@@ -65,6 +66,7 @@ var ActiveScanners = []ScannerInterface{
 	android.NewScanner(),
 	xamarin.NewScanner(),
 	fastlane.NewScanner(),
+	ionic.NewScanner(),
 }
 
 // CustomProjectType ...

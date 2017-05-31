@@ -16,7 +16,8 @@ import (
 	"github.com/bitrise-io/go-utils/pathutil"
 )
 
-const scannerName = "cordova"
+// ScannerName ...
+const ScannerName = "cordova"
 
 const (
 	configName        = "cordova-config"
@@ -61,7 +62,7 @@ func NewScanner() *Scanner {
 
 // Name ...
 func (scanner Scanner) Name() string {
-	return scannerName
+	return ScannerName
 }
 
 // DetectPlatform ...
@@ -314,7 +315,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		}
 		configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.CordovaArchiveStepListItem(cordovaArchiveEnvs...))
 
-		config, err := configBuilder.Generate(scannerName)
+		config, err := configBuilder.Generate(ScannerName)
 		if err != nil {
 			return models.BitriseConfigMap{}, err
 		}
@@ -340,7 +341,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	}
 	configBuilder.AppendMainStepList(steps.CordovaArchiveStepListItem(cordovaArchiveEnvs...))
 
-	config, err := configBuilder.Generate(scannerName)
+	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
 	}
@@ -367,7 +368,7 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	}
 	configBuilder.AppendMainStepList(steps.CordovaArchiveStepListItem(cordovaArchiveEnvs...))
 
-	config, err := configBuilder.Generate(scannerName)
+	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
 	}

@@ -54,7 +54,7 @@ func AskForOptions(options models.OptionModel) (string, []envmanModels.Environme
 	walkDepth = func(option models.OptionModel) error {
 		optionEnvKey, selectedValue, err := askForOptionValue(option)
 		if err != nil {
-			return fmt.Errorf("Failed to ask for vale, error: %s", err)
+			return fmt.Errorf("Failed to ask for value, error: %s", err)
 		}
 
 		if optionEnvKey == "" {
