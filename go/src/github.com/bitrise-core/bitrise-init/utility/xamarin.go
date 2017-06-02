@@ -8,18 +8,24 @@ import (
 )
 
 const (
-	solutionExtension          = ".sln"
+	solutionExtension  = ".sln"
+	componentsDirName  = "Components"
+	nodeModulesDirName = "node_modules"
+
 	solutionConfigurationStart = "GlobalSection(SolutionConfigurationPlatforms) = preSolution"
 	solutionConfigurationEnd   = "EndGlobalSection"
 )
 
+var allowSolutionExtensionFilter = ExtensionFilter(solutionExtension, true)
+var forbidComponentsSolutionFilter = ComponentFilter(componentsDirName, false)
+var forbidNodeModulesDirComponentFilter = ComponentFilter(nodeModulesDirName, false)
+
 // FilterSolutionFiles ...
 func FilterSolutionFiles(fileList []string) ([]string, error) {
-	allowSolutionExtensionFilter := ExtensionFilter(solutionExtension, true)
-	forbidComponentsSolutionFilter := RegexpFilter(`.*Components/.+.sln`, false)
 	files, err := FilterPaths(fileList,
 		allowSolutionExtensionFilter,
-		forbidComponentsSolutionFilter)
+		forbidComponentsSolutionFilter,
+		forbidNodeModulesDirComponentFilter)
 	if err != nil {
 		return []string{}, err
 	}

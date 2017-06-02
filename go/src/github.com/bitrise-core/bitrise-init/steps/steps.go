@@ -182,6 +182,12 @@ func CordovaArchiveStepListItem(inputs ...envmanModels.EnvironmentItemModel) bit
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
+// IonicArchiveStepListItem ...
+func IonicArchiveStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(IonicArchiveID, IonicArchiveVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
 // GenerateCordovaBuildConfigStepListItem ...
 func GenerateCordovaBuildConfigStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(GenerateCordovaBuildConfigID, GenerateCordovaBuildConfigVersion)
@@ -197,5 +203,11 @@ func JasmineTestRunnerStepListItem(inputs ...envmanModels.EnvironmentItemModel) 
 // KarmaJasmineTestRunnerStepListItem ...
 func KarmaJasmineTestRunnerStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(KarmaJasmineTestRunnerID, KarmaJasmineTestRunnerVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
+// NpmStepListItem ...
+func NpmStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(NpmID, NpmVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }

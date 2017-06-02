@@ -35,7 +35,7 @@ const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.2.9"
+	DeployToBitriseIoVersion = "1.3.3"
 )
 
 const (
@@ -58,7 +58,7 @@ const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.5.6"
+	GradleRunnerVersion = "1.6.1"
 )
 
 const (
@@ -86,7 +86,7 @@ const (
 	// RecreateUserSchemesID ...
 	RecreateUserSchemesID = "recreate-user-schemes"
 	// RecreateUserSchemesVersion ...
-	RecreateUserSchemesVersion = "0.9.5"
+	RecreateUserSchemesVersion = "1.0.1"
 )
 
 const (
@@ -114,7 +114,7 @@ const (
 	// NugetRestoreID ...
 	NugetRestoreID = "nuget-restore"
 	// NugetRestoreVersion ...
-	NugetRestoreVersion = "1.0.3"
+	NugetRestoreVersion = "1.0.4"
 )
 
 const (
@@ -135,7 +135,7 @@ const (
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...
-	XcodeArchiveMacVersion = "1.4.0"
+	XcodeArchiveMacVersion = "1.4.1"
 )
 
 const (
@@ -156,7 +156,14 @@ const (
 	// CordovaArchiveID ...
 	CordovaArchiveID = "cordova-archive"
 	// CordovaArchiveVersion ...
-	CordovaArchiveVersion = "0.9.1"
+	CordovaArchiveVersion = "0.9.2"
+)
+
+const (
+	// IonicArchiveID ...
+	IonicArchiveID = "ionic-archive"
+	// IonicArchiveVersion ...
+	IonicArchiveVersion = "0.9.3"
 )
 
 const (
@@ -178,4 +185,11 @@ const (
 	KarmaJasmineTestRunnerID = "karma-jasmine-runner"
 	// KarmaJasmineTestRunnerVersion ...
 	KarmaJasmineTestRunnerVersion = "0.9.1"
+)
+
+const (
+	// NpmID ...
+	NpmID = "npm"
+	// NpmVersion ...
+	NpmVersion = "0.9.0"
 )

@@ -1,6 +1,12 @@
-## Changelog (Current version: 1.2.0)
+## Changelog (Current version: 1.3.0)
 
 -----------------
+
+### 1.3.0 (2017 May 31)
+
+* [d9c9e82] prepare for 1.3.0
+* [8e3aa9f] Ionic (#89)
+* [4144246] go test -v for integration tests
 
 ### 1.2.0 (2017 May 17)
 
@@ -228,4 +234,4 @@
 
 -----------------
 
-Updated: 2017 May 17
+Updated: 2017 May 31
