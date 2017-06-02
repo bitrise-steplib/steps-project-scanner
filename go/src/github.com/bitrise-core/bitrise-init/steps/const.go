@@ -58,7 +58,7 @@ const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.6.1"
+	GradleRunnerVersion = "1.6.3"
 )
 
 const (
@@ -128,7 +128,7 @@ const (
 	// XamarinArchiveID ...
 	XamarinArchiveID = "xamarin-archive"
 	// XamarinArchiveVersion ...
-	XamarinArchiveVersion = "1.3.3"
+	XamarinArchiveVersion = "1.4.1"
 )
 
 const (
