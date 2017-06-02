@@ -1,6 +1,13 @@
-## Changelog (Current version: 1.2.4)
+## Changelog (Current version: 1.3.0)
 
 -----------------
+
+### 1.3.0 (2017 Jun 02)
+
+* [d07a75c] prepare for v1.3.0
+* [d0bc336] step version update
+* [56f10f2] bitrise-init update (#39)
+* [689d567] revert tmp format version rollback (#38)
 
 ### 1.2.4 (2017 May 19)
 
@@ -178,4 +185,4 @@
 
 -----------------
 
-Updated: 2017 May 19
+Updated: 2017 Jun 02
