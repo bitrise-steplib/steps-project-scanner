@@ -161,7 +161,7 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 
 // Configs ...
 func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder := models.NewDefaultConfigBuilder(false)
 
 	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
 
@@ -187,7 +187,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 // DefaultConfigs ...
 func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder := models.NewDefaultConfigBuilder(false)
 
 	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
 

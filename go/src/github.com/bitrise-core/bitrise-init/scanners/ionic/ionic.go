@@ -282,7 +282,7 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 
 // Configs ...
 func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder := models.NewDefaultConfigBuilder(false)
 
 	workdirEnvList := []envmanModels.EnvironmentItemModel{}
 	if scanner.relCordovaConfigDir != "" {
@@ -300,7 +300,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		}
 
 		// CD
-		configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID)
+		configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID, false)
 
 		configBuilder.AppendDependencyStepListTo(models.DeployWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
 
@@ -364,7 +364,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 // DefaultConfigs ...
 func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder := models.NewDefaultConfigBuilder(false)
 
 	configBuilder.AppendDependencyStepList(steps.NpmStepListItem(
 		envmanModels.EnvironmentItemModel{"command": "install"},

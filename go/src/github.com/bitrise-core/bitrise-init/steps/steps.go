@@ -32,19 +32,30 @@ func stepListItem(stepIDComposite, title, runIf string, inputs ...envmanModels.E
 }
 
 // DefaultPrepareStepList ...
-func DefaultPrepareStepList() []bitriseModels.StepListItemModel {
-	return []bitriseModels.StepListItemModel{
+func DefaultPrepareStepList(isIncludeCache bool) []bitriseModels.StepListItemModel {
+	stepList := []bitriseModels.StepListItemModel{
 		ActivateSSHKeyStepListItem(),
 		GitCloneStepListItem(),
-		ScriptSteplistItem(ScriptDefaultTitle),
 	}
+
+	if isIncludeCache {
+		stepList = append(stepList, CachePullStepListItem())
+	}
+
+	return append(stepList, ScriptSteplistItem(ScriptDefaultTitle))
 }
 
 // DefaultDeployStepList ...
-func DefaultDeployStepList() []bitriseModels.StepListItemModel {
-	return []bitriseModels.StepListItemModel{
+func DefaultDeployStepList(isIncludeCache bool) []bitriseModels.StepListItemModel {
+	stepList := []bitriseModels.StepListItemModel{
 		DeployToBitriseIoStepListItem(),
 	}
+
+	if isIncludeCache {
+		stepList = append(stepList, CachePushStepListItem())
+	}
+
+	return stepList
 }
 
 // ActivateSSHKeyStepListItem ...
@@ -64,6 +75,18 @@ func ChangeWorkDirStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitr
 // GitCloneStepListItem ...
 func GitCloneStepListItem() bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(GitCloneID, GitCloneVersion)
+	return stepListItem(stepIDComposite, "", "")
+}
+
+// CachePullStepListItem ...
+func CachePullStepListItem() bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(CachePullID, CachePullVersion)
+	return stepListItem(stepIDComposite, "", "")
+}
+
+// CachePushStepListItem ...
+func CachePushStepListItem() bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(CachePushID, CachePushVersion)
 	return stepListItem(stepIDComposite, "", "")
 }
 

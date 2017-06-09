@@ -215,13 +215,22 @@ func GenerateOptions(projectType utility.XcodeProjectType, searchDir string) (mo
 
 		workspaceProjectMap, err := utility.GetWorkspaceProjectMap(podfile, projectFiles)
 		if err != nil {
-			return models.OptionModel{}, []ConfigDescriptor{}, models.Warnings{}, err
+			warning := fmt.Sprintf("Failed to determine cocoapods project-workspace mapping, error: %s", err)
+			warnings = append(warnings, warning)
+			log.Warnf(warning)
+			continue
 		}
 
-		standaloneProjects, workspaces, err = utility.MergePodWorkspaceProjectMap(workspaceProjectMap, standaloneProjects, workspaces)
+		aStandaloneProjects, aWorkspaces, err := utility.MergePodWorkspaceProjectMap(workspaceProjectMap, standaloneProjects, workspaces)
 		if err != nil {
-			return models.OptionModel{}, []ConfigDescriptor{}, models.Warnings{}, err
+			warning := fmt.Sprintf("Failed to create cocoapods project-workspace mapping, error: %s", err)
+			warnings = append(warnings, warning)
+			log.Warnf(warning)
+			continue
 		}
+
+		standaloneProjects = aStandaloneProjects
+		workspaces = aWorkspaces
 	}
 
 	// Carthage
@@ -352,7 +361,7 @@ func GenerateDefaultOptions(projectType utility.XcodeProjectType) models.OptionM
 
 // GenerateConfigBuilder ...
 func GenerateConfigBuilder(projectType utility.XcodeProjectType, hasPodfile, hasTest, missingSharedSchemes bool, carthageCommand string) models.ConfigBuilderModel {
-	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder := models.NewDefaultConfigBuilder(true)
 
 	// CI
 	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
@@ -388,7 +397,7 @@ func GenerateConfigBuilder(projectType utility.XcodeProjectType, hasPodfile, has
 	}
 
 	// CD
-	configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID)
+	configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID, true)
 
 	configBuilder.AppendPreparStepListTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
@@ -463,7 +472,7 @@ func GenerateConfig(projectType utility.XcodeProjectType, configDescriptors []Co
 
 // GenerateDefaultConfig ...
 func GenerateDefaultConfig(projectType utility.XcodeProjectType) (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder := models.NewDefaultConfigBuilder(true)
 
 	// CI
 	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
@@ -486,7 +495,7 @@ func GenerateDefaultConfig(projectType utility.XcodeProjectType) (models.Bitrise
 	}
 
 	// CD
-	configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID)
+	configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID, true)
 
 	configBuilder.AppendPreparStepListTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 	configBuilder.AppendPreparStepListTo(models.DeployWorkflowID, steps.RecreateUserSchemesStepListItem(

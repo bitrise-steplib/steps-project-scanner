@@ -175,12 +175,12 @@ func (option *OptionModel) GetValues() []string {
 // ---
 // Config Builder
 
-func newDefaultWorkflowBuilder() *workflowBuilderModel {
+func newDefaultWorkflowBuilder(isIncludeCache bool) *workflowBuilderModel {
 	return &workflowBuilderModel{
-		PrepareSteps:    steps.DefaultPrepareStepList(),
+		PrepareSteps:    steps.DefaultPrepareStepList(isIncludeCache),
 		DependencySteps: []bitriseModels.StepListItemModel{},
 		MainSteps:       []bitriseModels.StepListItemModel{},
-		DeploySteps:     steps.DefaultDeployStepList(),
+		DeploySteps:     steps.DefaultDeployStepList(isIncludeCache),
 	}
 }
 
@@ -226,10 +226,10 @@ func (builder *workflowBuilderModel) generate() bitriseModels.WorkflowModel {
 }
 
 // NewDefaultConfigBuilder ...
-func NewDefaultConfigBuilder() *ConfigBuilderModel {
+func NewDefaultConfigBuilder(isIncludeCache bool) *ConfigBuilderModel {
 	return &ConfigBuilderModel{
 		workflowBuilderMap: map[WorkflowID]*workflowBuilderModel{
-			PrimaryWorkflowID: newDefaultWorkflowBuilder(),
+			PrimaryWorkflowID: newDefaultWorkflowBuilder(isIncludeCache),
 		},
 	}
 }
@@ -244,8 +244,8 @@ func NewConfigBuilder(primarySteps []bitriseModels.StepListItemModel) *ConfigBui
 }
 
 // AddDefaultWorkflowBuilder ...
-func (builder *ConfigBuilderModel) AddDefaultWorkflowBuilder(workflow WorkflowID) {
-	builder.workflowBuilderMap[workflow] = newDefaultWorkflowBuilder()
+func (builder *ConfigBuilderModel) AddDefaultWorkflowBuilder(workflow WorkflowID, isIncludeCache bool) {
+	builder.workflowBuilderMap[workflow] = newDefaultWorkflowBuilder(isIncludeCache)
 }
 
 // AppendPreparStepListTo ...
