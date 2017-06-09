@@ -5,6 +5,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"path/filepath"
+
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-core/bitrise-init/utility"
@@ -34,16 +36,8 @@ const (
 )
 
 const (
-	gradleTaskInputKey    = "gradle_task"
-	gradleTaskInputEnvKey = "GRADLE_TASK"
-	gradleTaskInputTitle  = "Gradle task to run"
+	gradleTaskInputKey = "gradle_task"
 )
-
-var defaultGradleTasks = []string{
-	"assemble",
-	"assembleDebug",
-	"assembleRelease",
-}
 
 //------------------
 // ScannerInterface
@@ -107,10 +101,21 @@ func (scanner *Scanner) ExcludedScannerNames() []string {
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
+	warnings := models.Warnings{}
+
+	// Search for local.properties file
+	for _, pth := range scanner.FileList {
+		if filepath.Base(pth) == "local.properties" {
+			warning := fmt.Sprintf(`The local.properties file must NOT be checked into Version Control Systems, as it contains information specific to your local configuration.
+The location of the file is: %s`, pth)
+			log.Warnft(warning)
+			warnings = append(warnings, warning)
+		}
+	}
+
 	// Search for gradle wrapper
 	log.Infoft("Searching for gradlew files")
 
-	warnings := models.Warnings{}
 	gradlewFiles, err := utility.FilterGradlewFiles(scanner.FileList)
 	if err != nil {
 		return models.OptionModel{}, warnings, fmt.Errorf("Failed to list gradlew files, error: %s", err)
@@ -150,17 +155,8 @@ that the right Gradle version is installed and used for the build. More info/gui
 	for _, gradleFile := range scanner.BuildGradleFiles {
 		log.Infoft("Inspecting gradle file: %s", gradleFile)
 
-		gradleTaskOption := models.NewOption(gradleTaskInputTitle, gradleTaskInputEnvKey)
-		gradleFileOption.AddOption(gradleFile, gradleTaskOption)
-
-		log.Printft("%d gradle tasks", len(defaultGradleTasks))
-
-		for _, gradleTask := range defaultGradleTasks {
-			log.Printft("- %s", gradleTask)
-
-			configOption := models.NewConfigOption(configName)
-			gradleTaskOption.AddConfig(gradleTask, configOption)
-		}
+		configOption := models.NewConfigOption(configName)
+		gradleFileOption.AddConfig(gradleFile, configOption)
 	}
 	// ---
 
@@ -174,24 +170,30 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 	gradleFileOption := models.NewOption(gradleFileInputTitle, gradleFileInputEnvKey)
 	gradlewPthOption.AddOption("_", gradleFileOption)
 
-	gradleTaskOption := models.NewOption(gradleTaskInputTitle, gradleTaskInputEnvKey)
-	gradleFileOption.AddOption("_", gradleTaskOption)
-
 	configOption := models.NewConfigOption(defaultConfigName)
-	gradleTaskOption.AddConfig("_", configOption)
+	gradleFileOption.AddConfig("_", configOption)
 
 	return *gradlewPthOption
 }
 
 // Configs ...
 func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder := models.NewDefaultConfigBuilder(true)
 
 	configBuilder.AppendPreparStepList(steps.InstallMissingAndroidToolsStepListItem())
 
 	configBuilder.AppendMainStepList(steps.GradleRunnerStepListItem(
 		envmanModels.EnvironmentItemModel{gradleFileInputKey: "$" + gradleFileInputEnvKey},
-		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "$" + gradleTaskInputEnvKey},
+		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "assembleDebug"},
+		envmanModels.EnvironmentItemModel{gradlewPathInputKey: "$" + gradlewPathInputEnvKey},
+	))
+
+	configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID, true)
+	configBuilder.AppendPreparStepListTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem())
+
+	configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.GradleRunnerStepListItem(
+		envmanModels.EnvironmentItemModel{gradleFileInputKey: "$" + gradleFileInputEnvKey},
+		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "assembleRelease"},
 		envmanModels.EnvironmentItemModel{gradlewPathInputKey: "$" + gradlewPathInputEnvKey},
 	))
 
@@ -212,12 +214,22 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 // DefaultConfigs ...
 func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder := models.NewDefaultConfigBuilder(true)
 
 	configBuilder.AppendPreparStepList(steps.InstallMissingAndroidToolsStepListItem())
+
 	configBuilder.AppendMainStepList(steps.GradleRunnerStepListItem(
 		envmanModels.EnvironmentItemModel{gradleFileInputKey: "$" + gradleFileInputEnvKey},
-		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "$" + gradleTaskInputEnvKey},
+		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "assembleDebug"},
+		envmanModels.EnvironmentItemModel{gradlewPathInputKey: "$" + gradlewPathInputEnvKey},
+	))
+
+	configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID, true)
+	configBuilder.AppendPreparStepListTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem())
+
+	configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.GradleRunnerStepListItem(
+		envmanModels.EnvironmentItemModel{gradleFileInputKey: "$" + gradleFileInputEnvKey},
+		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "assembleRelease"},
 		envmanModels.EnvironmentItemModel{gradlewPathInputKey: "$" + gradlewPathInputEnvKey},
 	))
 

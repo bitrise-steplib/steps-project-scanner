@@ -94,20 +94,24 @@ var iosNoSharedSchemesVersions = []interface{}{
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.RecreateUserSchemesVersion,
 	steps.XcodeTestVersion,
 	steps.XcodeArchiveVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.RecreateUserSchemesVersion,
 	steps.XcodeTestVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 }
 
 var iosNoSharedSchemesResultYML = fmt.Sprintf(`options:
@@ -138,6 +142,7 @@ configs:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -153,11 +158,13 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
         primary:
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -169,6 +176,7 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
 warnings:
   ios:
   - |-
@@ -181,20 +189,24 @@ var iosCocoapodsAtRootVersions = []interface{}{
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.CocoapodsInstallVersion,
 	steps.XcodeTestVersion,
 	steps.XcodeArchiveVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.CocoapodsInstallVersion,
 	steps.XcodeTestVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 }
 
 var iosCocoapodsAtRootResultYML = fmt.Sprintf(`options:
@@ -225,6 +237,7 @@ configs:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -238,11 +251,13 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
         primary:
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -252,6 +267,7 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
 warnings:
   ios: []
 `, iosCocoapodsAtRootVersions...)
@@ -260,32 +276,40 @@ var sampleAppsIosWatchkitVersions = []interface{}{
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.XcodeArchiveVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.XcodeTestVersion,
 	steps.XcodeArchiveVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.XcodeTestVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 }
 
 var sampleAppsIosWatchkitResultYML = fmt.Sprintf(`options:
@@ -324,6 +348,7 @@ configs:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -332,15 +357,18 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
         primary:
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
     ios-test-config: |
       format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
@@ -356,6 +384,7 @@ configs:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -368,11 +397,13 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
         primary:
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -381,6 +412,7 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
 warnings:
   ios: []
 `, sampleAppsIosWatchkitVersions...)
@@ -389,20 +421,24 @@ var sampleAppsCarthageVersions = []interface{}{
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.CarthageVersion,
 	steps.XcodeTestVersion,
 	steps.XcodeArchiveVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.CarthageVersion,
 	steps.XcodeTestVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 }
 
 var sampleAppsCarthageResultYML = fmt.Sprintf(`options:
@@ -433,6 +469,7 @@ configs:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -448,11 +485,13 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
         primary:
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -464,6 +503,7 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
 warnings:
   ios: []
 `, sampleAppsCarthageVersions...)

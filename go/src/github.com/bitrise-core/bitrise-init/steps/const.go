@@ -25,6 +25,20 @@ const (
 )
 
 const (
+	// CachePullID ...
+	CachePullID = "cache-pull"
+	// CachePullVersion ...
+	CachePullVersion = "1.0.0"
+)
+
+const (
+	// CachePushID ...
+	CachePushID = "cache-push"
+	// CachePushVersion ...
+	CachePushVersion = "1.1.0"
+)
+
+const (
 	// CertificateAndProfileInstallerID ...
 	CertificateAndProfileInstallerID = "certificate-and-profile-installer"
 	// CertificateAndProfileInstallerVersion ...
@@ -58,7 +72,7 @@ const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.6.3"
+	GradleRunnerVersion = "1.7.0"
 )
 
 const (
@@ -72,14 +86,14 @@ const (
 	// CocoapodsInstallID ...
 	CocoapodsInstallID = "cocoapods-install"
 	// CocoapodsInstallVersion ...
-	CocoapodsInstallVersion = "1.6.1"
+	CocoapodsInstallVersion = "1.7.1"
 )
 
 const (
 	// CarthageID ...
 	CarthageID = "carthage"
 	// CarthageVersion ...
-	CarthageVersion = "3.0.6"
+	CarthageVersion = "3.1.2"
 )
 
 const (
@@ -93,21 +107,21 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.0.5"
+	XcodeArchiveVersion = "2.0.6"
 )
 
 const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "1.18.3"
+	XcodeTestVersion = "1.18.4"
 )
 
 const (
 	// XamarinUserManagementID ...
 	XamarinUserManagementID = "xamarin-user-management"
 	// XamarinUserManagementVersion ...
-	XamarinUserManagementVersion = "1.0.3"
+	XamarinUserManagementVersion = "1.1.0"
 )
 
 const (

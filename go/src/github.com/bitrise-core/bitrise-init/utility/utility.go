@@ -11,41 +11,6 @@ import (
 	"github.com/bitrise-io/go-utils/pathutil"
 )
 
-/*
-// RelCordovaWorkDir ...
-func RelCordovaWorkDir(baseDir, cordovaConfigPth string) (string, error) {
-	absBaseDir, err := pathutil.AbsPath(baseDir)
-	if err != nil {
-		return "", err
-	}
-
-	if strings.HasPrefix(absBaseDir, "/private/var") {
-		absBaseDir = strings.TrimPrefix(absBaseDir, "/private")
-	}
-
-	absCordovaConfigPth, err := pathutil.AbsPath(cordovaConfigPth)
-	if err != nil {
-		return "", err
-	}
-
-	if strings.HasPrefix(absCordovaConfigPth, "/private/var") {
-		absCordovaConfigPth = strings.TrimPrefix(absCordovaConfigPth, "/private")
-	}
-
-	absCordovaWorkDir := filepath.Dir(absCordovaConfigPth)
-	if absBaseDir == absCordovaWorkDir {
-		return "", nil
-	}
-
-	cordovaWorkdir, err := filepath.Rel(absBaseDir, absCordovaWorkDir)
-	if err != nil {
-		return "", err
-	}
-
-	return cordovaWorkdir, nil
-}
-*/
-
 // RelPath ...
 func RelPath(basePth, pth string) (string, error) {
 	absBasePth, err := pathutil.AbsPath(basePth)

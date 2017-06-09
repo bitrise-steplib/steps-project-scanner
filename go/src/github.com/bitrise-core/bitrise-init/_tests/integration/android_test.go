@@ -92,10 +92,21 @@ var sampleAppsAndroidSDK22SubdirVersions = []interface{}{
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.InstallMissingAndroidToolsVersion,
 	steps.GradleRunnerVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.CachePullVersion,
+	steps.ScriptVersion,
+	steps.InstallMissingAndroidToolsVersion,
+	steps.GradleRunnerVersion,
+	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 }
 
 var sampleAppsAndroidSDK22SubdirResultYML = fmt.Sprintf(`options:
@@ -108,15 +119,7 @@ var sampleAppsAndroidSDK22SubdirResultYML = fmt.Sprintf(`options:
         env_key: GRADLE_BUILD_FILE_PATH
         value_map:
           src/build.gradle:
-            title: Gradle task to run
-            env_key: GRADLE_TASK
-            value_map:
-              assemble:
-                config: android-config
-              assembleDebug:
-                config: android-config
-              assembleRelease:
-                config: android-config
+            config: android-config
 configs:
   android:
     android-config: |
@@ -129,20 +132,38 @@ configs:
       - pull_request_source_branch: '*'
         workflow: primary
       workflows:
-        primary:
+        deploy:
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - install-missing-android-tools@%s: {}
           - gradle-runner@%s:
               inputs:
               - gradle_file: $GRADLE_BUILD_FILE_PATH
-              - gradle_task: $GRADLE_TASK
+              - gradle_task: assembleRelease
               - gradlew_path: $GRADLEW_PATH
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - cache-pull@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - install-missing-android-tools@%s: {}
+          - gradle-runner@%s:
+              inputs:
+              - gradle_file: $GRADLE_BUILD_FILE_PATH
+              - gradle_task: assembleDebug
+              - gradlew_path: $GRADLEW_PATH
+          - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
 warnings:
   android: []
 `, sampleAppsAndroidSDK22SubdirVersions...)
@@ -161,10 +182,21 @@ var sampleAppsAndroid22Versions = []interface{}{
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.InstallMissingAndroidToolsVersion,
 	steps.GradleRunnerVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.CachePullVersion,
+	steps.ScriptVersion,
+	steps.InstallMissingAndroidToolsVersion,
+	steps.GradleRunnerVersion,
+	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 }
 
 var sampleAppsAndroid22ResultYML = fmt.Sprintf(`options:
@@ -177,15 +209,7 @@ var sampleAppsAndroid22ResultYML = fmt.Sprintf(`options:
         env_key: GRADLE_BUILD_FILE_PATH
         value_map:
           build.gradle:
-            title: Gradle task to run
-            env_key: GRADLE_TASK
-            value_map:
-              assemble:
-                config: android-config
-              assembleDebug:
-                config: android-config
-              assembleRelease:
-                config: android-config
+            config: android-config
 configs:
   android:
     android-config: |
@@ -198,20 +222,38 @@ configs:
       - pull_request_source_branch: '*'
         workflow: primary
       workflows:
-        primary:
+        deploy:
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - install-missing-android-tools@%s: {}
           - gradle-runner@%s:
               inputs:
               - gradle_file: $GRADLE_BUILD_FILE_PATH
-              - gradle_task: $GRADLE_TASK
+              - gradle_task: assembleRelease
               - gradlew_path: $GRADLEW_PATH
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - cache-pull@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - install-missing-android-tools@%s: {}
+          - gradle-runner@%s:
+              inputs:
+              - gradle_file: $GRADLE_BUILD_FILE_PATH
+              - gradle_task: assembleDebug
+              - gradlew_path: $GRADLEW_PATH
+          - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
 warnings:
   android: []
 `, sampleAppsAndroid22Versions...)
@@ -220,10 +262,21 @@ var androidNonExecutableGradlewVersions = []interface{}{
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.InstallMissingAndroidToolsVersion,
 	steps.GradleRunnerVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.CachePullVersion,
+	steps.ScriptVersion,
+	steps.InstallMissingAndroidToolsVersion,
+	steps.GradleRunnerVersion,
+	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 }
 
 var androidNonExecutableGradlewResultYML = fmt.Sprintf(`options:
@@ -236,15 +289,7 @@ var androidNonExecutableGradlewResultYML = fmt.Sprintf(`options:
         env_key: GRADLE_BUILD_FILE_PATH
         value_map:
           build.gradle:
-            title: Gradle task to run
-            env_key: GRADLE_TASK
-            value_map:
-              assemble:
-                config: android-config
-              assembleDebug:
-                config: android-config
-              assembleRelease:
-                config: android-config
+            config: android-config
 configs:
   android:
     android-config: |
@@ -257,20 +302,38 @@ configs:
       - pull_request_source_branch: '*'
         workflow: primary
       workflows:
-        primary:
+        deploy:
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - install-missing-android-tools@%s: {}
           - gradle-runner@%s:
               inputs:
               - gradle_file: $GRADLE_BUILD_FILE_PATH
-              - gradle_task: $GRADLE_TASK
+              - gradle_task: assembleRelease
               - gradlew_path: $GRADLEW_PATH
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - cache-pull@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - install-missing-android-tools@%s: {}
+          - gradle-runner@%s:
+              inputs:
+              - gradle_file: $GRADLE_BUILD_FILE_PATH
+              - gradle_task: assembleDebug
+              - gradlew_path: $GRADLEW_PATH
+          - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
 warnings:
   android: []
 `, androidNonExecutableGradlewVersions...)

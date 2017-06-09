@@ -1,6 +1,17 @@
-## Changelog (Current version: 1.3.0)
+## Changelog (Current version: 1.4.0)
 
 -----------------
+
+### 1.4.0 (2017 Jun 09)
+
+* [60f3302] Prepare for 1.4.0
+* [b6b3f54] step version updates
+* [96a8056] readme update
+* [8de5f82] seperated android workflows (#92)
+* [57a6222] android local.properties warning fix, xcode cocoapods do not fail if analyze failed, utility cleanup (#91)
+* [487630a] error if Android `local.properties` is committed into the repo - completed (#87)
+* [6181c14] Added cache step to all xcode workflows (#90)
+* [cc83bdc] Added Cache:Pull and Cache:Push steps for the android scanner (#88)
 
 ### 1.3.0 (2017 May 31)
 
@@ -234,4 +245,4 @@
 
 -----------------
 
-Updated: 2017 May 31
+Updated: 2017 Jun 09

@@ -51,18 +51,22 @@ var fastlaneVersions = []interface{}{
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.XcodeTestVersion,
 	steps.XcodeArchiveVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
+	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.XcodeTestVersion,
 	steps.DeployToBitriseIoVersion,
+	steps.CachePushVersion,
 }
 
 var fastlaneResultYML = fmt.Sprintf(`options:
@@ -130,6 +134,7 @@ configs:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -142,11 +147,13 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
         primary:
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
           - git-clone@%s: {}
+          - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
@@ -155,6 +162,7 @@ configs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
           - deploy-to-bitrise-io@%s: {}
+          - cache-push@%s: {}
 warnings:
   fastlane: []
   ios: []
