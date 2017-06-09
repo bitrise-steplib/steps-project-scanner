@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.3.0)
+## Changelog (Current version: 1.4.0)
 
 -----------------
+
+### 1.4.0 (2017 Jun 09)
+
+* [72496ed] Prepare for 1.4.0
+* [ed043c6] bitrise-init update (#40)
 
 ### 1.3.0 (2017 Jun 02)
 
@@ -185,4 +190,4 @@
 
 -----------------
 
-Updated: 2017 Jun 02
+Updated: 2017 Jun 09
