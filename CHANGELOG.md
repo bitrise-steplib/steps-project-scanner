@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.4.0)
+## Changelog (Current version: 1.4.1)
 
 -----------------
+
+### 1.4.1 (2017 Jun 13)
+
+* [954a946] prepare for 1.4.1
+* [eaba64e] deps update (#41)
 
 ### 1.4.0 (2017 Jun 09)
 
@@ -190,4 +195,4 @@
 
 -----------------
 
-Updated: 2017 Jun 09
+Updated: 2017 Jun 13
