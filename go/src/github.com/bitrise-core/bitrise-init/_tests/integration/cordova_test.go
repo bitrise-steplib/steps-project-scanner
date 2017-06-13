@@ -59,6 +59,7 @@ var sampleAppsCordovaWithJasmineVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
 	steps.NpmVersion,
 	steps.JasmineTestRunnerVersion,
 	steps.GenerateCordovaBuildConfigVersion,
@@ -103,6 +104,7 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
           - npm@%s:
               inputs:
               - command: install
@@ -134,6 +136,7 @@ var sampleAppsCordovaWithKarmaJasmineVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
 	steps.NpmVersion,
 	steps.KarmaJasmineTestRunnerVersion,
 	steps.GenerateCordovaBuildConfigVersion,
@@ -178,6 +181,7 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
           - npm@%s:
               inputs:
               - command: install

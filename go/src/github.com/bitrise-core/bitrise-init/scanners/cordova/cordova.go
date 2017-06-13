@@ -300,6 +300,8 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		// CD
 		configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID, false)
 
+		configBuilder.AppendPreparStepListTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+
 		configBuilder.AppendDependencyStepListTo(models.DeployWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
 
 		if scanner.hasKarmaJasmineTest {
@@ -334,6 +336,8 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		}, nil
 	}
 
+	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
+
 	configBuilder.AppendMainStepList(steps.GenerateCordovaBuildConfigStepListItem())
 
 	cordovaArchiveEnvs := []envmanModels.EnvironmentItemModel{
@@ -363,6 +367,8 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 // DefaultConfigs ...
 func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder(false)
+
+	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
 
 	configBuilder.AppendDependencyStepList(steps.NpmStepListItem(
 		envmanModels.EnvironmentItemModel{"command": "install"},
