@@ -1,9 +1,9 @@
-format_version: 1.3.1
+format_version: "2"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  - RELEASE_VERSION: 1.4.0
+  - RELEASE_VERSION: 1.4.1
 
 workflows:
   # ----------------------------------------------------------------
@@ -53,28 +53,6 @@ workflows:
                 exit 1
               fi
             done <<< "$GOLIST_WITHOUT_VENDOR"
-    - script:
-        title: Search for unused constants, variables, functions and types
-        inputs:
-        - content: |-
-            #!/bin/bash
-            unused_out=$(for pkg in $(go list ./... | grep -v vendor); do unused "$pkg"; done)
-            if [[ "${unused_out}" != "" ]] ; then
-              echo "=> Unused output:"
-              echo "${unused_out}"
-              exit 1
-            fi
-    - script:
-        title: Run gosimple
-        inputs:
-        - content: |-
-            #!/bin/bash
-            gosimple_out=$(for pkg in $(go list ./... | grep -v vendor); do gosimple "$pkg"; done)
-            if [[ "${gosimple_out}" != "" ]] ; then
-              echo "=> gosimple output:"
-              echo "${gosimple_out}"
-              exit 1
-            fi
     - script:
         title: Go test
         inputs:
@@ -130,12 +108,6 @@ workflows:
 
             # Go lint
             go get -u github.com/golang/lint/golint
-
-            # Check for unused constants, variables, functions and types
-            go get honnef.co/go/tools/cmd/unused
-
-            # Search for what could be simplified
-            go get honnef.co/go/tools/cmd/gosimple
 
   godeps-update:
     title: Godeps update

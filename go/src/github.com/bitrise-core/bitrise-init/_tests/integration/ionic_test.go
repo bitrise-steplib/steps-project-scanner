@@ -42,6 +42,7 @@ var ionic2Versions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
 	steps.NpmVersion,
 	steps.GenerateCordovaBuildConfigVersion,
 	steps.IonicArchiveVersion,
@@ -82,6 +83,7 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
           - npm@%s:
               inputs:
               - workdir: $IONIC_WORK_DIR

@@ -1,6 +1,12 @@
-## Changelog (Current version: 1.4.0)
+## Changelog (Current version: 1.4.1)
 
 -----------------
+
+### 1.4.1 (2017 Jun 13)
+
+* [2ef0892] prepare for 1.4.1
+* [f50d10b] step version updates
+* [659a32a] add certificate installer step to cordova and ionic workflows (#93)
 
 ### 1.4.0 (2017 Jun 09)
 
@@ -245,4 +251,4 @@
 
 -----------------
 
-Updated: 2017 Jun 09
+Updated: 2017 Jun 13

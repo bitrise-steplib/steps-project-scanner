@@ -21,7 +21,7 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "3.4.3"
+	GitCloneVersion = "3.4.4"
 )
 
 const (
@@ -42,21 +42,21 @@ const (
 	// CertificateAndProfileInstallerID ...
 	CertificateAndProfileInstallerID = "certificate-and-profile-installer"
 	// CertificateAndProfileInstallerVersion ...
-	CertificateAndProfileInstallerVersion = "1.8.5"
+	CertificateAndProfileInstallerVersion = "1.8.6"
 )
 
 const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.3.3"
+	DeployToBitriseIoVersion = "1.3.4"
 )
 
 const (
 	// ScriptID ...
 	ScriptID = "script"
 	// ScriptVersion ...
-	ScriptVersion = "1.1.3"
+	ScriptVersion = "1.1.4"
 	// ScriptDefaultTitle ...
 	ScriptDefaultTitle = "Do anything with Script step"
 )
@@ -65,7 +65,7 @@ const (
 	// InstallMissingAndroidToolsID ...
 	InstallMissingAndroidToolsID = "install-missing-android-tools"
 	// InstallMissingAndroidToolsVersion ...
-	InstallMissingAndroidToolsVersion = "1.0.2"
+	InstallMissingAndroidToolsVersion = "1.0.3"
 )
 
 const (
@@ -114,7 +114,7 @@ const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "1.18.4"
+	XcodeTestVersion = "1.18.5"
 )
 
 const (
@@ -142,7 +142,7 @@ const (
 	// XamarinArchiveID ...
 	XamarinArchiveID = "xamarin-archive"
 	// XamarinArchiveVersion ...
-	XamarinArchiveVersion = "1.4.1"
+	XamarinArchiveVersion = "1.4.2"
 )
 
 const (
@@ -184,7 +184,7 @@ const (
 	// GenerateCordovaBuildConfigID ...
 	GenerateCordovaBuildConfigID = "generate-cordova-build-configuration"
 	// GenerateCordovaBuildConfigVersion ...
-	GenerateCordovaBuildConfigVersion = "0.9.2"
+	GenerateCordovaBuildConfigVersion = "0.9.3"
 )
 
 const (
