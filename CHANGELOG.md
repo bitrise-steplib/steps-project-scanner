@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.4.1)
+## Changelog (Current version: 1.4.2)
 
 -----------------
+
+### 1.4.2 (2017 Jul 03)
+
+* [1ca3c22] Prepare for 1.4.2
+* [a0c9a47] bitrise-init dep update (#42)
 
 ### 1.4.1 (2017 Jun 13)
 
@@ -195,4 +200,4 @@
 
 -----------------
 
-Updated: 2017 Jun 13
+Updated: 2017 Jul 03
