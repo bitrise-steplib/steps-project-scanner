@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.4.1)
+## Changelog (Current version: 1.4.2)
 
 -----------------
+
+### 1.4.2 (2017 Jul 03)
+
+* [1978511] Prepare for 1.4.2
+* [8500b30] updated gradle runner and cache push versions (#94)
 
 ### 1.4.1 (2017 Jun 13)
 
@@ -251,4 +256,4 @@
 
 -----------------
 
-Updated: 2017 Jun 13
+Updated: 2017 Jul 03
