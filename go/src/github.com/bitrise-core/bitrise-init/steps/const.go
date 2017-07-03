@@ -21,7 +21,7 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "3.4.4"
+	GitCloneVersion = "3.5.0"
 )
 
 const (
@@ -35,7 +35,7 @@ const (
 	// CachePushID ...
 	CachePushID = "cache-push"
 	// CachePushVersion ...
-	CachePushVersion = "1.1.0"
+	CachePushVersion = "1.1.1"
 )
 
 const (
@@ -49,7 +49,7 @@ const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.3.4"
+	DeployToBitriseIoVersion = "1.3.5"
 )
 
 const (
@@ -72,7 +72,7 @@ const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.7.0"
+	GradleRunnerVersion = "1.7.1"
 )
 
 const (
