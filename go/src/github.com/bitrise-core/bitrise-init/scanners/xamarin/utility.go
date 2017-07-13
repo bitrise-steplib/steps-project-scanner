@@ -1,28 +1,30 @@
-package utility
+package xamarin
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/bitrise-core/bitrise-init/utility"
 	"github.com/bitrise-io/go-utils/fileutil"
 )
 
 const (
-	solutionExtension  = ".sln"
-	componentsDirName  = "Components"
-	nodeModulesDirName = "node_modules"
+	solutionExtension = ".sln"
+	componentsDirName = "Components"
+	// NodeModulesDirName ...
+	NodeModulesDirName = "node_modules"
 
 	solutionConfigurationStart = "GlobalSection(SolutionConfigurationPlatforms) = preSolution"
 	solutionConfigurationEnd   = "EndGlobalSection"
 )
 
-var allowSolutionExtensionFilter = ExtensionFilter(solutionExtension, true)
-var forbidComponentsSolutionFilter = ComponentFilter(componentsDirName, false)
-var forbidNodeModulesDirComponentFilter = ComponentFilter(nodeModulesDirName, false)
+var allowSolutionExtensionFilter = utility.ExtensionFilter(solutionExtension, true)
+var forbidComponentsSolutionFilter = utility.ComponentFilter(componentsDirName, false)
+var forbidNodeModulesDirComponentFilter = utility.ComponentFilter(NodeModulesDirName, false)
 
 // FilterSolutionFiles ...
 func FilterSolutionFiles(fileList []string) ([]string, error) {
-	files, err := FilterPaths(fileList,
+	files, err := utility.FilterPaths(fileList,
 		allowSolutionExtensionFilter,
 		forbidComponentsSolutionFilter,
 		forbidNodeModulesDirComponentFilter)

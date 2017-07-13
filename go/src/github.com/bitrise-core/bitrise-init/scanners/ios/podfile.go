@@ -1,4 +1,4 @@
-package utility
+package ios
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 
 	"encoding/json"
 
+	"github.com/bitrise-core/bitrise-init/utility"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-tools/go-xcode/xcodeproj"
@@ -16,7 +17,7 @@ import (
 const podfileBase = "Podfile"
 
 // AllowPodfileBaseFilter ...
-var AllowPodfileBaseFilter = BaseFilter(podfileBase, true)
+var AllowPodfileBaseFilter = utility.BaseFilter(podfileBase, true)
 
 func getTargetDefinitionProjectMap(podfilePth, cocoapodsVersion string) (map[string]string, error) {
 	gemfileCocoapodsVersion := ""
@@ -212,7 +213,7 @@ func GetWorkspaceProjectMap(podfilePth string, projects []string) (map[string]st
 	}
 
 	if projectRelPth == "" {
-		projects, err := FilterPaths(projects, InDirectoryFilter(podfileDir, true))
+		projects, err := utility.FilterPaths(projects, utility.InDirectoryFilter(podfileDir, true))
 		if err != nil {
 			return map[string]string{}, fmt.Errorf("failed to filter projects, error: %s", err)
 		}

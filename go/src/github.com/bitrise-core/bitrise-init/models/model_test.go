@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"encoding/json"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,6 +50,7 @@ func TestLastOptions(t *testing.T) {
 
 	// 2. level
 	opt01 := NewOption("OPT01", "OPT01_KEY") // has no child
+	opt01.AddConfig("test", nil)
 	opt0.AddOption("value1", opt01)
 
 	opt02 := NewOption("OPT02", "OPT02_KEY")
@@ -79,6 +82,125 @@ func TestLastOptions(t *testing.T) {
 	require.Equal(t, true, optionsMap["OPT01"])
 	require.Equal(t, true, optionsMap["OPT0211"])
 	require.Equal(t, true, optionsMap["OPT02121"])
+
+	{
+		optionJSON := `{
+	"title": "Project (or Workspace) path",
+	"env_key": "BITRISE_PROJECT_PATH",
+	"value_map": {
+		"BitriseTest.xcodeproj": {
+			"title": "Scheme name",
+			"env_key": "BITRISE_SCHEME",
+			"value_map": {
+				"BitriseTest": {
+					"config": "ios-test-config"
+				},
+				"BitriseTest-tvOS": {
+					"config": "ios-test-config"
+				}
+			}
+		}
+	}
+}`
+
+		var option OptionModel
+		require.NoError(t, json.Unmarshal([]byte(optionJSON), &option))
+
+		lastOptions := option.LastChilds()
+		optionsMap := map[string]bool{}
+		for _, opt := range lastOptions {
+			optionsMap[opt.String()] = true
+		}
+
+		require.Equal(t, true, optionsMap[`{
+	"title": "Scheme name",
+	"env_key": "BITRISE_SCHEME",
+	"value_map": {
+		"BitriseTest": {
+			"config": "ios-test-config"
+		},
+		"BitriseTest-tvOS": {
+			"config": "ios-test-config"
+		}
+	}
+}`])
+	}
+
+	{
+		optionJSON := `{
+	"title": "Gradlew file path",
+	"env_key": "GRADLEW_PATH",
+	"value_map": {
+		"$HOME/Develop/react/AwesomeProject/android/gradlew": {
+			"title": "Path to the gradle file to use",
+			"env_key": "GRADLE_BUILD_FILE_PATH",
+			"value_map": {
+				"$HOME/Develop/react/AwesomeProject/android/build.gradle": {
+					"config": "android-config"
+				}
+			}
+		}
+	}
+}`
+
+		var option OptionModel
+		require.NoError(t, json.Unmarshal([]byte(optionJSON), &option))
+
+		lastOptions := option.LastChilds()
+		optionsMap := map[string]bool{}
+		for _, opt := range lastOptions {
+			optionsMap[opt.String()] = true
+		}
+
+		require.Equal(t, true, optionsMap[`{
+	"title": "Path to the gradle file to use",
+	"env_key": "GRADLE_BUILD_FILE_PATH",
+	"value_map": {
+		"$HOME/Develop/react/AwesomeProject/android/build.gradle": {
+			"config": "android-config"
+		}
+	}
+}`])
+	}
+
+	{
+		optionJSON := `{
+	"title": "project_dir",
+	"env_key": "PROJECT_DIR",
+	"value_map": {
+		"$HOME/Develop/react/AwesomeProject": {
+			"title": "Gradlew file path",
+			"env_key": "GRADLEW_PATH",
+			"value_map": {
+				"$HOME/Develop/react/AwesomeProject/android/gradlew": {
+					"title": "Path to the gradle file to use",
+					"env_key": "GRADLE_BUILD_FILE_PATH",
+					"value_map": {
+						"$HOME/Develop/react/AwesomeProject/android/build.gradle": {}
+					}
+				}
+			}
+		}
+	}
+}`
+
+		var option OptionModel
+		require.NoError(t, json.Unmarshal([]byte(optionJSON), &option))
+
+		lastOptions := option.LastChilds()
+		optionsMap := map[string]bool{}
+		for _, opt := range lastOptions {
+			optionsMap[opt.String()] = true
+		}
+
+		require.Equal(t, true, optionsMap[`{
+	"title": "Path to the gradle file to use",
+	"env_key": "GRADLE_BUILD_FILE_PATH",
+	"value_map": {
+		"$HOME/Develop/react/AwesomeProject/android/build.gradle": {}
+	}
+}`])
+	}
 }
 
 func TestCopy(t *testing.T) {
@@ -224,4 +346,45 @@ func TestParent(t *testing.T) {
 		require.Equal(t, "value1", underKey)
 		require.Equal(t, true, ok)
 	}
+}
+
+func TestRemoveConfigs(t *testing.T) {
+	optionJSON := `{
+	"title": "Project (or Workspace) path",
+	"env_key": "BITRISE_PROJECT_PATH",
+	"value_map": {
+		"BitriseTest.xcodeproj": {
+			"title": "Scheme name",
+			"env_key": "BITRISE_SCHEME",
+			"value_map": {
+				"BitriseTest": {
+					"config": "ios-test-config"
+				},
+				"BitriseTest-tvOS": {
+					"config": "ios-test-config"
+				}
+			}
+		}
+	}
+}`
+
+	var option OptionModel
+	require.NoError(t, json.Unmarshal([]byte(optionJSON), &option))
+
+	option.RemoveConfigs()
+
+	require.Equal(t, `{
+	"title": "Project (or Workspace) path",
+	"env_key": "BITRISE_PROJECT_PATH",
+	"value_map": {
+		"BitriseTest.xcodeproj": {
+			"title": "Scheme name",
+			"env_key": "BITRISE_SCHEME",
+			"value_map": {
+				"BitriseTest": {},
+				"BitriseTest-tvOS": {}
+			}
+		}
+	}
+}`, option.String())
 }

@@ -1,19 +1,5 @@
 package models
 
-import bitriseModels "github.com/bitrise-io/bitrise/models"
-
-// OptionModel ...
-type OptionModel struct {
-	Title  string `json:"title,omitempty" yaml:"title,omitempty"`
-	EnvKey string `json:"env_key,omitempty" yaml:"env_key,omitempty"`
-
-	ChildOptionMap map[string]*OptionModel `json:"value_map,omitempty" yaml:"value_map,omitempty"`
-	Config         string                  `json:"config,omitempty" yaml:"config,omitempty"`
-
-	Components []string     `json:"-" yaml:"-"`
-	Head       *OptionModel `json:"-" yaml:"-"`
-}
-
 // BitriseConfigMap ...
 type BitriseConfigMap map[string]string
 
@@ -31,26 +17,13 @@ type ScanResultModel struct {
 	PlatformErrorsMap    map[string]Errors           `json:"errors,omitempty" yaml:"errors,omitempty"`
 }
 
-type workflowBuilderModel struct {
-	PrepareSteps    []bitriseModels.StepListItemModel
-	DependencySteps []bitriseModels.StepListItemModel
-	MainSteps       []bitriseModels.StepListItemModel
-	DeploySteps     []bitriseModels.StepListItemModel
-
-	steps []bitriseModels.StepListItemModel
-}
-
-// WorkflowID ...
-type WorkflowID string
-
-const (
-	// PrimaryWorkflowID ...
-	PrimaryWorkflowID WorkflowID = "primary"
-	// DeployWorkflowID ...
-	DeployWorkflowID WorkflowID = "deploy"
-)
-
-// ConfigBuilderModel ...
-type ConfigBuilderModel struct {
-	workflowBuilderMap map[WorkflowID]*workflowBuilderModel
+// AddError ...
+func (result *ScanResultModel) AddError(platform string, errorMessage string) {
+	if result.PlatformErrorsMap == nil {
+		result.PlatformErrorsMap = map[string]Errors{}
+	}
+	if result.PlatformErrorsMap[platform] == nil {
+		result.PlatformErrorsMap[platform] = []string{}
+	}
+	result.PlatformErrorsMap[platform] = append(result.PlatformErrorsMap[platform], errorMessage)
 }

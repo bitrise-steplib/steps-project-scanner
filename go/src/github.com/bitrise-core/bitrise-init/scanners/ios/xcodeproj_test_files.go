@@ -1,4 +1,4 @@
-package utility
+package ios
 
 const testMacOSPbxprojContent = `// !$*UTF8*$!
 {
@@ -602,7 +602,7 @@ const testMacOSPbxprojContent = `// !$*UTF8*$!
 				);
 				INFOPLIST_FILE = BitriseStudio/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.godrei.BitriseStudio;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bitrise.BitriseStudio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "b17a1b90-9459-4620-9332-347d399f7cd9";
 				PROVISIONING_PROFILE_SPECIFIER = "Mac Development Wildcard";
@@ -624,7 +624,7 @@ const testMacOSPbxprojContent = `// !$*UTF8*$!
 				);
 				INFOPLIST_FILE = BitriseStudio/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.godrei.BitriseStudio;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bitrise.BitriseStudio;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "1bb807b8-a953-459e-85ca-c86d3fe13645";
 				PROVISIONING_PROFILE_SPECIFIER = "Mac App-Store Wildcards";
@@ -641,7 +641,7 @@ const testMacOSPbxprojContent = `// !$*UTF8*$!
 				DEVELOPMENT_TEAM = L935L4GU3F;
 				INFOPLIST_FILE = BitriseStudioTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = godrei.BitriseStudioTests;
+				PRODUCT_BUNDLE_IDENTIFIER = bitrise.BitriseStudioTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BitriseStudio.app/Contents/MacOS/BitriseStudio";
@@ -657,7 +657,7 @@ const testMacOSPbxprojContent = `// !$*UTF8*$!
 				DEVELOPMENT_TEAM = L935L4GU3F;
 				INFOPLIST_FILE = BitriseStudioTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = godrei.BitriseStudioTests;
+				PRODUCT_BUNDLE_IDENTIFIER = bitrise.BitriseStudioTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BitriseStudio.app/Contents/MacOS/BitriseStudio";
@@ -672,7 +672,7 @@ const testMacOSPbxprojContent = `// !$*UTF8*$!
 				DEVELOPMENT_TEAM = L935L4GU3F;
 				INFOPLIST_FILE = BitriseStudioUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = godrei.BitriseStudioUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = bitrise.BitriseStudioUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 				TEST_TARGET_NAME = BitriseStudio;
@@ -687,7 +687,7 @@ const testMacOSPbxprojContent = `// !$*UTF8*$!
 				DEVELOPMENT_TEAM = L935L4GU3F;
 				INFOPLIST_FILE = BitriseStudioUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = godrei.BitriseStudioUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = bitrise.BitriseStudioUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 				TEST_TARGET_NAME = BitriseStudio;

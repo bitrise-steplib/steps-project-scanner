@@ -1,4 +1,4 @@
-package utility
+package android
 
 import (
 	"testing"
@@ -53,37 +53,5 @@ func TestFilterRootBuildGradleFiles(t *testing.T) {
 		files, err := FilterRootBuildGradleFiles(fileList)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(files))
-	}
-}
-
-func TestFilterGradlewFiles(t *testing.T) {
-	t.Log(`Contains "gradlew" files`)
-	{
-		fileList := []string{
-			"/Users/bitrise/Develop/bitrise/sample-apps/sample-apps-android/gradlew",
-			"/Users/bitrise/Develop/bitrise/sample-apps/sample-apps-android/app/gradlew",
-			"path/to/my/gradlew/file",
-			"path/to/my",
-		}
-
-		files, err := FilterGradlewFiles(fileList)
-		require.NoError(t, err)
-		require.Equal(t, 2, len(files))
-
-		// Also sorts "gradlew" files by path components length
-		require.Equal(t, "/Users/bitrise/Develop/bitrise/sample-apps/sample-apps-android/gradlew", files[0])
-		require.Equal(t, "/Users/bitrise/Develop/bitrise/sample-apps/sample-apps-android/app/gradlew", files[1])
-	}
-
-	t.Log(`Do not contains "gradlew" file`)
-	{
-		fileList := []string{
-			"path/to/my/gradlew/build.",
-			"path/to/my/gradle",
-		}
-
-		files, err := FilterGradlewFiles(fileList)
-		require.NoError(t, err)
-		require.Equal(t, 0, len(files))
 	}
 }

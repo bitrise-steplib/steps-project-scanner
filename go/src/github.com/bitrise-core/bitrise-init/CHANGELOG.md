@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.4.2)
+## Changelog (Current version: 1.5.0)
 
 -----------------
+
+### 1.5.0 (2017 Jul 13)
+
+* [0eaf6cf] prepare for 1.5.0
+* [f5405ad] React native (#95)
 
 ### 1.4.2 (2017 Jul 03)
 
@@ -256,4 +261,4 @@
 
 -----------------
 
-Updated: 2017 Jul 03
+Updated: 2017 Jul 13

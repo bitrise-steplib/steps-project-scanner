@@ -111,14 +111,14 @@ var sampleAppsAndroidSDK22SubdirVersions = []interface{}{
 
 var sampleAppsAndroidSDK22SubdirResultYML = fmt.Sprintf(`options:
   android:
-    title: Gradlew file path
-    env_key: GRADLEW_PATH
+    title: Path to the gradle file to use
+    env_key: GRADLE_BUILD_FILE_PATH
     value_map:
-      src/gradlew:
-        title: Path to the gradle file to use
-        env_key: GRADLE_BUILD_FILE_PATH
+      src/build.gradle:
+        title: Gradlew file path
+        env_key: GRADLEW_PATH
         value_map:
-          src/build.gradle:
+          src/gradlew:
             config: android-config
 configs:
   android:
@@ -201,14 +201,14 @@ var sampleAppsAndroid22Versions = []interface{}{
 
 var sampleAppsAndroid22ResultYML = fmt.Sprintf(`options:
   android:
-    title: Gradlew file path
-    env_key: GRADLEW_PATH
+    title: Path to the gradle file to use
+    env_key: GRADLE_BUILD_FILE_PATH
     value_map:
-      ./gradlew:
-        title: Path to the gradle file to use
-        env_key: GRADLE_BUILD_FILE_PATH
+      build.gradle:
+        title: Gradlew file path
+        env_key: GRADLEW_PATH
         value_map:
-          build.gradle:
+          ./gradlew:
             config: android-config
 configs:
   android:
@@ -281,14 +281,14 @@ var androidNonExecutableGradlewVersions = []interface{}{
 
 var androidNonExecutableGradlewResultYML = fmt.Sprintf(`options:
   android:
-    title: Gradlew file path
-    env_key: GRADLEW_PATH
+    title: Path to the gradle file to use
+    env_key: GRADLE_BUILD_FILE_PATH
     value_map:
-      ./gradlew:
-        title: Path to the gradle file to use
-        env_key: GRADLE_BUILD_FILE_PATH
+      build.gradle:
+        title: Gradlew file path
+        env_key: GRADLEW_PATH
         value_map:
-          build.gradle:
+          ./gradlew:
             config: android-config
 configs:
   android:

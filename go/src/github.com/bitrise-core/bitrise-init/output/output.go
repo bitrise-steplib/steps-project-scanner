@@ -93,7 +93,7 @@ func WriteToFile(a interface{}, format Format, pth string) (string, error) {
 }
 
 // Print ...
-func Print(a interface{}, format Format, pth string) error {
+func Print(a interface{}, format Format) error {
 	str := ""
 
 	switch format {

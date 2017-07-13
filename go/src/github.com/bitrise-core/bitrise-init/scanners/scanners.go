@@ -8,7 +8,9 @@ import (
 	"github.com/bitrise-core/bitrise-init/scanners/ionic"
 	"github.com/bitrise-core/bitrise-init/scanners/ios"
 	"github.com/bitrise-core/bitrise-init/scanners/macos"
+	"github.com/bitrise-core/bitrise-init/scanners/reactnative"
 	"github.com/bitrise-core/bitrise-init/scanners/xamarin"
+	"github.com/bitrise-core/bitrise-init/steps"
 	"gopkg.in/yaml.v2"
 )
 
@@ -28,7 +30,7 @@ type ScannerInterface interface {
 	// Returns:
 	// - platform detected
 	// - error if (if any)
-	DetectPlatform(searchDir string) (bool, error)
+	DetectPlatform(string) (bool, error)
 
 	// ExcludedScannerNames is used to mark, which scanners should be excluded, if the current scanner detects platform.
 	ExcludedScannerNames() []string
@@ -60,6 +62,7 @@ type ScannerInterface interface {
 
 // ActiveScanners ...
 var ActiveScanners = []ScannerInterface{
+	reactnative.NewScanner(),
 	ionic.NewScanner(),
 	cordova.NewScanner(),
 	ios.NewScanner(),
@@ -77,7 +80,9 @@ const CustomConfigName = "other-config"
 
 // CustomConfig ...
 func CustomConfig() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder(false)
+	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	config, err := configBuilder.Generate(CustomProjectType)
 	if err != nil {

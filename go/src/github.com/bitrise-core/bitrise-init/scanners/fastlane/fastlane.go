@@ -52,7 +52,7 @@ func NewScanner() *Scanner {
 }
 
 // Name ...
-func (scanner Scanner) Name() string {
+func (Scanner) Name() string {
 	return scannerName
 }
 
@@ -66,7 +66,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	// Search for Fastfile
 	log.Infoft("Searching for Fastfiles")
 
-	fastfiles, err := utility.FilterFastfiles(fileList)
+	fastfiles, err := FilterFastfiles(fileList)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for Fastfile in (%s), error: %s", searchDir, err)
 	}
@@ -89,7 +89,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 }
 
 // ExcludedScannerNames ...
-func (scanner *Scanner) ExcludedScannerNames() []string {
+func (*Scanner) ExcludedScannerNames() []string {
 	return []string{}
 }
 
@@ -106,10 +106,10 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	for _, fastfile := range scanner.Fastfiles {
 		log.Infoft("Inspecting Fastfile: %s", fastfile)
 
-		workDir := utility.FastlaneWorkDir(fastfile)
+		workDir := WorkDir(fastfile)
 		log.Printft("fastlane work dir: %s", workDir)
 
-		lanes, err := utility.InspectFastfile(fastfile)
+		lanes, err := InspectFastfile(fastfile)
 		if err != nil {
 			log.Warnft("Failed to inspect Fastfile, error: %s", err)
 			warnings = append(warnings, fmt.Sprintf("Failed to inspect Fastfile (%s), error: %s", fastfile, err))
@@ -147,7 +147,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 }
 
 // DefaultOptions ...
-func (scanner *Scanner) DefaultOptions() models.OptionModel {
+func (*Scanner) DefaultOptions() models.OptionModel {
 	workDirOption := models.NewOption(workDirInputTitle, workDirInputEnvKey)
 
 	laneOption := models.NewOption(laneInputTitle, laneInputEnvKey)
@@ -160,15 +160,18 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder(false)
+func (*Scanner) Configs() (models.BitriseConfigMap, error) {
+	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 
-	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
-	configBuilder.AppendMainStepList(steps.FastlaneStepListItem(
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FastlaneStepListItem(
 		envmanModels.EnvironmentItemModel{laneInputKey: "$" + laneInputEnvKey},
 		envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
 	))
+
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	config, err := configBuilder.Generate(scannerName, envmanModels.EnvironmentItemModel{fastlaneXcodeListTimeoutEnvKey: fastlaneXcodeListTimeoutEnvValue})
 	if err != nil {
@@ -186,15 +189,17 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 }
 
 // DefaultConfigs ...
-func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder(false)
+func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 
-	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
-	configBuilder.AppendMainStepList(steps.FastlaneStepListItem(
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FastlaneStepListItem(
 		envmanModels.EnvironmentItemModel{laneInputKey: "$" + laneInputEnvKey},
 		envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
 	))
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	config, err := configBuilder.Generate(scannerName, envmanModels.EnvironmentItemModel{fastlaneXcodeListTimeoutEnvKey: fastlaneXcodeListTimeoutEnvValue})
 	if err != nil {

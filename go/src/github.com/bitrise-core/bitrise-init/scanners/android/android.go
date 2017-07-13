@@ -5,49 +5,12 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"path/filepath"
-
 	"github.com/bitrise-core/bitrise-init/models"
-	"github.com/bitrise-core/bitrise-init/steps"
-	"github.com/bitrise-core/bitrise-init/utility"
-	envmanModels "github.com/bitrise-io/envman/models"
-	"github.com/bitrise-io/go-utils/log"
 )
-
-// ScannerName ...
-const ScannerName = "android"
-
-const (
-	configName        = "android-config"
-	defaultConfigName = "default-android-config"
-)
-
-// Step Inputs
-const (
-	gradlewPathInputKey    = "gradlew_path"
-	gradlewPathInputEnvKey = "GRADLEW_PATH"
-	gradlewPathInputTitle  = "Gradlew file path"
-)
-
-const (
-	gradleFileInputKey    = "gradle_file"
-	gradleFileInputEnvKey = "GRADLE_BUILD_FILE_PATH"
-	gradleFileInputTitle  = "Path to the gradle file to use"
-)
-
-const (
-	gradleTaskInputKey = "gradle_task"
-)
-
-//------------------
-// ScannerInterface
-//------------------
 
 // Scanner ...
 type Scanner struct {
-	FileList         []string
-	BuildGradleFiles []string
-	SearchDir        string
+	SearchDir string
 }
 
 // NewScanner ...
@@ -56,146 +19,48 @@ func NewScanner() *Scanner {
 }
 
 // Name ...
-func (scanner Scanner) Name() string {
+func (Scanner) Name() string {
 	return ScannerName
+}
+
+// ExcludedScannerNames ...
+func (*Scanner) ExcludedScannerNames() []string {
+	return []string{}
 }
 
 // DetectPlatform ...
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	scanner.SearchDir = searchDir
 
-	fileList, err := utility.ListPathInDirSortedByComponents(searchDir, true)
-	if err != nil {
-		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
-	}
-	scanner.FileList = fileList
-
-	// Search for gradle file
-	log.Infoft("Searching for build.gradle files")
-
-	gradleFiles, err := utility.FilterRootBuildGradleFiles(fileList)
+	buildGradleFiles, err := CollectRootBuildGradleFiles(searchDir)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for build.gradle files, error: %s", err)
 	}
-	scanner.BuildGradleFiles = gradleFiles
 
-	log.Printft("%d build.gradle files detected", len(gradleFiles))
-	for _, file := range gradleFiles {
-		log.Printft("- %s", file)
-	}
-
-	if len(gradleFiles) == 0 {
-		log.Printft("platform not detected")
-		return false, nil
-	}
-
-	log.Doneft("Platform detected")
-
-	return true, nil
-}
-
-// ExcludedScannerNames ...
-func (scanner *Scanner) ExcludedScannerNames() []string {
-	return []string{}
+	return (len(buildGradleFiles) > 0), nil
 }
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
-	warnings := models.Warnings{}
-
-	// Search for local.properties file
-	for _, pth := range scanner.FileList {
-		if filepath.Base(pth) == "local.properties" {
-			warning := fmt.Sprintf(`The local.properties file must NOT be checked into Version Control Systems, as it contains information specific to your local configuration.
-The location of the file is: %s`, pth)
-			log.Warnft(warning)
-			warnings = append(warnings, warning)
-		}
-	}
-
-	// Search for gradle wrapper
-	log.Infoft("Searching for gradlew files")
-
-	gradlewFiles, err := utility.FilterGradlewFiles(scanner.FileList)
-	if err != nil {
-		return models.OptionModel{}, warnings, fmt.Errorf("Failed to list gradlew files, error: %s", err)
-	}
-
-	log.Printft("%d gradlew files detected", len(gradlewFiles))
-	for _, file := range gradlewFiles {
-		log.Printft("- %s", file)
-	}
-
-	rootGradlewPath := ""
-	gradlewFilesCount := len(gradlewFiles)
-	switch {
-	case gradlewFilesCount == 0:
-		log.Errorft("No gradle wrapper (gradlew) found")
-		return models.OptionModel{}, warnings, fmt.Errorf(`<b>No Gradle Wrapper (gradlew) found.</b> 
-Using a Gradle Wrapper (gradlew) is required, as the wrapper is what makes sure
-that the right Gradle version is installed and used for the build. More info/guide: <a>https://docs.gradle.org/current/userguide/gradle_wrapper.html</a>`)
-	case gradlewFilesCount == 1:
-		rootGradlewPath = gradlewFiles[0]
-	case gradlewFilesCount > 1:
-		rootGradlewPath = gradlewFiles[0]
-		log.Warnft("Multiple gradlew file, detected:")
-		for _, gradlewPth := range gradlewFiles {
-			log.Warnft("- %s", gradlewPth)
-		}
-		log.Warnft("Using: %s", rootGradlewPath)
-	}
-	// ---
-
-	// Options
-	gradlewPthOption := models.NewOption(gradlewPathInputTitle, gradlewPathInputEnvKey)
-
-	gradleFileOption := models.NewOption(gradleFileInputTitle, gradleFileInputEnvKey)
-	gradlewPthOption.AddOption(rootGradlewPath, gradleFileOption)
-
-	for _, gradleFile := range scanner.BuildGradleFiles {
-		log.Infoft("Inspecting gradle file: %s", gradleFile)
-
-		configOption := models.NewConfigOption(configName)
-		gradleFileOption.AddConfig(gradleFile, configOption)
-	}
-	// ---
-
-	return *gradlewPthOption, warnings, nil
+	return GenerateOptions(scanner.SearchDir)
 }
 
 // DefaultOptions ...
-func (scanner *Scanner) DefaultOptions() models.OptionModel {
-	gradlewPthOption := models.NewOption(gradlewPathInputTitle, gradlewPathInputEnvKey)
+func (*Scanner) DefaultOptions() models.OptionModel {
+	gradleFileOption := models.NewOption(GradleFileInputTitle, GradleFileInputEnvKey)
 
-	gradleFileOption := models.NewOption(gradleFileInputTitle, gradleFileInputEnvKey)
-	gradlewPthOption.AddOption("_", gradleFileOption)
+	gradlewPthOption := models.NewOption(GradlewPathInputTitle, GradlewPathInputEnvKey)
+	gradleFileOption.AddOption("_", gradlewPthOption)
 
-	configOption := models.NewConfigOption(defaultConfigName)
-	gradleFileOption.AddConfig("_", configOption)
+	configOption := models.NewConfigOption(DefaultConfigName)
+	gradlewPthOption.AddConfig("_", configOption)
 
-	return *gradlewPthOption
+	return *gradleFileOption
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder(true)
-
-	configBuilder.AppendPreparStepList(steps.InstallMissingAndroidToolsStepListItem())
-
-	configBuilder.AppendMainStepList(steps.GradleRunnerStepListItem(
-		envmanModels.EnvironmentItemModel{gradleFileInputKey: "$" + gradleFileInputEnvKey},
-		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "assembleDebug"},
-		envmanModels.EnvironmentItemModel{gradlewPathInputKey: "$" + gradlewPathInputEnvKey},
-	))
-
-	configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID, true)
-	configBuilder.AppendPreparStepListTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem())
-
-	configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.GradleRunnerStepListItem(
-		envmanModels.EnvironmentItemModel{gradleFileInputKey: "$" + gradleFileInputEnvKey},
-		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "assembleRelease"},
-		envmanModels.EnvironmentItemModel{gradlewPathInputKey: "$" + gradlewPathInputEnvKey},
-	))
+func (*Scanner) Configs() (models.BitriseConfigMap, error) {
+	configBuilder := GenerateConfigBuilder(true)
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {
@@ -208,30 +73,13 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	}
 
 	return models.BitriseConfigMap{
-		configName: string(data),
+		ConfigName: string(data),
 	}, nil
 }
 
 // DefaultConfigs ...
-func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder(true)
-
-	configBuilder.AppendPreparStepList(steps.InstallMissingAndroidToolsStepListItem())
-
-	configBuilder.AppendMainStepList(steps.GradleRunnerStepListItem(
-		envmanModels.EnvironmentItemModel{gradleFileInputKey: "$" + gradleFileInputEnvKey},
-		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "assembleDebug"},
-		envmanModels.EnvironmentItemModel{gradlewPathInputKey: "$" + gradlewPathInputEnvKey},
-	))
-
-	configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID, true)
-	configBuilder.AppendPreparStepListTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem())
-
-	configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.GradleRunnerStepListItem(
-		envmanModels.EnvironmentItemModel{gradleFileInputKey: "$" + gradleFileInputEnvKey},
-		envmanModels.EnvironmentItemModel{gradleTaskInputKey: "assembleRelease"},
-		envmanModels.EnvironmentItemModel{gradlewPathInputKey: "$" + gradlewPathInputEnvKey},
-	))
+func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+	configBuilder := GenerateConfigBuilder(true)
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {
@@ -244,6 +92,6 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	}
 
 	return models.BitriseConfigMap{
-		defaultConfigName: string(data),
+		DefaultConfigName: string(data),
 	}, nil
 }

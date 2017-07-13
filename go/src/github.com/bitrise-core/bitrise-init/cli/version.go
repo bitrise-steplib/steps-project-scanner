@@ -71,7 +71,7 @@ func printVersion(c *cli.Context) error {
 		out = versionOutput
 	}
 
-	if err := output.Print(out, format, ""); err != nil {
+	if err := output.Print(out, format); err != nil {
 		return fmt.Errorf("Failed to print version, error: %s", err)
 	}
 
