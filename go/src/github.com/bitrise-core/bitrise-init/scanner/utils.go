@@ -49,10 +49,9 @@ func AskForOptions(options models.OptionModel) (string, []envmanModels.Environme
 	configPth := ""
 	appEnvs := []envmanModels.EnvironmentItemModel{}
 
-	var walkDepth func(option models.OptionModel) error
-
-	walkDepth = func(option models.OptionModel) error {
-		optionEnvKey, selectedValue, err := askForOptionValue(option)
+	var walkDepth func(models.OptionModel) error
+	walkDepth = func(opt models.OptionModel) error {
+		optionEnvKey, selectedValue, err := askForOptionValue(opt)
 		if err != nil {
 			return fmt.Errorf("Failed to ask for vale, error: %s", err)
 		}
@@ -69,15 +68,15 @@ func AskForOptions(options models.OptionModel) (string, []envmanModels.Environme
 		}
 
 		var nestedOptions *models.OptionModel
-		if len(option.ChildOptionMap) == 1 {
+		if len(opt.ChildOptionMap) == 1 {
 			// auto select the next option
-			for _, childOption := range option.ChildOptionMap {
+			for _, childOption := range opt.ChildOptionMap {
 				nestedOptions = childOption
 				break
 			}
 		} else {
 			// go to the next option, based on the selected value
-			childOptions, found := option.ChildOptionMap[selectedValue]
+			childOptions, found := opt.ChildOptionMap[selectedValue]
 			if !found {
 				return nil
 			}

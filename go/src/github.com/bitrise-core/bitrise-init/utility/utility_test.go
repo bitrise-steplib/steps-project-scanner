@@ -12,28 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCaseInsensitiveContains(t *testing.T) {
-	require.Equal(t, true, CaseInsensitiveContains(`    <Reference Include="monotouch" />`, `Include="monotouch"`))
-	require.Equal(t, true, CaseInsensitiveContains(`    <Reference Include="Xamarin.iOS" />`, `Include="Xamarin.iOS"`))
-	require.Equal(t, true, CaseInsensitiveContains(`    <Reference Include="Mono.Android" />`, `Include="Mono.Android`))
-
-	require.Equal(t, false, CaseInsensitiveContains(`    <Reference Include="monotouch" />`, `Include="Xamarin.iOS"`))
-	require.Equal(t, false, CaseInsensitiveContains(`    <Reference Include="monotouch" />`, `Include="Mono.Android`))
-
-	require.Equal(t, true, CaseInsensitiveContains(`TEST`, `es`))
-	require.Equal(t, true, CaseInsensitiveContains(`TEST`, `eS`))
-	require.Equal(t, false, CaseInsensitiveContains(`TEST`, `a`))
-
-	require.Equal(t, true, CaseInsensitiveContains(`test`, `e`))
-	require.Equal(t, false, CaseInsensitiveContains(`test`, `a`))
-
-	require.Equal(t, true, CaseInsensitiveContains(` `, ``))
-	require.Equal(t, false, CaseInsensitiveContains(` `, `a`))
-
-	require.Equal(t, true, CaseInsensitiveContains(``, ``))
-	require.Equal(t, false, CaseInsensitiveContains(``, `a`))
-}
-
 func TestListPathInDirSortedByComponents(t *testing.T) {
 	t.Log()
 	{

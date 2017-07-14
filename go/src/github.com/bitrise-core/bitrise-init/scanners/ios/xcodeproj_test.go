@@ -1,10 +1,11 @@
-package utility
+package ios
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/bitrise-core/bitrise-init/utility"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -23,7 +24,7 @@ func TestAllowXcodeProjExtFilter(t *testing.T) {
 		"/Users/bitrise/ios-no-shared-schemes/Carthage/Checkouts/Result/Result.xcodeproj",
 		"/Users/bitrise/ios-no-shared-schemes/test.framework/Checkouts/Result/Result.xcodeproj",
 	}
-	actualFiltered, err := FilterPaths(paths, AllowXcodeProjExtFilter)
+	actualFiltered, err := utility.FilterPaths(paths, AllowXcodeProjExtFilter)
 	require.NoError(t, err)
 	require.Equal(t, expectedFiltered, actualFiltered)
 }
@@ -40,7 +41,7 @@ func TestAllowXCWorkspaceExtFilter(t *testing.T) {
 		"/Users/bitrise/sample-apps-ios-cocoapods/SampleAppWithCocoapods.xcodeproj/project.xcworkspace",
 		"/Users/bitrise/.git/SampleAppWithCocoapods.xcodeproj/project.xcworkspace",
 	}
-	actualFiltered, err := FilterPaths(paths, AllowXCWorkspaceExtFilter)
+	actualFiltered, err := utility.FilterPaths(paths, AllowXCWorkspaceExtFilter)
 	require.NoError(t, err)
 	require.Equal(t, expectedFiltered, actualFiltered)
 }
@@ -58,7 +59,7 @@ func TestForbidEmbeddedWorkspaceRegexpFilter(t *testing.T) {
 		"/Users/bitrise/ios-no-shared-schemes/Carthage/Checkouts/Result/Result.xcodeproj",
 		"/Users/bitrise/ios-no-shared-schemes/test.framework/Checkouts/Result/Result.xcodeproj",
 	}
-	actualFiltered, err := FilterPaths(paths, ForbidEmbeddedWorkspaceRegexpFilter)
+	actualFiltered, err := utility.FilterPaths(paths, ForbidEmbeddedWorkspaceRegexpFilter)
 	require.NoError(t, err)
 	require.Equal(t, expectedFiltered, actualFiltered)
 }
@@ -77,7 +78,7 @@ func TestForbidGitDirComponentFilter(t *testing.T) {
 		"/Users/bitrise/ios-no-shared-schemes/Carthage/Checkouts/Result/Result.xcodeproj",
 		"/Users/bitrise/ios-no-shared-schemes/test.framework/Checkouts/Result/Result.xcodeproj",
 	}
-	actualFiltered, err := FilterPaths(paths, ForbidGitDirComponentFilter)
+	actualFiltered, err := utility.FilterPaths(paths, ForbidGitDirComponentFilter)
 	require.NoError(t, err)
 	require.Equal(t, expectedFiltered, actualFiltered)
 }
@@ -96,7 +97,7 @@ func TestForbidPodsDirComponentFilter(t *testing.T) {
 		"/Users/bitrise/ios-no-shared-schemes/Carthage/Checkouts/Result/Result.xcodeproj",
 		"/Users/bitrise/ios-no-shared-schemes/test.framework/Checkouts/Result/Result.xcodeproj",
 	}
-	actualFiltered, err := FilterPaths(paths, ForbidPodsDirComponentFilter)
+	actualFiltered, err := utility.FilterPaths(paths, ForbidPodsDirComponentFilter)
 	require.NoError(t, err)
 	require.Equal(t, expectedFiltered, actualFiltered)
 }
@@ -115,7 +116,7 @@ func TestForbidCarthageDirComponentFilter(t *testing.T) {
 		"/Users/bitrise/sample-apps-ios-cocoapods/Pods/Pods.xcodeproj",
 		"/Users/bitrise/ios-no-shared-schemes/test.framework/Checkouts/Result/Result.xcodeproj",
 	}
-	actualFiltered, err := FilterPaths(paths, ForbidCarthageDirComponentFilter)
+	actualFiltered, err := utility.FilterPaths(paths, ForbidCarthageDirComponentFilter)
 	require.NoError(t, err)
 	require.Equal(t, expectedFiltered, actualFiltered)
 }
@@ -134,7 +135,7 @@ func TestForbidFramworkComponentWithExtensionFilter(t *testing.T) {
 		"/Users/bitrise/sample-apps-ios-cocoapods/Pods/Pods.xcodeproj",
 		"/Users/bitrise/ios-no-shared-schemes/Carthage/Checkouts/Result/Result.xcodeproj",
 	}
-	actualFiltered, err := FilterPaths(paths, ForbidFramworkComponentWithExtensionFilter)
+	actualFiltered, err := utility.FilterPaths(paths, ForbidFramworkComponentWithExtensionFilter)
 	require.NoError(t, err)
 	require.Equal(t, expectedFiltered, actualFiltered)
 }
@@ -167,7 +168,7 @@ func TestAllowIphoneosSDKFilter(t *testing.T) {
 		expectedFiltered := []string{
 			iphoneosProject,
 		}
-		actualFiltered, err := FilterPaths(paths, AllowIphoneosSDKFilter)
+		actualFiltered, err := utility.FilterPaths(paths, AllowIphoneosSDKFilter)
 		require.NoError(t, err)
 		require.Equal(t, expectedFiltered, actualFiltered)
 	}
@@ -181,7 +182,7 @@ func TestAllowIphoneosSDKFilter(t *testing.T) {
 		expectedFiltered := []string{
 			macosxProject,
 		}
-		actualFiltered, err := FilterPaths(paths, AllowMacosxSDKFilter)
+		actualFiltered, err := utility.FilterPaths(paths, AllowMacosxSDKFilter)
 		require.NoError(t, err)
 		require.Equal(t, expectedFiltered, actualFiltered)
 	}

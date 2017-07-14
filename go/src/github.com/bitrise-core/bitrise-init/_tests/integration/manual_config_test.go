@@ -146,6 +146,27 @@ var customConfigVersions = []interface{}{
 	steps.ScriptVersion,
 	steps.DeployToBitriseIoVersion,
 
+	// react native
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.InstallReactNativeVersion,
+	steps.NpmVersion,
+	steps.InstallMissingAndroidToolsVersion,
+	steps.GradleRunnerVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.XcodeArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.InstallReactNativeVersion,
+	steps.NpmVersion,
+	steps.NpmVersion,
+	steps.DeployToBitriseIoVersion,
+
 	// xamarin
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
@@ -161,12 +182,12 @@ var customConfigVersions = []interface{}{
 
 var customConfigResultYML = fmt.Sprintf(`options:
   android:
-    title: Gradlew file path
-    env_key: GRADLEW_PATH
+    title: Path to the gradle file to use
+    env_key: GRADLE_BUILD_FILE_PATH
     value_map:
       _:
-        title: Path to the gradle file to use
-        env_key: GRADLE_BUILD_FILE_PATH
+        title: Gradlew file path
+        env_key: GRADLEW_PATH
         value_map:
           _:
             config: default-android-config
@@ -228,6 +249,21 @@ var customConfigResultYML = fmt.Sprintf(`options:
         value_map:
           _:
             config: default-macos-config
+  react-native:
+    title: Path to the gradle file to use
+    env_key: GRADLE_BUILD_FILE_PATH
+    value_map:
+      _:
+        title: Gradlew file path
+        env_key: GRADLEW_PATH
+        value_map:
+          _:
+            title: Project (or Workspace) path
+            env_key: BITRISE_PROJECT_PATH
+            value_map:
+              _:
+                title: Scheme name
+                env_key: BITRISE_SCHEME
   xamarin:
     title: Path to the Xamarin Solution file
     env_key: BITRISE_PROJECT_PATH
@@ -497,6 +533,56 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
+          - deploy-to-bitrise-io@%s: {}
+  react-native:
+    reactnative-android-ios-test-config: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: react-native
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        deploy:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - install-react-native@%s: {}
+          - npm@%s:
+              inputs:
+              - command: install
+          - install-missing-android-tools@%s: {}
+          - gradle-runner@%s:
+              inputs:
+              - gradle_file: $GRADLE_BUILD_FILE_PATH
+              - gradle_task: assembleRelease
+              - gradlew_path: $GRADLEW_PATH
+          - certificate-and-profile-installer@%s: {}
+          - xcode-archive@%s:
+              inputs:
+              - project_path: $BITRISE_PROJECT_PATH
+              - scheme: $BITRISE_SCHEME
+              - configuration: Release
+          - deploy-to-bitrise-io@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - install-react-native@%s: {}
+          - npm@%s:
+              inputs:
+              - command: install
+          - npm@%s:
+              inputs:
+              - command: test
           - deploy-to-bitrise-io@%s: {}
   xamarin:
     default-xamarin-config: |

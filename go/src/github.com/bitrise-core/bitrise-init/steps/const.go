@@ -8,16 +8,6 @@ const (
 )
 
 const (
-	// ChangeWorkDirID ...
-	ChangeWorkDirID = "change-workdir"
-	// ChangeWorkDirVersion ...
-	ChangeWorkDirVersion = "1.0.1"
-
-	// ChangeWorkDirInputPathKey ...
-	ChangeWorkDirInputPathKey = "path"
-)
-
-const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
@@ -35,7 +25,7 @@ const (
 	// CachePushID ...
 	CachePushID = "cache-push"
 	// CachePushVersion ...
-	CachePushVersion = "1.1.1"
+	CachePushVersion = "1.1.3"
 )
 
 const (
@@ -49,7 +39,7 @@ const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.3.5"
+	DeployToBitriseIoVersion = "1.3.6"
 )
 
 const (
@@ -160,13 +150,6 @@ const (
 )
 
 const (
-	// GenerateGradleWrapperID ...
-	GenerateGradleWrapperID = "generate-gradle-wrapper"
-	// GenerateGradleWrapperVersion ...
-	GenerateGradleWrapperVersion = "0.9.2"
-)
-
-const (
 	// CordovaArchiveID ...
 	CordovaArchiveID = "cordova-archive"
 	// CordovaArchiveVersion ...
@@ -206,4 +189,11 @@ const (
 	NpmID = "npm"
 	// NpmVersion ...
 	NpmVersion = "0.9.0"
+)
+
+const (
+	// InstallReactNativeID ...
+	InstallReactNativeID = "install-react-native"
+	// InstallReactNativeVersion ...
+	InstallReactNativeVersion = "0.9.1"
 )

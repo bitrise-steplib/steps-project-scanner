@@ -65,13 +65,6 @@ func ActivateSSHKeyStepListItem() bitriseModels.StepListItemModel {
 	return stepListItem(stepIDComposite, "", runIf)
 }
 
-// ChangeWorkDirStepListItem ...
-func ChangeWorkDirStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(ChangeWorkDirID, ChangeWorkDirVersion)
-	inputs = append(inputs, envmanModels.EnvironmentItemModel{"is_create_path": "false"})
-	return stepListItem(stepIDComposite, "", "", inputs...)
-}
-
 // GitCloneStepListItem ...
 func GitCloneStepListItem() bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(GitCloneID, GitCloneVersion)
@@ -193,12 +186,6 @@ func XcodeTestMacStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitri
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
-// GenerateGradleWrapperStepListItem ...
-func GenerateGradleWrapperStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(GenerateGradleWrapperID, GenerateGradleWrapperVersion)
-	return stepListItem(stepIDComposite, "", "")
-}
-
 // CordovaArchiveStepListItem ...
 func CordovaArchiveStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(CordovaArchiveID, CordovaArchiveVersion)
@@ -233,4 +220,10 @@ func KarmaJasmineTestRunnerStepListItem(inputs ...envmanModels.EnvironmentItemMo
 func NpmStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(NpmID, NpmVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
+// InstallReactNativeStepListItem ...
+func InstallReactNativeStepListItem() bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(InstallReactNativeID, InstallReactNativeVersion)
+	return stepListItem(stepIDComposite, "", "")
 }

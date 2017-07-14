@@ -1,10 +1,6 @@
 package ios
 
-import (
-	"github.com/bitrise-core/bitrise-init/models"
-	"github.com/bitrise-core/bitrise-init/scanners/xcode"
-	"github.com/bitrise-core/bitrise-init/utility"
-)
+import "github.com/bitrise-core/bitrise-init/models"
 
 //------------------
 // ScannerInterface
@@ -12,8 +8,8 @@ import (
 
 // Scanner ...
 type Scanner struct {
-	searchDir         string
-	configDescriptors []xcode.ConfigDescriptor
+	SearchDir         string
+	ConfigDescriptors []ConfigDescriptor
 }
 
 // NewScanner ...
@@ -22,15 +18,15 @@ func NewScanner() *Scanner {
 }
 
 // Name ...
-func (scanner *Scanner) Name() string {
-	return string(utility.XcodeProjectTypeIOS)
+func (Scanner) Name() string {
+	return string(XcodeProjectTypeIOS)
 }
 
 // DetectPlatform ...
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
-	scanner.searchDir = searchDir
+	scanner.SearchDir = searchDir
 
-	detected, err := xcode.Detect(utility.XcodeProjectTypeIOS, searchDir)
+	detected, err := Detect(XcodeProjectTypeIOS, searchDir)
 	if err != nil {
 		return false, err
 	}
@@ -39,33 +35,33 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 }
 
 // ExcludedScannerNames ...
-func (scanner *Scanner) ExcludedScannerNames() []string {
+func (Scanner) ExcludedScannerNames() []string {
 	return []string{}
 }
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
-	options, configDescriptors, warnings, err := xcode.GenerateOptions(utility.XcodeProjectTypeIOS, scanner.searchDir)
+	options, configDescriptors, warnings, err := GenerateOptions(XcodeProjectTypeIOS, scanner.SearchDir)
 	if err != nil {
 		return models.OptionModel{}, warnings, err
 	}
 
-	scanner.configDescriptors = configDescriptors
+	scanner.ConfigDescriptors = configDescriptors
 
 	return options, warnings, nil
 }
 
 // DefaultOptions ...
-func (scanner *Scanner) DefaultOptions() models.OptionModel {
-	return xcode.GenerateDefaultOptions(utility.XcodeProjectTypeIOS)
+func (Scanner) DefaultOptions() models.OptionModel {
+	return GenerateDefaultOptions(XcodeProjectTypeIOS)
 }
 
 // Configs ...
 func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	return xcode.GenerateConfig(utility.XcodeProjectTypeIOS, scanner.configDescriptors)
+	return GenerateConfig(XcodeProjectTypeIOS, scanner.ConfigDescriptors, true)
 }
 
 // DefaultConfigs ...
-func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	return xcode.GenerateDefaultConfig(utility.XcodeProjectTypeIOS)
+func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+	return GenerateDefaultConfig(XcodeProjectTypeIOS, true)
 }

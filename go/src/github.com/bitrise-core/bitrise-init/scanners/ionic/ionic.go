@@ -10,6 +10,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/scanners/android"
 	"github.com/bitrise-core/bitrise-init/scanners/cordova"
+	"github.com/bitrise-core/bitrise-init/scanners/ios"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-core/bitrise-init/utility"
 	envmanModels "github.com/bitrise-io/envman/models"
@@ -61,7 +62,7 @@ func NewScanner() *Scanner {
 }
 
 // Name ...
-func (scanner Scanner) Name() string {
+func (Scanner) Name() string {
 	return scannerName
 }
 
@@ -75,7 +76,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	// Search for config.xml file
 	log.Infoft("Searching for config.xml file")
 
-	configXMLPth, err := utility.FilterRootConfigXMLFile(fileList)
+	configXMLPth, err := cordova.FilterRootConfigXMLFile(fileList)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for config.xml file, error: %s", err)
 	}
@@ -87,7 +88,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		return false, nil
 	}
 
-	widget, err := utility.ParseConfigXML(configXMLPth)
+	widget, err := cordova.ParseConfigXML(configXMLPth)
 	if err != nil {
 		log.Printft("can not parse config.xml as a Cordova widget, error: %s", err)
 		log.Printft("platform not detected")
@@ -128,10 +129,10 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 }
 
 // ExcludedScannerNames ...
-func (scanner *Scanner) ExcludedScannerNames() []string {
+func (Scanner) ExcludedScannerNames() []string {
 	return []string{
-		string(utility.XcodeProjectTypeIOS),
-		string(utility.XcodeProjectTypeMacOS),
+		string(ios.XcodeProjectTypeIOS),
+		string(ios.XcodeProjectTypeMacOS),
 		cordova.ScannerName,
 		android.ScannerName,
 	}
@@ -143,7 +144,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	projectRootDir := filepath.Dir(scanner.cordovaConfigPth)
 
 	packagesJSONPth := filepath.Join(projectRootDir, "package.json")
-	packages, err := utility.ParsePackagesJSON(packagesJSONPth)
+	packages, err := cordova.ParsePackagesJSON(packagesJSONPth)
 	if err != nil {
 		return models.OptionModel{}, warnings, err
 	}
@@ -261,7 +262,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 }
 
 // DefaultOptions ...
-func (scanner *Scanner) DefaultOptions() models.OptionModel {
+func (Scanner) DefaultOptions() models.OptionModel {
 	workDirOption := models.NewOption(workDirInputTitle, workDirInputEnvKey)
 
 	projectTypeOption := models.NewOption(platformInputTitle, platformInputEnvKey)
@@ -282,37 +283,38 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 
 // Configs ...
 func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder(false)
+	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 
 	workdirEnvList := []envmanModels.EnvironmentItemModel{}
 	if scanner.relCordovaConfigDir != "" {
 		workdirEnvList = append(workdirEnvList, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 	}
 
-	configBuilder.AppendDependencyStepList(steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
-
 	if scanner.hasJasmineTest || scanner.hasKarmaJasmineTest {
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
+
 		// CI
 		if scanner.hasKarmaJasmineTest {
-			configBuilder.AppendMainStepList(steps.KarmaJasmineTestRunnerStepListItem(workdirEnvList...))
+			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.KarmaJasmineTestRunnerStepListItem(workdirEnvList...))
 		} else if scanner.hasJasmineTest {
-			configBuilder.AppendMainStepList(steps.JasmineTestRunnerStepListItem(workdirEnvList...))
+			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.JasmineTestRunnerStepListItem(workdirEnvList...))
 		}
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 		// CD
-		configBuilder.AddDefaultWorkflowBuilder(models.DeployWorkflowID, false)
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
-		configBuilder.AppendPreparStepListTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
-
-		configBuilder.AppendDependencyStepListTo(models.DeployWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
 
 		if scanner.hasKarmaJasmineTest {
-			configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.KarmaJasmineTestRunnerStepListItem(workdirEnvList...))
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.KarmaJasmineTestRunnerStepListItem(workdirEnvList...))
 		} else if scanner.hasJasmineTest {
-			configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.JasmineTestRunnerStepListItem(workdirEnvList...))
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.JasmineTestRunnerStepListItem(workdirEnvList...))
 		}
 
-		configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.GenerateCordovaBuildConfigStepListItem())
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.GenerateCordovaBuildConfigStepListItem())
 
 		ionicArchiveEnvs := []envmanModels.EnvironmentItemModel{
 			envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
@@ -321,7 +323,8 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		if scanner.relCordovaConfigDir != "" {
 			ionicArchiveEnvs = append(ionicArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 		}
-		configBuilder.AppendMainStepListTo(models.DeployWorkflowID, steps.IonicArchiveStepListItem(ionicArchiveEnvs...))
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.IonicArchiveStepListItem(ionicArchiveEnvs...))
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
 
 		config, err := configBuilder.Generate(scannerName)
 		if err != nil {
@@ -338,9 +341,10 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		}, nil
 	}
 
-	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
 
-	configBuilder.AppendMainStepList(steps.GenerateCordovaBuildConfigStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.GenerateCordovaBuildConfigStepListItem())
 
 	ionicArchiveEnvs := []envmanModels.EnvironmentItemModel{
 		envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
@@ -349,7 +353,8 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	if scanner.relCordovaConfigDir != "" {
 		ionicArchiveEnvs = append(ionicArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 	}
-	configBuilder.AppendMainStepList(steps.IonicArchiveStepListItem(ionicArchiveEnvs...))
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.IonicArchiveStepListItem(ionicArchiveEnvs...))
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	config, err := configBuilder.Generate(scannerName)
 	if err != nil {
@@ -367,20 +372,23 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 }
 
 // DefaultConfigs ...
-func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder(false)
+func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 
-	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
-	configBuilder.AppendDependencyStepList(steps.NpmStepListItem(
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(
 		envmanModels.EnvironmentItemModel{"command": "install"},
 		envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey}))
 
-	configBuilder.AppendMainStepList(steps.GenerateCordovaBuildConfigStepListItem())
-	configBuilder.AppendMainStepList(steps.IonicArchiveStepListItem(
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.GenerateCordovaBuildConfigStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.IonicArchiveStepListItem(
 		envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
 		envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
 		envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator}))
+
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	config, err := configBuilder.Generate(scannerName)
 	if err != nil {

@@ -62,7 +62,6 @@ func configName(hasNugetPackages, hasXamarinComponents bool) string {
 
 // Scanner ...
 type Scanner struct {
-	SearchDir     string
 	FileList      []string
 	SolutionFiles []string
 
@@ -72,7 +71,6 @@ type Scanner struct {
 	HasIosProject     bool
 	HasAndroidProject bool
 	HasMacProject     bool
-	HasTVOSProject    bool
 }
 
 // NewScanner ...
@@ -81,7 +79,7 @@ func NewScanner() *Scanner {
 }
 
 // Name ...
-func (scanner Scanner) Name() string {
+func (Scanner) Name() string {
 	return scannerName
 }
 
@@ -96,7 +94,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	// Search for solution file
 	log.Infoft("Searching for solution files")
 
-	solutionFiles, err := utility.FilterSolutionFiles(fileList)
+	solutionFiles, err := FilterSolutionFiles(fileList)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for solution files, error: %s", err)
 	}
@@ -119,7 +117,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 }
 
 // ExcludedScannerNames ...
-func (scanner *Scanner) ExcludedScannerNames() []string {
+func (Scanner) ExcludedScannerNames() []string {
 	return []string{}
 }
 
@@ -171,7 +169,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	for _, solutionFile := range scanner.SolutionFiles {
 		log.Infoft("Inspecting solution file: %s", solutionFile)
 
-		configs, err := utility.GetSolutionConfigs(solutionFile)
+		configs, err := GetSolutionConfigs(solutionFile)
 		if err != nil {
 			log.Warnft("Failed to get solution configs, error: %s", err)
 			warnings = append(warnings, fmt.Sprintf("Failed to get solution (%s) configs, error: %s", solutionFile, err))
@@ -218,7 +216,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 }
 
 // DefaultOptions ...
-func (scanner *Scanner) DefaultOptions() models.OptionModel {
+func (Scanner) DefaultOptions() models.OptionModel {
 	xamarinSolutionOption := models.NewOption(xamarinSolutionInputTitle, xamarinSolutionInputEnvKey)
 
 	xamarinConfigurationOption := models.NewOption(xamarinConfigurationInputTitle, xamarinConfigurationInputEnvKey)
@@ -235,9 +233,10 @@ func (scanner *Scanner) DefaultOptions() models.OptionModel {
 
 // Configs ...
 func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder(false)
+	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 
-	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
 	// XamarinUserManagement
 	if scanner.HasXamarinComponents {
@@ -252,25 +251,27 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 			inputs = append(inputs, envmanModels.EnvironmentItemModel{xamarinMacLicenseInputKey: "yes"})
 		}
 
-		configBuilder.AppendPreparStepList(steps.XamarinUserManagementStepListItem(inputs...))
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XamarinUserManagementStepListItem(inputs...))
 	}
 
 	// NugetRestore
 	if scanner.HasNugetPackages {
-		configBuilder.AppendDependencyStepList(steps.NugetRestoreStepListItem())
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NugetRestoreStepListItem())
 	}
 
 	// XamarinComponentsRestore
 	if scanner.HasXamarinComponents {
-		configBuilder.AppendDependencyStepList(steps.XamarinComponentsRestoreStepListItem())
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XamarinComponentsRestoreStepListItem())
 	}
 
 	// XamarinArchive
-	configBuilder.AppendMainStepList(steps.XamarinArchiveStepListItem(
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XamarinArchiveStepListItem(
 		envmanModels.EnvironmentItemModel{xamarinSolutionInputKey: "$" + xamarinSolutionInputEnvKey},
 		envmanModels.EnvironmentItemModel{xamarinConfigurationInputKey: "$" + xamarinConfigurationInputEnvKey},
 		envmanModels.EnvironmentItemModel{xamarinPlatformInputKey: "$" + xamarinPlatformInputEnvKey},
 	))
+
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	config, err := configBuilder.Generate(scannerName)
 	if err != nil {
@@ -288,20 +289,22 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 }
 
 // DefaultConfigs ...
-func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder(false)
+func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+	configBuilder := models.NewDefaultConfigBuilder()
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 
-	configBuilder.AppendPreparStepList(steps.CertificateAndProfileInstallerStepListItem())
-	configBuilder.AppendPreparStepList(steps.XamarinUserManagementStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XamarinUserManagementStepListItem())
 
-	configBuilder.AppendDependencyStepList(steps.NugetRestoreStepListItem())
-	configBuilder.AppendDependencyStepList(steps.XamarinComponentsRestoreStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NugetRestoreStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XamarinComponentsRestoreStepListItem())
 
-	configBuilder.AppendMainStepList(steps.XamarinArchiveStepListItem(
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XamarinArchiveStepListItem(
 		envmanModels.EnvironmentItemModel{xamarinSolutionInputKey: "$" + xamarinSolutionInputEnvKey},
 		envmanModels.EnvironmentItemModel{xamarinConfigurationInputKey: "$" + xamarinConfigurationInputEnvKey},
 		envmanModels.EnvironmentItemModel{xamarinPlatformInputKey: "$" + xamarinPlatformInputEnvKey},
 	))
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	config, err := configBuilder.Generate(scannerName)
 	if err != nil {

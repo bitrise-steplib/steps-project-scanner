@@ -1,4 +1,4 @@
-package utility
+package fastlane
 
 import (
 	"bufio"
@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bitrise-core/bitrise-init/utility"
 	"github.com/bitrise-io/go-utils/fileutil"
 )
 
@@ -15,13 +16,13 @@ const (
 
 // FilterFastfiles ...
 func FilterFastfiles(fileList []string) ([]string, error) {
-	allowFastfileBaseFilter := BaseFilter(fastfileBasePath, true)
-	fastfiles, err := FilterPaths(fileList, allowFastfileBaseFilter)
+	allowFastfileBaseFilter := utility.BaseFilter(fastfileBasePath, true)
+	fastfiles, err := utility.FilterPaths(fileList, allowFastfileBaseFilter)
 	if err != nil {
 		return []string{}, err
 	}
 
-	return SortPathsByComponents(fastfiles)
+	return utility.SortPathsByComponents(fastfiles)
 }
 
 func inspectFastfileContent(content string) ([]string, error) {
@@ -92,8 +93,8 @@ func InspectFastfile(fastFile string) ([]string, error) {
 	return inspectFastfileContent(content)
 }
 
-// FastlaneWorkDir ...
-func FastlaneWorkDir(fastfilePth string) string {
+// WorkDir ...
+func WorkDir(fastfilePth string) string {
 	dirPth := filepath.Dir(fastfilePth)
 	dirName := filepath.Base(dirPth)
 	if dirName == "fastlane" {
