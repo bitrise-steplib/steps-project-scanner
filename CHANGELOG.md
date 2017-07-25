@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.5.0)
+## Changelog (Current version: 1.5.2)
 
 -----------------
+
+### 1.5.2 (2017 Jul 25)
+
+* [38d0b6a] prepare for 1.5.2
+* [00b12c6] scanner update (#44)
 
 ### 1.5.0 (2017 Jul 14)
 
@@ -205,4 +210,4 @@
 
 -----------------
 
-Updated: 2017 Jul 14
+Updated: 2017 Jul 25
