@@ -2,7 +2,7 @@
 	"dep_locks": [
 		{
 			"url": "https://github.com/bitrise-core/bitrise-init.git",
-			"revision": "aec9138b71d2709c1f9610d7150f7befef9f2a9f"
+			"revision": "5622d88c1c9e40ef9d52b61b26a6011b4d689a2f"
 		}
 	]
 }

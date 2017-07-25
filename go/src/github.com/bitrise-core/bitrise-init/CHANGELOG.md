@@ -1,6 +1,16 @@
-## Changelog (Current version: 1.5.0)
+## Changelog (Current version: 1.5.2)
 
 -----------------
+
+### 1.5.2 (2017 Jul 25)
+
+* [2e21ee8] prepare for 1.5.2
+* [48ae9e7] step version updates
+
+### 1.5.1 (2017 Jul 25)
+
+* [92dd3f5] prepare for 1.5.1
+* [a70a4ca] react native project in subdir fix & test (#96)
 
 ### 1.5.0 (2017 Jul 13)
 
@@ -261,4 +271,4 @@
 
 -----------------
 
-Updated: 2017 Jul 13
+Updated: 2017 Jul 25

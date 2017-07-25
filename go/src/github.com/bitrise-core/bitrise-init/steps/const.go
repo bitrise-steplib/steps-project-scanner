@@ -11,7 +11,7 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "3.5.0"
+	GitCloneVersion = "3.5.1"
 )
 
 const (
@@ -32,7 +32,7 @@ const (
 	// CertificateAndProfileInstallerID ...
 	CertificateAndProfileInstallerID = "certificate-and-profile-installer"
 	// CertificateAndProfileInstallerVersion ...
-	CertificateAndProfileInstallerVersion = "1.8.6"
+	CertificateAndProfileInstallerVersion = "1.8.7"
 )
 
 const (
@@ -62,7 +62,7 @@ const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.7.1"
+	GradleRunnerVersion = "1.7.3"
 )
 
 const (
@@ -97,7 +97,7 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.0.6"
+	XcodeArchiveVersion = "2.1.0"
 )
 
 const (

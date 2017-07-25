@@ -12,6 +12,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/scanners/cordova"
 	"github.com/bitrise-core/bitrise-init/scanners/ios"
 	"github.com/bitrise-core/bitrise-init/steps"
+	"github.com/bitrise-core/bitrise-init/utility"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
@@ -20,13 +21,17 @@ import (
 // Name ...
 const Name = "react-native"
 
+const (
+	workDirInputKey = "workdir"
+)
+
 // Scanner ...
 type Scanner struct {
-	searchDir       string
-	iosScanner      *ios.Scanner
-	androidScanner  *android.Scanner
-	hasNPMTest      bool
-	packageJSONPths []string
+	searchDir      string
+	iosScanner     *ios.Scanner
+	androidScanner *android.Scanner
+	hasNPMTest     bool
+	packageJSONPth string
 }
 
 // NewScanner ...
@@ -93,148 +98,134 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		}
 	}
 
-	scanner.packageJSONPths = relevantPackageJSONPths
-
-	if len(packageJSONPths) > 0 {
-		log.Doneft("Platform detected")
-		return true, nil
+	if len(relevantPackageJSONPths) == 0 {
+		return false, nil
 	}
 
-	return false, nil
+	scanner.packageJSONPth = relevantPackageJSONPths[0]
+
+	return true, nil
 }
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	warnings := models.Warnings{}
 
-	rootOption := models.NewOption("Project Dir", "PROJECT_DIR")
+	var rootOption models.OptionModel
 
-	for _, packageJSONPth := range scanner.packageJSONPths {
-		// react options
-		packages, err := cordova.ParsePackagesJSON(packageJSONPth)
-		if err != nil {
+	// react options
+	packages, err := cordova.ParsePackagesJSON(scanner.packageJSONPth)
+	if err != nil {
+		return models.OptionModel{}, warnings, err
+	}
+
+	hasNPMTest := false
+	if _, found := packages.Scripts["test"]; found {
+		hasNPMTest = true
+		scanner.hasNPMTest = true
+	}
+
+	projectDir := filepath.Dir(scanner.packageJSONPth)
+
+	// android options
+	var androidOptions *models.OptionModel
+	androidDir := filepath.Join(projectDir, "android")
+	if exist, err := pathutil.IsDirExists(androidDir); err != nil {
+		return models.OptionModel{}, warnings, err
+	} else if exist {
+		androidScanner := android.NewScanner()
+
+		if detected, err := androidScanner.DetectPlatform(scanner.searchDir); err != nil {
 			return models.OptionModel{}, warnings, err
-		}
-
-		hasNPMTest := false
-		if _, found := packages.Scripts["test"]; found {
-			hasNPMTest = true
-			scanner.hasNPMTest = true
-		}
-
-		projectDir := filepath.Dir(packageJSONPth)
-
-		// android options
-		var androidOptions *models.OptionModel
-		androidDir := filepath.Join(projectDir, "android")
-		if exist, err := pathutil.IsDirExists(androidDir); err != nil {
-			return models.OptionModel{}, warnings, err
-		} else if exist {
-			androidScanner := android.NewScanner()
-
-			if detected, err := androidScanner.DetectPlatform(scanner.searchDir); err != nil {
+		} else if detected {
+			options, warns, err := androidScanner.Options()
+			warnings = append(warnings, warns...)
+			if err != nil {
 				return models.OptionModel{}, warnings, err
-			} else if detected {
-				options, warns, err := androidScanner.Options()
-				warnings = append(warnings, warns...)
-				if err != nil {
-					return models.OptionModel{}, warnings, err
-				}
-
-				androidOptions = &options
-				scanner.androidScanner = androidScanner
 			}
-		}
 
-		// ios options
-		var iosOptions *models.OptionModel
-		iosDir := filepath.Join(projectDir, "ios")
-		if exist, err := pathutil.IsDirExists(iosDir); err != nil {
+			androidOptions = &options
+			scanner.androidScanner = androidScanner
+		}
+	}
+
+	// ios options
+	var iosOptions *models.OptionModel
+	iosDir := filepath.Join(projectDir, "ios")
+	if exist, err := pathutil.IsDirExists(iosDir); err != nil {
+		return models.OptionModel{}, warnings, err
+	} else if exist {
+		iosScanner := ios.NewScanner()
+
+		if detected, err := iosScanner.DetectPlatform(scanner.searchDir); err != nil {
 			return models.OptionModel{}, warnings, err
-		} else if exist {
-			iosScanner := ios.NewScanner()
-
-			if detected, err := iosScanner.DetectPlatform(scanner.searchDir); err != nil {
+		} else if detected {
+			options, warns, err := iosScanner.Options()
+			warnings = append(warnings, warns...)
+			if err != nil {
 				return models.OptionModel{}, warnings, err
-			} else if detected {
-				options, warns, err := iosScanner.Options()
-				warnings = append(warnings, warns...)
-				if err != nil {
-					return models.OptionModel{}, warnings, err
-				}
-
-				iosOptions = &options
-				scanner.iosScanner = iosScanner
-			}
-		}
-
-		if androidOptions == nil && iosOptions == nil {
-			return models.OptionModel{}, warnings, errors.New("no ios nor android project detected")
-		}
-		// ---
-
-		if androidOptions != nil {
-			if iosOptions == nil {
-				// we only found an android project
-				// we need to update the config names
-				lastChilds := androidOptions.LastChilds()
-				for _, child := range lastChilds {
-					for _, child := range child.ChildOptionMap {
-						if child.Config == "" {
-							return models.OptionModel{}, warnings, fmt.Errorf("no config for option: %s", child.String())
-						}
-
-						configName := configName(true, false, hasNPMTest)
-						child.Config = configName
-					}
-				}
-			} else {
-				// we have both ios and android projects
-				// we need to remove the android option's config names,
-				// since ios options will hold them
-				androidOptions.RemoveConfigs()
 			}
 
-			rootOption.AddOption(projectDir, androidOptions)
+			iosOptions = &options
+			scanner.iosScanner = iosScanner
 		}
+	}
 
-		if iosOptions != nil {
-			lastChilds := iosOptions.LastChilds()
+	if androidOptions == nil && iosOptions == nil {
+		return models.OptionModel{}, warnings, errors.New("no ios nor android project detected")
+	}
+	// ---
+
+	if androidOptions != nil {
+		if iosOptions == nil {
+			// we only found an android project
+			// we need to update the config names
+			lastChilds := androidOptions.LastChilds()
 			for _, child := range lastChilds {
 				for _, child := range child.ChildOptionMap {
 					if child.Config == "" {
 						return models.OptionModel{}, warnings, fmt.Errorf("no config for option: %s", child.String())
 					}
 
-					configName := configName(scanner.androidScanner != nil, true, hasNPMTest)
+					configName := configName(true, false, hasNPMTest)
 					child.Config = configName
 				}
 			}
+		} else {
+			// we have both ios and android projects
+			// we need to remove the android option's config names,
+			// since ios options will hold them
+			androidOptions.RemoveConfigs()
+		}
 
-			if androidOptions == nil {
-				// we only found an ios project
-				rootOption.AddOption(projectDir, iosOptions)
-			} else {
-				// we have both ios and android projects
-				// we attach ios options to the android options
-				rootOption.AttachToLastChilds(iosOptions)
+		rootOption = *androidOptions
+	}
+
+	if iosOptions != nil {
+		lastChilds := iosOptions.LastChilds()
+		for _, child := range lastChilds {
+			for _, child := range child.ChildOptionMap {
+				if child.Config == "" {
+					return models.OptionModel{}, warnings, fmt.Errorf("no config for option: %s", child.String())
+				}
+
+				configName := configName(scanner.androidScanner != nil, true, hasNPMTest)
+				child.Config = configName
 			}
-
-		}
-	}
-
-	if len(scanner.packageJSONPths) == 1 {
-		packageJSONPth := scanner.packageJSONPths[0]
-		projectDir := filepath.Dir(packageJSONPth)
-		firstChild, found := rootOption.Child(projectDir)
-		if !found {
-			return models.OptionModel{}, warnings, fmt.Errorf("invalid root option (%v), no child option for: %s", rootOption, projectDir)
 		}
 
-		rootOption = firstChild
+		if androidOptions == nil {
+			// we only found an ios project
+			rootOption = *iosOptions
+		} else {
+			// we have both ios and android projects
+			// we attach ios options to the android options
+			rootOption.AttachToLastChilds(iosOptions)
+		}
+
 	}
 
-	return *rootOption, warnings, nil
+	return rootOption, warnings, nil
 }
 
 // DefaultOptions ...
@@ -257,20 +248,35 @@ func (Scanner) DefaultOptions() models.OptionModel {
 func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	configMap := models.BitriseConfigMap{}
 
+	packageJSONDir := filepath.Dir(scanner.packageJSONPth)
+	relPackageJSONDir, err := utility.RelPath(scanner.searchDir, packageJSONDir)
+	if err != nil {
+		return models.BitriseConfigMap{}, fmt.Errorf("Failed to get relative config.xml dir path, error: %s", err)
+	}
+	if relPackageJSONDir == "." {
+		// config.xml placed in the search dir, no need to change-dir in the workflows
+		relPackageJSONDir = ""
+	}
+
+	workdirEnvList := []envmanModels.EnvironmentItemModel{}
+	if relPackageJSONDir != "" {
+		workdirEnvList = append(workdirEnvList, envmanModels.EnvironmentItemModel{workDirInputKey: relPackageJSONDir})
+	}
+
 	if scanner.hasNPMTest {
 		configBuilder := models.NewDefaultConfigBuilder()
 
 		// ci
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallReactNativeStepListItem())
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{"command": "install"}))
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{"command": "test"}))
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "test"})...))
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 		// cd
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(false)...)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallReactNativeStepListItem())
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{"command": "install"}))
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
 
 		// android cd
 		if scanner.androidScanner != nil {
@@ -345,7 +351,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallReactNativeStepListItem())
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{"command": "install"}))
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
 
 		if scanner.androidScanner != nil {
 			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallMissingAndroidToolsStepListItem())
