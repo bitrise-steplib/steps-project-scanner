@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.5.3)
+## Changelog (Current version: 1.5.4)
 
 -----------------
+
+### 1.5.4 (2017 Aug 11)
+
+* [fed87ad] prepare for 1.5.4
+* [9721689] format version rollback to "3"
 
 ### 1.5.3 (2017 Aug 11)
 
