@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.5.2)
+## Changelog (Current version: 1.5.3)
 
 -----------------
+
+### 1.5.3 (2017 Aug 10)
+
+* [4b68155] prepare for 1.5.3
+* [4c1fcf2] step updatest and godeps update (#97)
 
 ### 1.5.2 (2017 Jul 25)
 
@@ -271,4 +276,4 @@
 
 -----------------
 
-Updated: 2017 Jul 25
+Updated: 2017 Aug 10
