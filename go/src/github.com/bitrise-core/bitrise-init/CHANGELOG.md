@@ -1,6 +1,12 @@
-## Changelog (Current version: 1.5.3)
+## Changelog (Current version: 1.5.4)
 
 -----------------
+
+### 1.5.4 (2017 Aug 15)
+
+* [c47b3d5] prepare for 1.5.4
+* [d41a289] format version rollback (#98)
+* [f01b982] format version: "3"
 
 ### 1.5.3 (2017 Aug 10)
 
@@ -276,4 +282,4 @@
 
 -----------------
 
-Updated: 2017 Aug 10
+Updated: 2017 Aug 15
