@@ -32,7 +32,7 @@ const (
 	// CertificateAndProfileInstallerID ...
 	CertificateAndProfileInstallerID = "certificate-and-profile-installer"
 	// CertificateAndProfileInstallerVersion ...
-	CertificateAndProfileInstallerVersion = "1.8.7"
+	CertificateAndProfileInstallerVersion = "1.8.8"
 )
 
 const (
@@ -55,7 +55,7 @@ const (
 	// InstallMissingAndroidToolsID ...
 	InstallMissingAndroidToolsID = "install-missing-android-tools"
 	// InstallMissingAndroidToolsVersion ...
-	InstallMissingAndroidToolsVersion = "1.1.0"
+	InstallMissingAndroidToolsVersion = "2.0.0"
 )
 
 const (
@@ -90,14 +90,14 @@ const (
 	// RecreateUserSchemesID ...
 	RecreateUserSchemesID = "recreate-user-schemes"
 	// RecreateUserSchemesVersion ...
-	RecreateUserSchemesVersion = "1.0.1"
+	RecreateUserSchemesVersion = "1.0.2"
 )
 
 const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.1.0"
+	XcodeArchiveVersion = "2.1.1"
 )
 
 const (
@@ -139,7 +139,7 @@ const (
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...
-	XcodeArchiveMacVersion = "1.4.1"
+	XcodeArchiveMacVersion = "1.5.1"
 )
 
 const (
