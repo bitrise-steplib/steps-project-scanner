@@ -55,7 +55,7 @@ const (
 	// InstallMissingAndroidToolsID ...
 	InstallMissingAndroidToolsID = "install-missing-android-tools"
 	// InstallMissingAndroidToolsVersion ...
-	InstallMissingAndroidToolsVersion = "2.0.0"
+	InstallMissingAndroidToolsVersion = "2.0.1"
 )
 
 const (
