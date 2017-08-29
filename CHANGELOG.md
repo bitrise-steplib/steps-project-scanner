@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.5.6)
+## Changelog (Current version: 1.5.7)
 
 -----------------
+
+### 1.5.7 (2017 Aug 29)
+
+* [8fe84fd] prepare for 1.5.7
+* [9a30066] step version updates (#49)
 
 ### 1.5.6 (2017 Aug 23)
 
@@ -230,4 +235,4 @@
 
 -----------------
 
-Updated: 2017 Aug 23
+Updated: 2017 Aug 29
