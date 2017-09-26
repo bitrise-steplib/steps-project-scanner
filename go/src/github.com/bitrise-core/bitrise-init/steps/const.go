@@ -11,7 +11,7 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "3.5.1"
+	GitCloneVersion = "3.5.2"
 )
 
 const (
@@ -39,7 +39,7 @@ const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.3.6"
+	DeployToBitriseIoVersion = "1.3.7"
 )
 
 const (
@@ -55,14 +55,14 @@ const (
 	// InstallMissingAndroidToolsID ...
 	InstallMissingAndroidToolsID = "install-missing-android-tools"
 	// InstallMissingAndroidToolsVersion ...
-	InstallMissingAndroidToolsVersion = "2.0.1"
+	InstallMissingAndroidToolsVersion = "2.0.2"
 )
 
 const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.7.6"
+	GradleRunnerVersion = "1.7.7"
 )
 
 const (
@@ -97,7 +97,7 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.1.1"
+	XcodeArchiveVersion = "2.3.1"
 )
 
 const (
@@ -160,7 +160,7 @@ const (
 	// IonicArchiveID ...
 	IonicArchiveID = "ionic-archive"
 	// IonicArchiveVersion ...
-	IonicArchiveVersion = "0.9.4"
+	IonicArchiveVersion = "1.0.0"
 )
 
 const (
@@ -189,11 +189,4 @@ const (
 	NpmID = "npm"
 	// NpmVersion ...
 	NpmVersion = "0.9.0"
-)
-
-const (
-	// InstallReactNativeID ...
-	InstallReactNativeID = "install-react-native"
-	// InstallReactNativeVersion ...
-	InstallReactNativeVersion = "0.9.1"
 )

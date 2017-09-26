@@ -38,7 +38,7 @@ func CollectPackageJSONFiles(searchDir string) ([]string, error) {
 }
 
 func configName(hasAndroidProject, hasIosProject, hasNPMTest bool) string {
-	name := "reactnative"
+	name := "react-native"
 	if hasAndroidProject {
 		name += "-android"
 	}
@@ -50,4 +50,8 @@ func configName(hasAndroidProject, hasIosProject, hasNPMTest bool) string {
 	}
 	name += "-config"
 	return name
+}
+
+func defaultConfigName() string {
+	return "default-react-native-config"
 }

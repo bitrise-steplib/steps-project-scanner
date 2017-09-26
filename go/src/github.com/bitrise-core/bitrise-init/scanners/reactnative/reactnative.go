@@ -241,6 +241,9 @@ func (Scanner) DefaultOptions() models.OptionModel {
 	schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey)
 	projectPathOption.AddOption("_", schemeOption)
 
+	configOption := models.NewConfigOption(defaultConfigName())
+	schemeOption.AddConfig("_", configOption)
+
 	return *gradleFileOption
 }
 
@@ -268,14 +271,12 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 		// ci
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallReactNativeStepListItem())
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "test"})...))
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 		// cd
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(false)...)
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallReactNativeStepListItem())
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
 
 		// android cd
@@ -350,7 +351,6 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		configBuilder := models.NewDefaultConfigBuilder()
 
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallReactNativeStepListItem())
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
 
 		if scanner.androidScanner != nil {
@@ -430,14 +430,12 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 	// ci
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallReactNativeStepListItem())
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{"command": "install"}))
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{"command": "test"}))
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	// cd
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(false)...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallReactNativeStepListItem())
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{"command": "install"}))
 
 	// android
@@ -468,7 +466,7 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		return models.BitriseConfigMap{}, err
 	}
 
-	configName := configName(true, true, true)
+	configName := defaultConfigName()
 	configMap := models.BitriseConfigMap{
 		configName: string(data),
 	}

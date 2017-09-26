@@ -60,7 +60,6 @@ var sampleAppsReactNativeSubdirVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
-	steps.InstallReactNativeVersion,
 	steps.NpmVersion,
 	steps.InstallMissingAndroidToolsVersion,
 	steps.GradleRunnerVersion,
@@ -71,7 +70,6 @@ var sampleAppsReactNativeSubdirVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
-	steps.InstallReactNativeVersion,
 	steps.NpmVersion,
 	steps.NpmVersion,
 	steps.DeployToBitriseIoVersion,
@@ -95,12 +93,12 @@ var sampleAppsReactNativeSubdirResultYML = fmt.Sprintf(`options:
                 env_key: BITRISE_SCHEME
                 value_map:
                   SampleAppsReactNativeAndroid:
-                    config: reactnative-android-ios-test-config
+                    config: react-native-android-ios-test-config
                   SampleAppsReactNativeAndroid-tvOS:
-                    config: reactnative-android-ios-test-config
+                    config: react-native-android-ios-test-config
 configs:
   react-native:
-    reactnative-android-ios-test-config: |
+    react-native-android-ios-test-config: |
       format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
       project_type: react-native
@@ -117,7 +115,6 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-react-native@%s: {}
           - npm@%s:
               inputs:
               - workdir: project
@@ -142,7 +139,6 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-react-native@%s: {}
           - npm@%s:
               inputs:
               - workdir: project
@@ -162,7 +158,6 @@ var sampleAppsReactNativeIosAndAndroidVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
-	steps.InstallReactNativeVersion,
 	steps.NpmVersion,
 	steps.InstallMissingAndroidToolsVersion,
 	steps.GradleRunnerVersion,
@@ -173,7 +168,6 @@ var sampleAppsReactNativeIosAndAndroidVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
-	steps.InstallReactNativeVersion,
 	steps.NpmVersion,
 	steps.NpmVersion,
 	steps.DeployToBitriseIoVersion,
@@ -197,12 +191,12 @@ var sampleAppsReactNativeIosAndAndroidResultYML = fmt.Sprintf(`options:
                 env_key: BITRISE_SCHEME
                 value_map:
                   SampleAppsReactNativeAndroid:
-                    config: reactnative-android-ios-test-config
+                    config: react-native-android-ios-test-config
                   SampleAppsReactNativeAndroid-tvOS:
-                    config: reactnative-android-ios-test-config
+                    config: react-native-android-ios-test-config
 configs:
   react-native:
-    reactnative-android-ios-test-config: |
+    react-native-android-ios-test-config: |
       format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
       project_type: react-native
@@ -219,7 +213,6 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-react-native@%s: {}
           - npm@%s:
               inputs:
               - command: install
@@ -243,7 +236,6 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-react-native@%s: {}
           - npm@%s:
               inputs:
               - command: install

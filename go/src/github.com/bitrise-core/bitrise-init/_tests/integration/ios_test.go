@@ -283,14 +283,6 @@ var sampleAppsIosWatchkitVersions = []interface{}{
 	steps.DeployToBitriseIoVersion,
 	steps.CachePushVersion,
 
-	steps.ActivateSSHKeyVersion,
-	steps.GitCloneVersion,
-	steps.CachePullVersion,
-	steps.ScriptVersion,
-	steps.CertificateAndProfileInstallerVersion,
-	steps.DeployToBitriseIoVersion,
-	steps.CachePushVersion,
-
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
@@ -343,7 +335,7 @@ configs:
       - pull_request_source_branch: '*'
         workflow: primary
       workflows:
-        deploy:
+        primary:
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
@@ -356,17 +348,6 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
-          - deploy-to-bitrise-io@%s: {}
-          - cache-push@%s: {}
-        primary:
-          steps:
-          - activate-ssh-key@%s:
-              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-          - git-clone@%s: {}
-          - cache-pull@%s: {}
-          - script@%s:
-              title: Do anything with Script step
-          - certificate-and-profile-installer@%s: {}
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
     ios-test-config: |

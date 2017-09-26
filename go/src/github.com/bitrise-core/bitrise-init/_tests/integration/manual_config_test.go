@@ -151,7 +151,6 @@ var customConfigVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
-	steps.InstallReactNativeVersion,
 	steps.NpmVersion,
 	steps.InstallMissingAndroidToolsVersion,
 	steps.GradleRunnerVersion,
@@ -162,7 +161,6 @@ var customConfigVersions = []interface{}{
 	steps.ActivateSSHKeyVersion,
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
-	steps.InstallReactNativeVersion,
 	steps.NpmVersion,
 	steps.NpmVersion,
 	steps.DeployToBitriseIoVersion,
@@ -264,6 +262,9 @@ var customConfigResultYML = fmt.Sprintf(`options:
               _:
                 title: Scheme name
                 env_key: BITRISE_SCHEME
+                value_map:
+                  _:
+                    config: default-react-native-config
   xamarin:
     title: Path to the Xamarin Solution file
     env_key: BITRISE_PROJECT_PATH
@@ -535,7 +536,7 @@ configs:
               title: Do anything with Script step
           - deploy-to-bitrise-io@%s: {}
   react-native:
-    reactnative-android-ios-test-config: |
+    default-react-native-config: |
       format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
       project_type: react-native
@@ -552,7 +553,6 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-react-native@%s: {}
           - npm@%s:
               inputs:
               - command: install
@@ -576,7 +576,6 @@ configs:
           - git-clone@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-react-native@%s: {}
           - npm@%s:
               inputs:
               - command: install
