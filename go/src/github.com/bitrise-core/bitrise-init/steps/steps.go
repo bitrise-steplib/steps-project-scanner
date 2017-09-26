@@ -221,9 +221,3 @@ func NpmStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.
 	stepIDComposite := stepIDComposite(NpmID, NpmVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
-
-// InstallReactNativeStepListItem ...
-func InstallReactNativeStepListItem() bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(InstallReactNativeID, InstallReactNativeVersion)
-	return stepListItem(stepIDComposite, "", "")
-}

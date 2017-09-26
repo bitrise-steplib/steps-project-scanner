@@ -413,9 +413,9 @@ func GenerateDefaultOptions(projectType XcodeProjectType) models.OptionModel {
 // GenerateConfigBuilder ...
 func GenerateConfigBuilder(projectType XcodeProjectType, hasPodfile, hasTest, missingSharedSchemes bool, carthageCommand string, isIncludeCache bool) models.ConfigBuilderModel {
 	configBuilder := models.NewDefaultConfigBuilder()
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(isIncludeCache)...)
 
 	// CI
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(isIncludeCache)...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
 	if missingSharedSchemes {
@@ -434,7 +434,7 @@ func GenerateConfigBuilder(projectType XcodeProjectType, hasPodfile, hasTest, mi
 		))
 	}
 
-	xcodeTestAndArchiveStepInputModels := []envmanModels.EnvironmentItemModel{
+	xcodeStepInputModels := []envmanModels.EnvironmentItemModel{
 		envmanModels.EnvironmentItemModel{ProjectPathInputKey: "$" + ProjectPathInputEnvKey},
 		envmanModels.EnvironmentItemModel{SchemeInputKey: "$" + SchemeInputEnvKey},
 	}
@@ -442,49 +442,58 @@ func GenerateConfigBuilder(projectType XcodeProjectType, hasPodfile, hasTest, mi
 	if hasTest {
 		switch projectType {
 		case XcodeProjectTypeIOS:
-			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XcodeTestStepListItem(xcodeTestAndArchiveStepInputModels...))
+			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XcodeTestStepListItem(xcodeStepInputModels...))
 		case XcodeProjectTypeMacOS:
-			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XcodeTestMacStepListItem(xcodeTestAndArchiveStepInputModels...))
+			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XcodeTestMacStepListItem(xcodeStepInputModels...))
 		}
-	}
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(isIncludeCache)...)
-
-	// CD
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(isIncludeCache)...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
-
-	if missingSharedSchemes {
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RecreateUserSchemesStepListItem(
-			envmanModels.EnvironmentItemModel{ProjectPathInputKey: "$" + ProjectPathInputEnvKey},
-		))
-	}
-
-	if hasPodfile {
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CocoapodsInstallStepListItem())
-	}
-
-	if carthageCommand != "" {
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CarthageStepListItem(
-			envmanModels.EnvironmentItemModel{CarthageCommandInputKey: carthageCommand},
-		))
-	}
-
-	if hasTest {
+	} else {
 		switch projectType {
 		case XcodeProjectTypeIOS:
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeTestStepListItem(xcodeTestAndArchiveStepInputModels...))
+			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XcodeArchiveStepListItem(xcodeStepInputModels...))
 		case XcodeProjectTypeMacOS:
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeTestMacStepListItem(xcodeTestAndArchiveStepInputModels...))
+			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XcodeArchiveMacStepListItem(xcodeStepInputModels...))
 		}
 	}
 
-	switch projectType {
-	case XcodeProjectTypeIOS:
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveStepListItem(xcodeTestAndArchiveStepInputModels...))
-	case XcodeProjectTypeMacOS:
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveMacStepListItem(xcodeTestAndArchiveStepInputModels...))
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(isIncludeCache)...)
+
+	if hasTest {
+		// CD
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(isIncludeCache)...)
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+
+		if missingSharedSchemes {
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RecreateUserSchemesStepListItem(
+				envmanModels.EnvironmentItemModel{ProjectPathInputKey: "$" + ProjectPathInputEnvKey},
+			))
+		}
+
+		if hasPodfile {
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CocoapodsInstallStepListItem())
+		}
+
+		if carthageCommand != "" {
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CarthageStepListItem(
+				envmanModels.EnvironmentItemModel{CarthageCommandInputKey: carthageCommand},
+			))
+		}
+
+		switch projectType {
+		case XcodeProjectTypeIOS:
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeTestStepListItem(xcodeStepInputModels...))
+		case XcodeProjectTypeMacOS:
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeTestMacStepListItem(xcodeStepInputModels...))
+		}
+
+		switch projectType {
+		case XcodeProjectTypeIOS:
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveStepListItem(xcodeStepInputModels...))
+		case XcodeProjectTypeMacOS:
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveMacStepListItem(xcodeStepInputModels...))
+		}
+
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(isIncludeCache)...)
 	}
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(isIncludeCache)...)
 
 	return *configBuilder
 }
@@ -570,6 +579,7 @@ func GenerateDefaultConfig(projectType XcodeProjectType, isIncludeCache bool) (m
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeTestMacStepListItem(xcodeTestAndArchiveStepInputModels...))
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveMacStepListItem(xcodeTestAndArchiveStepInputModels...))
 	}
+
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(true)...)
 
 	config, err := configBuilder.Generate(string(projectType))
