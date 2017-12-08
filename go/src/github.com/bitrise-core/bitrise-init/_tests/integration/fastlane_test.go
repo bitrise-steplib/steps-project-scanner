@@ -89,7 +89,17 @@ var fastlaneResultYML = fmt.Sprintf(`options:
         env_key: BITRISE_SCHEME
         value_map:
           BitriseFastlaneSample:
-            config: ios-test-config
+            title: ipa export method
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              ad-hoc:
+                config: ios-test-config
+              app-store:
+                config: ios-test-config
+              development:
+                config: ios-test-config
+              enterprise:
+                config: ios-test-config
 configs:
   fastlane:
     fastlane-config: |
@@ -146,6 +156,7 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
         primary:

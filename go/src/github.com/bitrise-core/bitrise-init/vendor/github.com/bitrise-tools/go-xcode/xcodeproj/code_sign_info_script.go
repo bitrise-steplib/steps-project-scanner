@@ -3,165 +3,109 @@ package xcodeproj
 const codeSignInfoScriptContent = `require 'xcodeproj'
 require 'json'
 
-####
-# contained_projects
-#
-# inputs:
-#  project_or_workspace_pth: xcode project or workspace path
-#
-# return:
-#  if project_or_workspace_pth input is a project: it returns an array containing project_or_workspace_pth
-#  if project_or_workspace_pth input is a workspace: it returns an array containing every project's path in the workspace
-#
-# notes:
-#  returned paths are absolute paths
-#  workspace contained Pods projects are skipped
-def contained_projects(project_or_workspace_pth)
-  if File.extname(project_or_workspace_pth) == '.xcodeproj'
-    [File.expand_path(project_or_workspace_pth)]
-  else
-    workspace_contents_pth = File.join(project_or_workspace_pth, 'contents.xcworkspacedata')
-    workspace_contents = File.read(workspace_contents_pth)
+def workspace_contained_projects(workspace_pth)
+  workspace = Xcodeproj::Workspace.new_from_xcworkspace(workspace_pth)
+  workspace_dir = File.dirname(workspace_pth)
+  project_paths = []
+  workspace.file_references.each do |ref|
+    pth = ref.path
+    next unless File.extname(pth) == '.xcodeproj'
+    next if pth.end_with?('Pods/Pods.xcodeproj')
 
-    project_paths = workspace_contents.scan(/\"group:(.*)\"/).collect do |current_match|
-      File.join(File.expand_path('..', project_or_workspace_pth), current_match.first)
-    end
-
-    project_paths.find_all do |current_match|
-      # skip cocoapods projects
-      !current_match.end_with?('Pods/Pods.xcodeproj')
-    end
-  end
-end
-
-####
-# read_scheme
-#
-# inputs:
-#  project_path: path of the project which contains the scheme
-#  scheme_name: name of the scheme to read
-#  user_name: name of the current user (user schemes ar located at: project_path/xcuserdata/user_name.xcuserdatad/xcschemes)
-#
-# return:
-#  Xcodeproj::XCScheme (eighter user or shared scheme)
-#  nil if scheme not exists with the given name
-def read_scheme(project_path, scheme_name, user_name)
-  shared_schemes = Xcodeproj::Project.schemes(project_path) || []
-  is_shared = shared_schemes.include? scheme_name
-
-  scheme_pth = ''
-  if is_shared
-    scheme_pth = File.join(project_path, 'xcshareddata', 'xcschemes', scheme_name + '.xcscheme')
-  else
-    scheme_pth = File.join(project_path, 'xcuserdata', user_name + '.xcuserdatad', 'xcschemes', scheme_name + '.xcscheme')
+    project_path = File.expand_path(pth, workspace_dir)
+    project_paths << project_path
   end
 
-  return nil unless File.exist? scheme_pth
-  Xcodeproj::XCScheme.new(scheme_pth)
+  project_paths
 end
 
-####
-# find_project_with_scheme
-# 
-# inputs:
-#  project_or_workspace_pth: xcode project or workspace path
-#  scheme_name: name of the scheme
-#  user_name: name of the current user (user schemes ar located at: project_path/xcuserdata/user_name.xcuserdatad/xcschemes)
-#
-# return:
-#  Xcodeproj::Project which contains the given scheme
-def find_project_with_scheme(project_or_workspace_pth, scheme_name, user_name)
-  project_paths = contained_projects(project_or_workspace_pth)
-  project_path = project_paths.find do |project_path|
-    scheme = read_scheme(project_path, scheme_name, user_name)
-    !scheme.nil?
+def shared_scheme_path(project_or_workspace_pth, scheme_name)
+  File.join(project_or_workspace_pth, 'xcshareddata', 'xcschemes', scheme_name + '.xcscheme')
+end
+
+def user_scheme_path(project_or_workspace_pth, scheme_name, user_name)
+  File.join(project_or_workspace_pth, 'xcuserdata', user_name + '.xcuserdatad', 'xcschemes', scheme_name + '.xcscheme')
+end
+
+def read_scheme(project_or_workspace_pth, scheme_name, user_name)
+  project_paths = [project_or_workspace_pth]
+  if File.extname(project_or_workspace_pth) == '.xcworkspace'
+    project_paths += workspace_contained_projects(project_or_workspace_pth)
   end
-  return nil unless project_path
-  Xcodeproj::Project.open(project_path)
+
+  project_paths.each do |project_path|
+    scheme_pth = shared_scheme_path(project_path, scheme_name)
+    scheme_pth = user_scheme_path(project_path, scheme_name, user_name) unless File.exist?(scheme_pth)
+    next unless File.exist?(scheme_pth)
+
+    scheme = Xcodeproj::XCScheme.new(scheme_pth)
+    container_dir = File.dirname(project_path)
+
+    return {
+      scheme: scheme,
+      container_dir: container_dir
+    }
+  end
+
+  nil
 end
 
-####
-# find_build_action_target
-# 
-# inputs:
-#  project: Xcodeproj::Project which contains the scheme
-#  scheme: Xcodeproj::XCScheme which's buildable target we are looking for
-#
-# return:
-#  Xcodeproj::Project::Object::AbstractTarget the buildable target of the scheme
-#
-# notes:
-#  we are looking for a scheme's BuildAction, BuildAction has BuildActionEntries,
-#   BuildActionEntry is may archivable, may not (buildForArchiving xml entry),
-#   archivable BuildActionEntry's BuildableReference holds a reference to a target's name,
-#   this target should present in the project's targets
-#  if BuildActionEntries does not contains an archivable entry, we use the first entry 
-#   (for now it seems to be a good idea, may we change this behaviour later)
-def find_build_action_target(project, scheme)
+def project_buildable_target_mapping(project_dir, scheme)
   build_action = scheme.build_action
   return nil unless build_action
 
   entries = build_action.entries || []
-  return nil unless entries.count > 0
+  return nil if entries.empty?
 
-  first_entry = entries[0]
-  archivable_entry = entries.find { |e| e.xml_element && e.xml_element.attributes && e.xml_element.attributes["buildForArchiving"] == "YES"}
+  entries = entries.select(&:build_for_archiving?) || []
+  return nil if entries.empty?
 
-  entry = archivable_entry if archivable_entry
-  entry = first_entry unless archivable_entry
+  mapping = {}
 
-  buildable_references = entry.buildable_references || []
-  return nil unless buildable_references.count > 0
+  entries.each do |entry|
+    buildable_references = entry.buildable_references || []
+    next if buildable_references.empty?
 
-  buildable_reference = buildable_references[0]
-  target_name = buildable_reference.target_name
+    buildable_references = buildable_references.reject do |r|
+      r.target_name.to_s.empty? || r.target_referenced_container.to_s.empty?
+    end
+    next if buildable_references.empty?
 
-  project.targets.find { |t| t.name == target_name }
+    buildable_reference = entry.buildable_references.first
+
+    target_name = buildable_reference.target_name.to_s
+    container = buildable_reference.target_referenced_container.to_s.sub(/^container:/, '')
+    next if target_name.empty? || container.empty?
+
+    project_pth = File.expand_path(container, project_dir)
+    next unless File.exist?(project_pth)
+
+    project = Xcodeproj::Project.open(project_pth)
+    next unless project
+
+    target = project.targets.find { |t| t.name == target_name }
+    next unless target
+    next unless runnable_target?(target)
+
+    targets = mapping[project_pth] || []
+    targets << target
+    mapping[project_pth] = targets
+  end
+
+  mapping
 end
 
-####
-# find_archive_action_build_configuration_name
-# 
-# inputs:
-#  scheme: Xcodeproj::XCScheme which's buildable target's build configuration we are looking for
-#
-# return:
-#  the name of the build configuration
-def find_archive_action_build_configuration_name(scheme)
-  archive_action = scheme.archive_action
-  return nil unless archive_action
+def runnable_target?(target)
+  return false unless target.is_a?(Xcodeproj::Project::Object::PBXNativeTarget)
 
-  archive_action.build_configuration
+  product_reference = target.product_reference
+  return false unless product_reference
+
+  product_reference.path.end_with?('.app', '.appex')
 end
 
-####
-# read_target_attributes
-# 
-# inputs:
-#  project: Xcodeproj::Project which contains the target
-#  target: Xcodeproj::Project::Object::AbstractTarget which's attributes we are looking for
-#
-# return:
-#  Has{String => String} the attributes of the target
-def read_target_attributes(project, target)
-  attributes = project.root_object.attributes['TargetAttributes']
-  attributes[target.uuid]
-end
-
-####
-# collect_dependent_targets
-# 
-# inputs:
-#  target: Xcodeproj::Project::Object::AbstractTarget the root target, which's dependent targets we should collect recursively
-#  dependent_targets: [Xcodeproj::Project::Object::AbstractTarget] this array holds the dependent targets
-#
-# return:
-#  [Xcodeproj::Project::Object::AbstractTarget] every dependent target of the given target
-#
-# notes:
-#  we only care about targets which's product type is executable
 def collect_dependent_targets(target, dependent_targets)
-  dependent_targets.push(target)
+  dependent_targets << target
 
   dependencies = target.dependencies || []
   return dependent_targets if dependencies.empty?
@@ -169,16 +113,7 @@ def collect_dependent_targets(target, dependent_targets)
   dependencies.each do |dependency|
     dependent_target = dependency.target
     next unless dependent_target
-
-    product_type = dependent_target.product_type
-    next unless product_type
-
-    parsed_product_type = Xcodeproj::Constants::PRODUCT_TYPE_UTI.key(product_type)
-    next unless parsed_product_type
-
-    extension = Xcodeproj::Constants::PRODUCT_UTI_EXTENSIONS[parsed_product_type]
-    next unless extension
-    next unless (extension == "app" || extension == "appex")
+    next unless runnable_target?(dependent_target)
 
     collect_dependent_targets(dependent_target, dependent_targets)
   end
@@ -186,95 +121,51 @@ def collect_dependent_targets(target, dependent_targets)
   dependent_targets
 end
 
-####
-# read_code_sign_infos
-# 
-# inputs:
-#  project_or_workspace_pth: xcode project or workspace path
-#  scheme_name: name of the scheme
-#  user_name: name of the current user
-#  build_configuration_name: build configuration name (optional)
-#
-# return:
-#  every archivable target's code sign infos contained in the given scheme
-#
-# notes:
-#  Hash{target_name => CodeSignInfo}
-#  CodeSignInfo: {
-#    project: 
-#    info_plist_file: 
-#    configuration:
-#    provisioning_style:
-#    bundle_id:
-#    code_sign_identity:
-#    provisioning_profile_specifier:
-#    provisioning_profile:
-#  }
-def read_code_sign_infos(project_or_workspace_pth, scheme_name, user_name, build_configuration_name)
-  project = find_project_with_scheme(project_or_workspace_pth, scheme_name, user_name)
-  raise "project does not contain scheme: #{scheme_name}" unless project
+def find_archive_action_build_configuration_name(scheme)
+  archive_action = scheme.archive_action
+  return nil unless archive_action
 
-  scheme = read_scheme(project.path, scheme_name, user_name)
-  raise "project does not contain scheme: #{scheme_name}" unless scheme
+  archive_action.build_configuration
+end
 
-  target = find_build_action_target(project, scheme)
-  raise 'scheme does not contain buildable target' unless target
+def read_scheme_target_mapping(project_or_workspace_pth, scheme_name, user_name)
+  scheme_container_dir = read_scheme(project_or_workspace_pth, scheme_name, user_name)
+  raise "project (#{project_or_workspace_pth}) does not contain scheme: #{scheme_name}" unless scheme_container_dir
+  scheme = scheme_container_dir[:scheme]
+  container_dir = scheme_container_dir[:container_dir]
 
-  targets = []
-  targets = collect_dependent_targets(target, targets)
-  raise 'failed to collect targets to analyze' if targets.to_a.empty?
+  configuration = find_archive_action_build_configuration_name(scheme)
 
-  target_code_sign_infos = {}
+  target_mapping = project_buildable_target_mapping(container_dir, scheme) || []
+  raise 'scheme does not contain buildable target' if target_mapping.empty?
 
-  targets.each do |target|
-    target_attributes = read_target_attributes(project, target)
-    raise "not target attributes found for target (#{target_name})" unless target_attributes
-  
-    provisioning_style = target_attributes['ProvisioningStyle'] || ''
-  
-    if build_configuration_name.to_s.empty?
-      build_configuration_name = find_archive_action_build_configuration_name(scheme)
-      raise 'no default configuration found for archive action' unless build_configuration_name
+  project_targets = {}
+  target_mapping.each do |project_pth, targets|
+    targets.each do |target|
+      dependent_targets = []
+      dependent_targets = collect_dependent_targets(target, dependent_targets)
+
+      project_targets[project_pth] = dependent_targets.collect(&:name)
     end
-  
-    build_configuration = target.build_configuration_list.build_configurations.find { |c| c.name == build_configuration_name }
-    raise "no build configuration found with name: #{build_configuration_name}" unless build_configuration
-  
-    bundle_id = build_configuration.resolve_build_setting('PRODUCT_BUNDLE_IDENTIFIER') || ''
-    code_sign_identity = build_configuration.resolve_build_setting('CODE_SIGN_IDENTITY') || ''
-    provisioning_profile_specifier = build_configuration.resolve_build_setting('PROVISIONING_PROFILE_SPECIFIER') || ''
-    provisioning_profile = build_configuration.resolve_build_setting('PROVISIONING_PROFILE') || ''
-    info_plist_file = build_configuration.resolve_build_setting('INFOPLIST_FILE') || ''
-    info_plist_file = File.join(File.dirname(project_or_workspace_pth), info_plist_file) unless info_plist_file.empty?
-
-    code_sign_info = {
-      project: project.path,
-      info_plist_file: info_plist_file,
-      configuration: build_configuration.name,
-      provisioning_style: provisioning_style,
-      bundle_id: bundle_id,
-      code_sign_identity: code_sign_identity,
-      provisioning_profile_specifier: provisioning_profile_specifier,
-      provisioning_profile: provisioning_profile
-    }
-
-    target_code_sign_infos[target.name] = code_sign_info
   end
+  raise 'failed to collect buildable targets' if project_targets.empty?
 
-  target_code_sign_infos
+  {
+    configuration: configuration,
+    project_targets: project_targets
+  }
 end
 
 begin
   project_path = ENV['project']
   scheme_name = ENV['scheme']
   user_name = ENV['user']
-  configuration = ENV['configuration']
 
   raise 'missing project_path' if project_path.to_s.empty?
   raise 'missing scheme_name' if scheme_name.to_s.empty?
   raise 'missing user_name' if user_name.to_s.empty?
 
-  mapping = read_code_sign_infos(project_path, scheme_name, user_name, configuration)
+  mapping = read_scheme_target_mapping(project_path, scheme_name, user_name)
   result = {
     data: mapping
   }

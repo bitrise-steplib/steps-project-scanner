@@ -241,8 +241,13 @@ func (Scanner) DefaultOptions() models.OptionModel {
 	schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey)
 	projectPathOption.AddOption("_", schemeOption)
 
-	configOption := models.NewConfigOption(defaultConfigName())
-	schemeOption.AddConfig("_", configOption)
+	exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
+	schemeOption.AddOption("_", exportMethodOption)
+
+	for _, exportMethod := range ios.IosExportMethods {
+		configOption := models.NewConfigOption(defaultConfigName())
+		exportMethodOption.AddConfig(exportMethod, configOption)
+	}
 
 	return *gradleFileOption
 }
@@ -313,6 +318,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 				configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveStepListItem(
 					envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
 					envmanModels.EnvironmentItemModel{ios.SchemeInputKey: "$" + ios.SchemeInputEnvKey},
+					envmanModels.EnvironmentItemModel{ios.ExportMethodInputKey: "$" + ios.ExportMethodInputEnvKey},
 					envmanModels.EnvironmentItemModel{ios.ConfigurationInputKey: "Release"},
 				))
 
@@ -385,6 +391,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 				configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XcodeArchiveStepListItem(
 					envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
 					envmanModels.EnvironmentItemModel{ios.SchemeInputKey: "$" + ios.SchemeInputEnvKey},
+					envmanModels.EnvironmentItemModel{ios.ExportMethodInputKey: "$" + ios.ExportMethodInputEnvKey},
 					envmanModels.EnvironmentItemModel{ios.ConfigurationInputKey: "Release"},
 				))
 
@@ -451,6 +458,7 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveStepListItem(
 		envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
 		envmanModels.EnvironmentItemModel{ios.SchemeInputKey: "$" + ios.SchemeInputEnvKey},
+		envmanModels.EnvironmentItemModel{ios.ExportMethodInputKey: "$" + ios.ExportMethodInputEnvKey},
 		envmanModels.EnvironmentItemModel{ios.ConfigurationInputKey: "Release"},
 	))
 

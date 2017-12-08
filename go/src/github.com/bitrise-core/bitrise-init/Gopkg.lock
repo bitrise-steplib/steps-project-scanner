@@ -10,38 +10,38 @@
 [[projects]]
   name = "github.com/bitrise-io/bitrise"
   packages = ["models"]
-  revision = "1665b5db4709411986025d0fa70410819cae297a"
-  version = "1.9.0"
+  revision = "798c1c75ba4e525eb99fbe6fc17029ddaf2b3e7c"
+  version = "1.10.0"
 
 [[projects]]
   name = "github.com/bitrise-io/envman"
   packages = ["models"]
-  revision = "cde1244f808bd58f7e92b7607f3274ee0bcade87"
-  version = "1.1.7"
+  revision = "455072a756cf80ab469ecfbcfd8c1dd614585cfc"
+  version = "1.1.8"
 
 [[projects]]
   branch = "master"
   name = "github.com/bitrise-io/go-utils"
   packages = ["colorstring","command","command/git","command/rubyscript","errorutil","fileutil","log","parseutil","pathutil","pointers","sliceutil"]
-  revision = "6eb582e08179a025ed2deb86ea6dffbd13ba1ff6"
+  revision = "961320f9011cedf55e1da0578949bf63450a96c0"
 
 [[projects]]
   branch = "master"
   name = "github.com/bitrise-io/goinp"
   packages = ["goinp"]
-  revision = "a602d207503f909271ecd91a17abd9ac919e273c"
+  revision = "f451b19ba4d087d8272d411ad91af5f4218fd517"
 
 [[projects]]
   name = "github.com/bitrise-io/stepman"
   packages = ["models"]
-  revision = "5609b753e57f9d2e4f18160fc2ee8667b1e34652"
-  version = "0.9.34"
+  revision = "f528959740f424f44e678f4f4e74eebf82fdd582"
+  version = "0.9.35"
 
 [[projects]]
   branch = "master"
   name = "github.com/bitrise-tools/go-xcode"
   packages = ["plistutil","xcodeproj"]
-  revision = "c28b7bd9ac8bdc8b1ce79e23da4639b1399a0d38"
+  revision = "69c79f6039848745dc3942f8cf1db920264ee1ce"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -62,10 +62,10 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/ryanuber/go-glob"
   packages = ["."]
-  revision = "572520ed46dbddaed19ea3d9541bdd0494163693"
-  version = "v0.1"
+  revision = "256dc444b735e061061cf46c809487313d5b0065"
 
 [[projects]]
   name = "github.com/stretchr/testify"
@@ -83,13 +83,13 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "847319b7fc94cab682988f93da778204da164588"
+  revision = "6a293f2d4b14b8e6d3f0539e383f6d0d30fce3fd"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix","windows"]
-  revision = "429f518978ab01db8bb6f44b66785088e7fba58b"
+  revision = "75813c647272dd855bda156405bf844a5414f5bf"
 
 [[projects]]
   branch = "v2"
@@ -101,7 +101,7 @@
   branch = "master"
   name = "howett.net/plist"
   packages = ["."]
-  revision = "2f847ea62b17703c861484a09f0e5841328a2cb9"
+  revision = "233df3c4f07b0c562da0e8a6fb850681ac49bb90"
 
 [solve-meta]
   analyzer-name = "dep"

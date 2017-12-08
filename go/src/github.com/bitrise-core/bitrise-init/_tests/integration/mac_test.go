@@ -69,7 +69,19 @@ var sampleAppsOSX1011ResultYML = fmt.Sprintf(`options:
         env_key: BITRISE_SCHEME
         value_map:
           sample-apps-osx-10-11:
-            config: macos-test-config
+            title: |-
+              Application export method
+              NOTE: `+"`none`"+` means: Export a copy of the application without re-signing.
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              app-store:
+                config: macos-test-config
+              developer-id:
+                config: macos-test-config
+              development:
+                config: macos-test-config
+              none:
+                config: macos-test-config
 configs:
   macos:
     macos-test-config: |
@@ -99,6 +111,7 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
         primary:
