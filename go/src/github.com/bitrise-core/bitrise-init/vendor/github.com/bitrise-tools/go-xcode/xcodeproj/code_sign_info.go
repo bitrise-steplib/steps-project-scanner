@@ -16,36 +16,67 @@ import (
 
 // CodeSignInfo ...
 type CodeSignInfo struct {
-	ProjectPth                   string `json:"project"`
-	InfoPlistPth                 string `json:"info_plist_file"`
-	Configuration                string `json:"configuration"`
-	BundleIdentifier             string `json:"bundle_id"`
-	ProvisioningStyle            string `json:"provisioning_style"`
-	CodeSignIdentity             string `json:"code_sign_identity"`
-	ProvisioningProfileSpecifier string `json:"provisioning_profile_specifier"`
-	ProvisioningProfile          string `json:"provisioning_profile"`
+	CodeSignEntitlementsPath     string
+	BundleIdentifier             string
+	CodeSignIdentity             string
+	ProvisioningProfileSpecifier string
+	ProvisioningProfile          string
+	DevelopmentTeam              string
 }
 
-func getCodeSignInfoWithXcodeprojGem(projectPth, scheme, configuration, user string) (map[string]CodeSignInfo, error) {
+// TargetMapping ...
+type TargetMapping struct {
+	Configuration  string              `json:"configuration"`
+	ProjectTargets map[string][]string `json:"project_targets"`
+}
+
+func clearRubyScriptOutput(out string) string {
+	reader := strings.NewReader(out)
+	scanner := bufio.NewScanner(reader)
+
+	jsonLines := []string{}
+	jsonResponseStart := false
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		trimmed := strings.TrimSpace(line)
+
+		if !jsonResponseStart && trimmed == "{" {
+			jsonResponseStart = true
+		}
+		if !jsonResponseStart {
+			continue
+		}
+
+		jsonLines = append(jsonLines, line)
+	}
+
+	if len(jsonLines) == 0 {
+		return out
+	}
+
+	return strings.Join(jsonLines, "\n")
+}
+
+func readSchemeTargetMapping(projectPth, scheme, user string) (TargetMapping, error) {
 	runner := rubyscript.New(codeSignInfoScriptContent)
 	bundleInstallCmd, err := runner.BundleInstallCommand(gemfileContent, "")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create bundle install command, error: %s", err)
+		return TargetMapping{}, fmt.Errorf("failed to create bundle install command, error: %s", err)
 	}
 
 	if out, err := bundleInstallCmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		return nil, fmt.Errorf("bundle install failed, output: %s, error: %s", out, err)
+		return TargetMapping{}, fmt.Errorf("bundle install failed, output: %s, error: %s", out, err)
 	}
 
 	runCmd, err := runner.RunScriptCommand()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create script runner command, error: %s", err)
+		return TargetMapping{}, fmt.Errorf("failed to create script runner command, error: %s", err)
 	}
 
 	envsToAppend := []string{
 		"project=" + projectPth,
 		"scheme=" + scheme,
-		"configuration=" + configuration,
 		"user=" + user}
 	envs := append(runCmd.GetCmd().Env, envsToAppend...)
 
@@ -53,21 +84,23 @@ func getCodeSignInfoWithXcodeprojGem(projectPth, scheme, configuration, user str
 
 	out, err := runCmd.RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("failed to run ruby script, output: %s, error: %s", out, err)
+		return TargetMapping{}, fmt.Errorf("failed to run code signing analyzer script, output: %s, error: %s", out, err)
 	}
 
-	// OutputModel ...
 	type OutputModel struct {
-		Data  map[string]CodeSignInfo `json:"data"`
-		Error string                  `json:"error"`
+		Data  TargetMapping `json:"data"`
+		Error string        `json:"error"`
 	}
 	var output OutputModel
 	if err := json.Unmarshal([]byte(out), &output); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal output: %s", out)
+		out = clearRubyScriptOutput(out)
+		if err := json.Unmarshal([]byte(out), &output); err != nil {
+			return TargetMapping{}, fmt.Errorf("failed to unmarshal output: %s", out)
+		}
 	}
 
 	if output.Error != "" {
-		return nil, fmt.Errorf("failed to get provisioning profile - bundle id mapping, error: %s", output.Error)
+		return TargetMapping{}, fmt.Errorf("failed to get provisioning profile - bundle id mapping, error: %s", output.Error)
 	}
 
 	return output.Data, nil
@@ -145,81 +178,74 @@ func firstNonEmpty(values ...string) string {
 }
 
 // ResolveCodeSignInfo ...
-func ResolveCodeSignInfo(projectOrWorkspacePth, scheme, configuration, user string) (map[string]CodeSignInfo, error) {
-	targetCodeSignInfoMap, err := getCodeSignInfoWithXcodeprojGem(projectOrWorkspacePth, scheme, configuration, user)
+func ResolveCodeSignInfo(projectOrWorkspacePth, scheme, user string) (map[string]CodeSignInfo, error) {
+	projectTargetsMapping, err := readSchemeTargetMapping(projectOrWorkspacePth, scheme, user)
 	if err != nil {
 		return nil, err
 	}
 
 	resolvedCodeSignInfoMap := map[string]CodeSignInfo{}
-	for target, codeSignInfo := range targetCodeSignInfoMap {
-		if target == "" {
-			return nil, errors.New("target name is empty")
-		}
-
-		projectPth := codeSignInfo.ProjectPth
-		if projectPth == "" {
-			return nil, fmt.Errorf("failed to resolve which project contains target: %s", target)
-		}
-
-		configuration = codeSignInfo.Configuration
-
-		buildSettings, err := getTargetBuildSettingsWithXcodebuild(projectPth, target, configuration)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read project build settings, error: %s", err)
-		}
-
-		// resolve Info.plist path
-		infoPlistPth := buildSettings["INFOPLIST_FILE"]
-		if infoPlistPth != "" {
-			projectDir := filepath.Dir(projectPth)
-			infoPlistPth = filepath.Join(projectDir, infoPlistPth)
-		}
-		if infoPlistPth == "" && codeSignInfo.InfoPlistPth != "" && !strings.Contains(codeSignInfo.InfoPlistPth, "$") {
-			infoPlistPth = codeSignInfo.InfoPlistPth
-		}
-		// ---
-
-		// resolve bundle id
-		// best case if it presents in the buildSettings, since it is expanded
-		bundleID := buildSettings["PRODUCT_BUNDLE_IDENTIFIER"]
-		if bundleID == "" && codeSignInfo.BundleIdentifier != "" && !strings.Contains(codeSignInfo.BundleIdentifier, "$") {
-			// bundle id not presents in -showBuildSettings output
-			// use the bundle id parsed from the project file, unless it contains env var
-			bundleID = codeSignInfo.BundleIdentifier
-		}
-		if bundleID == "" && infoPlistPth != "" {
-			// try to find the bundle id in the Info.plist file, unless it contains env var
-			id, err := getBundleIDWithPlistbuddy(infoPlistPth)
-			if err != nil {
-				return nil, fmt.Errorf("failed to resolve bundle id, error: %s", err)
+	for projectPth, targets := range projectTargetsMapping.ProjectTargets {
+		for _, targetName := range targets {
+			if targetName == "" {
+				return nil, errors.New("target name is empty")
 			}
-			if !strings.Contains(codeSignInfo.BundleIdentifier, "$") {
+
+			if projectPth == "" {
+				return nil, fmt.Errorf("failed to resolve which project contains target: %s", targetName)
+			}
+
+			buildSettings, err := getTargetBuildSettingsWithXcodebuild(projectPth, targetName, projectTargetsMapping.Configuration)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read project build settings, error: %s", err)
+			}
+
+			// resolve Info.plist path
+			infoPlistPth := buildSettings["INFOPLIST_FILE"]
+			if infoPlistPth != "" {
+				projectDir := filepath.Dir(projectPth)
+				infoPlistPth = filepath.Join(projectDir, infoPlistPth)
+			}
+			// ---
+
+			// resolve bundle id
+			// best case if it presents in the buildSettings, since it is expanded
+			bundleID := buildSettings["PRODUCT_BUNDLE_IDENTIFIER"]
+			if bundleID == "" && infoPlistPth != "" {
+				// try to find the bundle id in the Info.plist file, unless it contains env var
+				id, err := getBundleIDWithPlistbuddy(infoPlistPth)
+				if err != nil {
+					return nil, fmt.Errorf("failed to resolve bundle id, error: %s", err)
+				}
 				bundleID = id
 			}
-		}
-		if bundleID == "" {
-			return nil, fmt.Errorf("failed to resolve bundle id")
-		}
-		// ---
+			if bundleID == "" {
+				return nil, fmt.Errorf("failed to resolve bundle id")
+			}
+			// ---
 
-		provisioningStyle := firstNonEmpty(buildSettings["CODE_SIGN_STYLE"], codeSignInfo.ProvisioningStyle)
-		codeSignIdentity := firstNonEmpty(buildSettings["CODE_SIGN_IDENTITY"], codeSignInfo.CodeSignIdentity)
-		provisioningProfileSpecifier := firstNonEmpty(buildSettings["PROVISIONING_PROFILE_SPECIFIER"], codeSignInfo.ProvisioningProfileSpecifier)
-		provisioningProfile := firstNonEmpty(buildSettings["PROVISIONING_PROFILE"], codeSignInfo.ProvisioningProfile)
+			codeSignEntitlementsPth := buildSettings["CODE_SIGN_ENTITLEMENTS"]
+			if codeSignEntitlementsPth != "" {
+				projectDir := filepath.Dir(projectPth)
+				codeSignEntitlementsPth = filepath.Join(projectDir, codeSignEntitlementsPth)
+			}
 
-		resolvedCodeSignInfo := CodeSignInfo{
-			InfoPlistPth:                 infoPlistPth,
-			ProjectPth:                   projectPth,
-			Configuration:                configuration,
-			BundleIdentifier:             bundleID,
-			ProvisioningStyle:            provisioningStyle,
-			CodeSignIdentity:             codeSignIdentity,
-			ProvisioningProfileSpecifier: provisioningProfileSpecifier,
-			ProvisioningProfile:          provisioningProfile,
+			codeSignIdentity := buildSettings["CODE_SIGN_IDENTITY"]
+			provisioningProfileSpecifier := buildSettings["PROVISIONING_PROFILE_SPECIFIER"]
+			provisioningProfile := buildSettings["PROVISIONING_PROFILE"]
+			developmentTeam := buildSettings["DEVELOPMENT_TEAM"]
+
+			resolvedCodeSignInfo := CodeSignInfo{
+				CodeSignEntitlementsPath:     codeSignEntitlementsPth,
+				BundleIdentifier:             bundleID,
+				CodeSignIdentity:             codeSignIdentity,
+				ProvisioningProfileSpecifier: provisioningProfileSpecifier,
+				ProvisioningProfile:          provisioningProfile,
+				DevelopmentTeam:              developmentTeam,
+			}
+
+			resolvedCodeSignInfoMap[targetName] = resolvedCodeSignInfo
 		}
-
-		resolvedCodeSignInfoMap[target] = resolvedCodeSignInfo
 	}
 
 	return resolvedCodeSignInfoMap, nil

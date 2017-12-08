@@ -236,7 +236,17 @@ var customConfigResultYML = fmt.Sprintf(`options:
         env_key: BITRISE_SCHEME
         value_map:
           _:
-            config: default-ios-config
+            title: ipa export method
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              ad-hoc:
+                config: default-ios-config
+              app-store:
+                config: default-ios-config
+              development:
+                config: default-ios-config
+              enterprise:
+                config: default-ios-config
   macos:
     title: Project (or Workspace) path
     env_key: BITRISE_PROJECT_PATH
@@ -246,7 +256,19 @@ var customConfigResultYML = fmt.Sprintf(`options:
         env_key: BITRISE_SCHEME
         value_map:
           _:
-            config: default-macos-config
+            title: |-
+              Application export method
+              NOTE: `+"`none`"+` means: Export a copy of the application without re-signing.
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              app-store:
+                config: default-macos-config
+              developer-id:
+                config: default-macos-config
+              development:
+                config: default-macos-config
+              none:
+                config: default-macos-config
   react-native:
     title: Path to the gradle file to use
     env_key: GRADLE_BUILD_FILE_PATH
@@ -264,7 +286,17 @@ var customConfigResultYML = fmt.Sprintf(`options:
                 env_key: BITRISE_SCHEME
                 value_map:
                   _:
-                    config: default-react-native-config
+                    title: ipa export method
+                    env_key: BITRISE_EXPORT_METHOD
+                    value_map:
+                      ad-hoc:
+                        config: default-react-native-config
+                      app-store:
+                        config: default-react-native-config
+                      development:
+                        config: default-react-native-config
+                      enterprise:
+                        config: default-react-native-config
   xamarin:
     title: Path to the Xamarin Solution file
     env_key: BITRISE_PROJECT_PATH
@@ -442,6 +474,7 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
         primary:
@@ -495,6 +528,7 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
         primary:
@@ -567,6 +601,7 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
               - configuration: Release
           - deploy-to-bitrise-io@%s: {}
         primary:

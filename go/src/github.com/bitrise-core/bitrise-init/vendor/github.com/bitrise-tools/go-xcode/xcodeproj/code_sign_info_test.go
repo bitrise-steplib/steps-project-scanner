@@ -1,9 +1,9 @@
 package xcodeproj
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/bitrise-io/go-utils/command"
@@ -27,91 +27,71 @@ func TestResolveCodeSignInfo(t *testing.T) {
 	{
 		projectPth := cloneSampleProject(t, "https://github.com/bitrise-samples/sample-apps-ios-multi-target.git", "code-sign-test.xcodeproj")
 
-		targetCodeSignInfoMap, err := ResolveCodeSignInfo(projectPth, "code-sign-test", "", user)
+		targetCodeSignInfoMap, err := ResolveCodeSignInfo(projectPth, "code-sign-test", user)
 		require.NoError(t, err)
-		require.Equal(t, 4, len(targetCodeSignInfoMap))
+		require.Equal(t, 4, len(targetCodeSignInfoMap), fmt.Sprintf("%s", targetCodeSignInfoMap))
 
 		{
 			properties, ok := targetCodeSignInfoMap["watchkit-app Extension"]
 			require.True(t, ok)
 
-			require.Equal(t, true, strings.HasSuffix(properties.ProjectPth, "/code-sign-test.xcodeproj"), properties.ProjectPth)
-			require.Equal(t, true, strings.HasSuffix(properties.InfoPlistPth, "/watchkit-app Extension/Info.plist"), properties.InfoPlistPth)
-			require.Equal(t, "Release", properties.Configuration)
-
 			require.Equal(t, "com.bitrise.code-sign-test.watchkitapp.watchkitextension", properties.BundleIdentifier)
-			require.Equal(t, "Manual", properties.ProvisioningStyle)
 			require.Equal(t, "iPhone Developer", properties.CodeSignIdentity)
 			require.Equal(t, "548cd560-c511-4540-8b6b-cbec4a22f49d", properties.ProvisioningProfile)
 			require.Equal(t, "BitriseBot-Wildcard", properties.ProvisioningProfileSpecifier)
+			require.Equal(t, "72SA8V3WYL", properties.DevelopmentTeam)
 		}
 
 		{
 			properties, ok := targetCodeSignInfoMap["code-sign-test"]
 			require.True(t, ok)
 
-			require.Equal(t, true, strings.HasSuffix(properties.ProjectPth, "/code-sign-test.xcodeproj"), properties.ProjectPth)
-			require.Equal(t, true, strings.HasSuffix(properties.InfoPlistPth, "/code-sign-test/Info.plist"), properties.InfoPlistPth)
-			require.Equal(t, "Release", properties.Configuration)
-
 			require.Equal(t, "com.bitrise.code-sign-test", properties.BundleIdentifier)
-			require.Equal(t, "Manual", properties.ProvisioningStyle)
 			require.Equal(t, "iPhone Developer", properties.CodeSignIdentity)
 			require.Equal(t, "548cd560-c511-4540-8b6b-cbec4a22f49d", properties.ProvisioningProfile)
 			require.Equal(t, "BitriseBot-Wildcard", properties.ProvisioningProfileSpecifier)
+			require.Equal(t, "72SA8V3WYL", properties.DevelopmentTeam)
 		}
 
 		{
 			properties, ok := targetCodeSignInfoMap["share-extension"]
 			require.True(t, ok)
 
-			require.Equal(t, true, strings.HasSuffix(properties.ProjectPth, "/code-sign-test.xcodeproj"), properties.ProjectPth)
-			require.Equal(t, true, strings.HasSuffix(properties.InfoPlistPth, "/share-extension/Info.plist"), properties.InfoPlistPth)
-			require.Equal(t, "Release", properties.Configuration)
-
 			require.Equal(t, "com.bitrise.code-sign-test.share-extension", properties.BundleIdentifier)
-			require.Equal(t, "Manual", properties.ProvisioningStyle)
 			require.Equal(t, "iPhone Developer", properties.CodeSignIdentity)
 			require.Equal(t, "548cd560-c511-4540-8b6b-cbec4a22f49d", properties.ProvisioningProfile)
 			require.Equal(t, "BitriseBot-Wildcard", properties.ProvisioningProfileSpecifier)
+			require.Equal(t, "72SA8V3WYL", properties.DevelopmentTeam)
 		}
 
 		{
 			properties, ok := targetCodeSignInfoMap["watchkit-app"]
 			require.True(t, ok)
 
-			require.Equal(t, true, strings.HasSuffix(properties.ProjectPth, "/code-sign-test.xcodeproj"), properties.ProjectPth)
-			require.Equal(t, true, strings.HasSuffix(properties.InfoPlistPth, "/watchkit-app/Info.plist"), properties.InfoPlistPth)
-			require.Equal(t, "Release", properties.Configuration)
-
 			require.Equal(t, "com.bitrise.code-sign-test.watchkitapp", properties.BundleIdentifier)
-			require.Equal(t, "Manual", properties.ProvisioningStyle)
 			require.Equal(t, "iPhone Developer", properties.CodeSignIdentity)
 			require.Equal(t, "548cd560-c511-4540-8b6b-cbec4a22f49d", properties.ProvisioningProfile)
 			require.Equal(t, "BitriseBot-Wildcard", properties.ProvisioningProfileSpecifier)
+			require.Equal(t, "72SA8V3WYL", properties.DevelopmentTeam)
 		}
 	}
 
 	{
 		projectPth := cloneSampleProject(t, "https://github.com/bitrise-samples/sample-apps-ios-simple-objc.git", "ios-simple-objc/ios-simple-objc.xcodeproj")
 
-		targetCodeSignInfoMap, err := ResolveCodeSignInfo(projectPth, "ios-simple-objc", "", user)
+		targetCodeSignInfoMap, err := ResolveCodeSignInfo(projectPth, "ios-simple-objc", user)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(targetCodeSignInfoMap))
+		require.Equal(t, 1, len(targetCodeSignInfoMap), fmt.Sprintf("%s", targetCodeSignInfoMap))
 
 		{
 			properties, ok := targetCodeSignInfoMap["ios-simple-objc"]
 			require.True(t, ok)
 
-			require.Equal(t, true, strings.HasSuffix(properties.ProjectPth, "/ios-simple-objc.xcodeproj"), properties.ProjectPth)
-			require.Equal(t, true, strings.HasSuffix(properties.InfoPlistPth, "/ios-simple-objc/Info.plist"), properties.InfoPlistPth)
-			require.Equal(t, "Release", properties.Configuration)
-
 			require.Equal(t, "Bitrise.ios-simple-objc", properties.BundleIdentifier)
-			require.Equal(t, "Manual", properties.ProvisioningStyle)
 			require.Equal(t, "iPhone Developer", properties.CodeSignIdentity)
 			require.Equal(t, "", properties.ProvisioningProfile)
 			require.Equal(t, "BitriseBot-Wildcard", properties.ProvisioningProfileSpecifier)
+			require.Equal(t, "72SA8V3WYL", properties.DevelopmentTeam)
 		}
 	}
 }

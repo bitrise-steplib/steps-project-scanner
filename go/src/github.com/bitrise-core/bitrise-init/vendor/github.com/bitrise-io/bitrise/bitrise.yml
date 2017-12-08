@@ -3,7 +3,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  - RELEASE_VERSION: 1.9.0
+  - RELEASE_VERSION: 1.10.0
   - BIN_NAME: bitrise
   - GITHUB_RELEASES_URL: https://github.com/bitrise-io/${BIN_NAME}/releases
 
@@ -301,10 +301,10 @@ workflows:
 
   # ----------------------------------------------------------------
   # --- workflows for Utility
-  godeps-update:
-    title: Godeps update
+  dep-update:
+    title: Dep update
     description: |
-      Used for updating bitrise dependencies with godep
+      Used for updating bitrise dependencies with dep
     steps:
     - script:
         title: Dependency update

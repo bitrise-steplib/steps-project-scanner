@@ -1,6 +1,16 @@
-## Changelog (Current version: 1.5.5)
+## Changelog (Current version: 1.6.0)
 
 -----------------
+
+### 1.6.0 (2017 Dec 08)
+
+* [c83eeb0] prepare for 1.6.0
+* [0a4ab03] Add export_method in xcode-archive step for ios scanner (#103)
+* [0602c21] step version updates (#104)
+* [fe62710] step version updates
+* [6e7d977] React fix (#102)
+* [3a61f58] removed install-react-native step, updated react-native config names, ios config without test update (#101)
+* [6cd9db9] install-missing-android-tools step version update (#100)
 
 ### 1.5.5 (2017 Aug 23)
 
@@ -287,4 +297,4 @@
 
 -----------------
 
-Updated: 2017 Aug 23
+Updated: 2017 Dec 08

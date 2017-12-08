@@ -124,7 +124,17 @@ var iosNoSharedSchemesResultYML = fmt.Sprintf(`options:
         env_key: BITRISE_SCHEME
         value_map:
           BitriseXcode7Sample:
-            config: ios-test-missing-shared-schemes-config
+            title: ipa export method
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              ad-hoc:
+                config: ios-test-missing-shared-schemes-config
+              app-store:
+                config: ios-test-missing-shared-schemes-config
+              development:
+                config: ios-test-missing-shared-schemes-config
+              enterprise:
+                config: ios-test-missing-shared-schemes-config
 configs:
   ios:
     ios-test-missing-shared-schemes-config: |
@@ -157,6 +167,7 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
         primary:
@@ -219,7 +230,17 @@ var iosCocoapodsAtRootResultYML = fmt.Sprintf(`options:
         env_key: BITRISE_SCHEME
         value_map:
           iOSMinimalCocoaPodsSample:
-            config: ios-pod-test-config
+            title: ipa export method
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              ad-hoc:
+                config: ios-pod-test-config
+              app-store:
+                config: ios-pod-test-config
+              development:
+                config: ios-pod-test-config
+              enterprise:
+                config: ios-pod-test-config
 configs:
   ios:
     ios-pod-test-config: |
@@ -250,6 +271,7 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
         primary:
@@ -314,15 +336,65 @@ var sampleAppsIosWatchkitResultYML = fmt.Sprintf(`options:
         env_key: BITRISE_SCHEME
         value_map:
           Complication - watch-test WatchKit App:
-            config: ios-config
+            title: ipa export method
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              ad-hoc:
+                config: ios-config
+              app-store:
+                config: ios-config
+              development:
+                config: ios-config
+              enterprise:
+                config: ios-config
           Glance - watch-test WatchKit App:
-            config: ios-config
+            title: ipa export method
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              ad-hoc:
+                config: ios-config
+              app-store:
+                config: ios-config
+              development:
+                config: ios-config
+              enterprise:
+                config: ios-config
           Notification - watch-test WatchKit App:
-            config: ios-config
+            title: ipa export method
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              ad-hoc:
+                config: ios-config
+              app-store:
+                config: ios-config
+              development:
+                config: ios-config
+              enterprise:
+                config: ios-config
           watch-test:
-            config: ios-test-config
+            title: ipa export method
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              ad-hoc:
+                config: ios-test-config
+              app-store:
+                config: ios-test-config
+              development:
+                config: ios-test-config
+              enterprise:
+                config: ios-test-config
           watch-test WatchKit App:
-            config: ios-config
+            title: ipa export method
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              ad-hoc:
+                config: ios-config
+              app-store:
+                config: ios-config
+              development:
+                config: ios-config
+              enterprise:
+                config: ios-config
 configs:
   ios:
     ios-config: |
@@ -348,6 +420,7 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
     ios-test-config: |
@@ -377,6 +450,7 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
         primary:
@@ -432,7 +506,17 @@ var sampleAppsCarthageResultYML = fmt.Sprintf(`options:
         env_key: BITRISE_SCHEME
         value_map:
           sample-apps-carthage:
-            config: ios-carthage-test-config
+            title: ipa export method
+            env_key: BITRISE_EXPORT_METHOD
+            value_map:
+              ad-hoc:
+                config: ios-carthage-test-config
+              app-store:
+                config: ios-carthage-test-config
+              development:
+                config: ios-carthage-test-config
+              enterprise:
+                config: ios-carthage-test-config
 configs:
   ios:
     ios-carthage-test-config: |
@@ -465,6 +549,7 @@ configs:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
               - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
         primary:

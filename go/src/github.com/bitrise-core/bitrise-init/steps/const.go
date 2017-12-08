@@ -11,42 +11,42 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "3.5.2"
+	GitCloneVersion = "3.6.2"
 )
 
 const (
 	// CachePullID ...
 	CachePullID = "cache-pull"
 	// CachePullVersion ...
-	CachePullVersion = "1.0.0"
+	CachePullVersion = "2.0.1"
 )
 
 const (
 	// CachePushID ...
 	CachePushID = "cache-push"
 	// CachePushVersion ...
-	CachePushVersion = "1.1.4"
+	CachePushVersion = "2.0.3"
 )
 
 const (
 	// CertificateAndProfileInstallerID ...
 	CertificateAndProfileInstallerID = "certificate-and-profile-installer"
 	// CertificateAndProfileInstallerVersion ...
-	CertificateAndProfileInstallerVersion = "1.8.8"
+	CertificateAndProfileInstallerVersion = "1.9.2"
 )
 
 const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.3.7"
+	DeployToBitriseIoVersion = "1.3.9"
 )
 
 const (
 	// ScriptID ...
 	ScriptID = "script"
 	// ScriptVersion ...
-	ScriptVersion = "1.1.4"
+	ScriptVersion = "1.1.5"
 	// ScriptDefaultTitle ...
 	ScriptDefaultTitle = "Do anything with Script step"
 )
@@ -55,14 +55,14 @@ const (
 	// InstallMissingAndroidToolsID ...
 	InstallMissingAndroidToolsID = "install-missing-android-tools"
 	// InstallMissingAndroidToolsVersion ...
-	InstallMissingAndroidToolsVersion = "2.0.2"
+	InstallMissingAndroidToolsVersion = "2.0.6"
 )
 
 const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.7.7"
+	GradleRunnerVersion = "1.8.0"
 )
 
 const (
@@ -76,14 +76,14 @@ const (
 	// CocoapodsInstallID ...
 	CocoapodsInstallID = "cocoapods-install"
 	// CocoapodsInstallVersion ...
-	CocoapodsInstallVersion = "1.7.1"
+	CocoapodsInstallVersion = "1.7.2"
 )
 
 const (
 	// CarthageID ...
 	CarthageID = "carthage"
 	// CarthageVersion ...
-	CarthageVersion = "3.1.2"
+	CarthageVersion = "3.1.3"
 )
 
 const (
@@ -97,14 +97,14 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.3.1"
+	XcodeArchiveVersion = "2.4.2"
 )
 
 const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "1.18.7"
+	XcodeTestVersion = "1.18.8"
 )
 
 const (
@@ -118,7 +118,7 @@ const (
 	// NugetRestoreID ...
 	NugetRestoreID = "nuget-restore"
 	// NugetRestoreVersion ...
-	NugetRestoreVersion = "1.0.4"
+	NugetRestoreVersion = "1.0.5"
 )
 
 const (
@@ -139,7 +139,7 @@ const (
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...
-	XcodeArchiveMacVersion = "1.5.1"
+	XcodeArchiveMacVersion = "1.6.0"
 )
 
 const (
@@ -153,14 +153,14 @@ const (
 	// CordovaArchiveID ...
 	CordovaArchiveID = "cordova-archive"
 	// CordovaArchiveVersion ...
-	CordovaArchiveVersion = "0.9.3"
+	CordovaArchiveVersion = "1.0.0"
 )
 
 const (
 	// IonicArchiveID ...
 	IonicArchiveID = "ionic-archive"
 	// IonicArchiveVersion ...
-	IonicArchiveVersion = "1.0.0"
+	IonicArchiveVersion = "1.2.1"
 )
 
 const (
