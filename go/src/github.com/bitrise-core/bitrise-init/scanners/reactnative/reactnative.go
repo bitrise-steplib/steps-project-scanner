@@ -48,22 +48,22 @@ func (Scanner) Name() string {
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	scanner.searchDir = searchDir
 
-	log.Infoft("Collect package.json files")
+	log.TInfof("Collect package.json files")
 
 	packageJSONPths, err := CollectPackageJSONFiles(searchDir)
 	if err != nil {
 		return false, err
 	}
 
-	log.Printft("%d package.json file detected", len(packageJSONPths))
+	log.TPrintf("%d package.json file detected", len(packageJSONPths))
 
-	log.Infoft("Filter relevant package.json files")
+	log.TInfof("Filter relevant package.json files")
 
 	relevantPackageJSONPths := []string{}
 	iosScanner := ios.NewScanner()
 	androidScanner := android.NewScanner()
 	for _, packageJSONPth := range packageJSONPths {
-		log.Printft("checking: %s", packageJSONPth)
+		log.TPrintf("checking: %s", packageJSONPth)
 
 		projectDir := filepath.Dir(packageJSONPth)
 
@@ -94,7 +94,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		if iosProjectDetected || androidProjectDetected {
 			relevantPackageJSONPths = append(relevantPackageJSONPths, packageJSONPth)
 		} else {
-			log.Warnft("no ios nor android project found, skipping package.json file")
+			log.TWarnf("no ios nor android project found, skipping package.json file")
 		}
 	}
 

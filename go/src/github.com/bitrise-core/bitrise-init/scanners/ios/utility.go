@@ -157,24 +157,24 @@ func Detect(projectType XcodeProjectType, searchDir string) (bool, error) {
 		return false, err
 	}
 
-	log.Infoft("Filter relevant Xcode project files")
+	log.TInfof("Filter relevant Xcode project files")
 
 	relevantXcodeprojectFiles, err := FilterRelevantProjectFiles(fileList, projectType)
 	if err != nil {
 		return false, err
 	}
 
-	log.Printft("%d Xcode %s project files found", len(relevantXcodeprojectFiles), string(projectType))
+	log.TPrintf("%d Xcode %s project files found", len(relevantXcodeprojectFiles), string(projectType))
 	for _, xcodeprojectFile := range relevantXcodeprojectFiles {
-		log.Printft("- %s", xcodeprojectFile)
+		log.TPrintf("- %s", xcodeprojectFile)
 	}
 
 	if len(relevantXcodeprojectFiles) == 0 {
-		log.Printft("platform not detected")
+		log.TPrintf("platform not detected")
 		return false, nil
 	}
 
-	log.Doneft("Platform detected")
+	log.TSuccessf("Platform detected")
 
 	return true, nil
 }
@@ -182,42 +182,42 @@ func Detect(projectType XcodeProjectType, searchDir string) (bool, error) {
 func printMissingSharedSchemesAndGenerateWarning(projectPth, defaultGitignorePth string, targets []xcodeproj.TargetModel) string {
 	isXcshareddataGitignored := false
 	if exist, err := pathutil.IsPathExists(defaultGitignorePth); err != nil {
-		log.Warnft("Failed to check if .gitignore file exists at: %s, error: %s", defaultGitignorePth, err)
+		log.TWarnf("Failed to check if .gitignore file exists at: %s, error: %s", defaultGitignorePth, err)
 	} else if exist {
 		isGitignored, err := utility.FileContains(defaultGitignorePth, "xcshareddata")
 		if err != nil {
-			log.Warnft("Failed to check if xcshareddata gitignored, error: %s", err)
+			log.TWarnf("Failed to check if xcshareddata gitignored, error: %s", err)
 		} else {
 			isXcshareddataGitignored = isGitignored
 		}
 	}
 
-	log.Printft("")
-	log.Errorft("No shared schemes found, adding recreate-user-schemes step...")
-	log.Errorft("The newly generated schemes may differ from the ones in your project.")
+	log.TPrintf("")
+	log.TErrorf("No shared schemes found, adding recreate-user-schemes step...")
+	log.TErrorf("The newly generated schemes may differ from the ones in your project.")
 
 	message := `No shared schemes found for project: ` + projectPth + `.` + "\n"
 
 	if isXcshareddataGitignored {
-		log.Errorft("Your gitignore file (%s) contains 'xcshareddata', maybe shared schemes are gitignored?", defaultGitignorePth)
-		log.Errorft("If not, make sure to share your schemes, to have the expected behaviour.")
+		log.TErrorf("Your gitignore file (%s) contains 'xcshareddata', maybe shared schemes are gitignored?", defaultGitignorePth)
+		log.TErrorf("If not, make sure to share your schemes, to have the expected behaviour.")
 
 		message += `Your gitignore file (` + defaultGitignorePth + `) contains 'xcshareddata', maybe shared schemes are gitignored?` + "\n"
 	} else {
-		log.Errorft("Make sure to share your schemes, to have the expected behaviour.")
+		log.TErrorf("Make sure to share your schemes, to have the expected behaviour.")
 	}
 
 	message += `Automatically generated schemes may differ from the ones in your project.
 Make sure to <a href="http://devcenter.bitrise.io/ios/frequent-ios-issues/#xcode-scheme-not-found">share your schemes</a> for the expected behaviour.`
 
-	log.Printft("")
+	log.TPrintf("")
 
-	log.Warnft("%d user schemes will be generated", len(targets))
+	log.TWarnf("%d user schemes will be generated", len(targets))
 	for _, target := range targets {
-		log.Warnft("- %s", target.Name)
+		log.TWarnf("- %s", target.Name)
 	}
 
-	log.Printft("")
+	log.TPrintf("")
 
 	return message
 }
@@ -279,17 +279,17 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 	}
 
 	// Create cocoapods workspace-project mapping
-	log.Infoft("Searching for Podfile")
+	log.TInfof("Searching for Podfile")
 
 	podfiles, err := FilterRelevantPodfiles(fileList)
 	if err != nil {
 		return models.OptionModel{}, []ConfigDescriptor{}, models.Warnings{}, err
 	}
 
-	log.Printft("%d Podfiles detected", len(podfiles))
+	log.TPrintf("%d Podfiles detected", len(podfiles))
 
 	for _, podfile := range podfiles {
-		log.Printft("- %s", podfile)
+		log.TPrintf("- %s", podfile)
 
 		workspaceProjectMap, err := GetWorkspaceProjectMap(podfile, projectFiles)
 		if err != nil {
@@ -312,16 +312,16 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 	}
 
 	// Carthage
-	log.Infoft("Searching for Cartfile")
+	log.TInfof("Searching for Cartfile")
 
 	cartfiles, err := FilterRelevantCartFile(fileList)
 	if err != nil {
 		return models.OptionModel{}, []ConfigDescriptor{}, models.Warnings{}, err
 	}
 
-	log.Printft("%d Cartfiles detected", len(cartfiles))
+	log.TPrintf("%d Cartfiles detected", len(cartfiles))
 	for _, file := range cartfiles {
-		log.Printft("- %s", file)
+		log.TPrintf("- %s", file)
 	}
 
 	// Create config descriptors & options
@@ -333,7 +333,7 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 
 	// Standalon Projects
 	for _, project := range standaloneProjects {
-		log.Infoft("Inspecting standalone project file: %s", project.Pth)
+		log.TInfof("Inspecting standalone project file: %s", project.Pth)
 
 		schemeOption := models.NewOption(SchemeInputTitle, SchemeInputEnvKey)
 		projectPathOption.AddOption(project.Pth, schemeOption)
@@ -343,7 +343,7 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 			warnings = append(warnings, warning)
 		}
 
-		log.Printft("%d shared schemes detected", len(project.SharedSchemes))
+		log.TPrintf("%d shared schemes detected", len(project.SharedSchemes))
 
 		if len(project.SharedSchemes) == 0 {
 			message := printMissingSharedSchemesAndGenerateWarning(project.Pth, defaultGitignorePth, project.Targets)
@@ -366,7 +366,7 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 			}
 		} else {
 			for _, scheme := range project.SharedSchemes {
-				log.Printft("- %s", scheme.Name)
+				log.TPrintf("- %s", scheme.Name)
 
 				exportMethodOption := models.NewOption(exportMethodInputTitle, ExportMethodInputEnvKey)
 				schemeOption.AddOption(scheme.Name, exportMethodOption)
@@ -385,7 +385,7 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 
 	// Workspaces
 	for _, workspace := range workspaces {
-		log.Infoft("Inspecting workspace file: %s", workspace.Pth)
+		log.TInfof("Inspecting workspace file: %s", workspace.Pth)
 
 		schemeOption := models.NewOption(SchemeInputTitle, SchemeInputEnvKey)
 		projectPathOption.AddOption(workspace.Pth, schemeOption)
@@ -396,7 +396,7 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 		}
 
 		sharedSchemes := workspace.GetSharedSchemes()
-		log.Printft("%d shared schemes detected", len(sharedSchemes))
+		log.TPrintf("%d shared schemes detected", len(sharedSchemes))
 
 		if len(sharedSchemes) == 0 {
 			targets := workspace.GetTargets()
@@ -420,7 +420,7 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 			}
 		} else {
 			for _, scheme := range sharedSchemes {
-				log.Printft("- %s", scheme.Name)
+				log.TPrintf("- %s", scheme.Name)
 
 				exportMethodOption := models.NewOption(exportMethodInputTitle, ExportMethodInputEnvKey)
 				schemeOption.AddOption(scheme.Name, exportMethodOption)
@@ -439,7 +439,7 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 	configDescriptors = RemoveDuplicatedConfigDescriptors(configDescriptors, projectType)
 
 	if len(configDescriptors) == 0 {
-		log.Errorft("No valid %s config found", string(projectType))
+		log.TErrorf("No valid %s config found", string(projectType))
 		return models.OptionModel{}, []ConfigDescriptor{}, warnings, fmt.Errorf("No valid %s config found", string(projectType))
 	}
 

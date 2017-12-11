@@ -64,7 +64,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	}
 
 	// Search for Fastfile
-	log.Infoft("Searching for Fastfiles")
+	log.TInfof("Searching for Fastfiles")
 
 	fastfiles, err := FilterFastfiles(fileList)
 	if err != nil {
@@ -73,17 +73,17 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 
 	scanner.Fastfiles = fastfiles
 
-	log.Printft("%d Fastfiles detected", len(fastfiles))
+	log.TPrintf("%d Fastfiles detected", len(fastfiles))
 	for _, file := range fastfiles {
-		log.Printft("- %s", file)
+		log.TPrintf("- %s", file)
 	}
 
 	if len(fastfiles) == 0 {
-		log.Printft("platform not detected")
+		log.TPrintf("platform not detected")
 		return false, nil
 	}
 
-	log.Doneft("Platform detected")
+	log.TSuccessf("Platform detected")
 
 	return true, nil
 }
@@ -104,22 +104,22 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	workDirOption := models.NewOption(workDirInputTitle, workDirInputEnvKey)
 
 	for _, fastfile := range scanner.Fastfiles {
-		log.Infoft("Inspecting Fastfile: %s", fastfile)
+		log.TInfof("Inspecting Fastfile: %s", fastfile)
 
 		workDir := WorkDir(fastfile)
-		log.Printft("fastlane work dir: %s", workDir)
+		log.TPrintf("fastlane work dir: %s", workDir)
 
 		lanes, err := InspectFastfile(fastfile)
 		if err != nil {
-			log.Warnft("Failed to inspect Fastfile, error: %s", err)
+			log.TWarnf("Failed to inspect Fastfile, error: %s", err)
 			warnings = append(warnings, fmt.Sprintf("Failed to inspect Fastfile (%s), error: %s", fastfile, err))
 			continue
 		}
 
-		log.Printft("%d lanes found", len(lanes))
+		log.TPrintf("%d lanes found", len(lanes))
 
 		if len(lanes) == 0 {
-			log.Warnft("No lanes found")
+			log.TWarnf("No lanes found")
 			warnings = append(warnings, fmt.Sprintf("No lanes found for Fastfile: %s", fastfile))
 			continue
 		}
@@ -130,7 +130,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 		workDirOption.AddOption(workDir, laneOption)
 
 		for _, lane := range lanes {
-			log.Printft("- %s", lane)
+			log.TPrintf("- %s", lane)
 
 			configOption := models.NewConfigOption(configName)
 			laneOption.AddConfig(lane, configOption)
@@ -138,7 +138,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	}
 
 	if !isValidFastfileFound {
-		log.Errorft("No valid Fastfile found")
+		log.TErrorf("No valid Fastfile found")
 		warnings = append(warnings, "No valid Fastfile found")
 		return models.OptionModel{}, warnings, nil
 	}

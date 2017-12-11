@@ -42,7 +42,7 @@ func Config(searchDir string) models.ScanResultModel {
 		}
 		defer func() {
 			if err := os.Chdir(currentDir); err != nil {
-				log.Warnft("Failed to change dir, to (%s), error: %s", searchDir, err)
+				log.TWarnf("Failed to change dir, to (%s), error: %s", searchDir, err)
 			}
 		}()
 	}
@@ -59,7 +59,7 @@ func Config(searchDir string) models.ScanResultModel {
 
 	excludedScannerNames := []string{}
 
-	log.Infoft(colorstring.Blue("Running scanners:"))
+	log.TInfof(colorstring.Blue("Running scanners:"))
 	fmt.Println()
 
 	for _, detector := range projectScanners {
@@ -67,28 +67,28 @@ func Config(searchDir string) models.ScanResultModel {
 		detectorWarnings := []string{}
 		detectorErrors := []string{}
 
-		log.Infoft("Scanner: %s", colorstring.Blue(detectorName))
+		log.TInfof("Scanner: %s", colorstring.Blue(detectorName))
 
 		if sliceutil.IsStringInSlice(detectorName, excludedScannerNames) {
-			log.Warnft("scanner is marked as excluded, skipping...")
+			log.TWarnf("scanner is marked as excluded, skipping...")
 			fmt.Println()
 			continue
 		}
 
-		log.Printft("+------------------------------------------------------------------------------+")
-		log.Printft("|                                                                              |")
+		log.TPrintf("+------------------------------------------------------------------------------+")
+		log.TPrintf("|                                                                              |")
 
 		detected, err := detector.DetectPlatform(searchDir)
 		if err != nil {
-			log.Errorft("Scanner failed, error: %s", err)
+			log.TErrorf("Scanner failed, error: %s", err)
 			detectorWarnings = append(detectorWarnings, err.Error())
 			projectTypeWarningMap[detectorName] = detectorWarnings
 			detected = false
 		}
 
 		if !detected {
-			log.Printft("|                                                                              |")
-			log.Printft("+------------------------------------------------------------------------------+")
+			log.TPrintf("|                                                                              |")
+			log.TPrintf("+------------------------------------------------------------------------------+")
 			fmt.Println()
 			continue
 		}
@@ -97,12 +97,12 @@ func Config(searchDir string) models.ScanResultModel {
 		detectorWarnings = append(detectorWarnings, projectWarnings...)
 
 		if err != nil {
-			log.Errorft("Analyzer failed, error: %s", err)
+			log.TErrorf("Analyzer failed, error: %s", err)
 			detectorWarnings = append(detectorWarnings, err.Error())
 			projectTypeWarningMap[detectorName] = detectorWarnings
 
-			log.Printft("|                                                                              |")
-			log.Printft("+------------------------------------------------------------------------------+")
+			log.TPrintf("|                                                                              |")
+			log.TPrintf("+------------------------------------------------------------------------------+")
 			fmt.Println()
 			continue
 		}
@@ -113,7 +113,7 @@ func Config(searchDir string) models.ScanResultModel {
 		// Generate configs
 		configs, err := detector.Configs()
 		if err != nil {
-			log.Errorft("Failed to generate config, error: %s", err)
+			log.TErrorf("Failed to generate config, error: %s", err)
 			detectorErrors = append(detectorErrors, err.Error())
 			projectTypeErrorMap[detectorName] = detectorErrors
 			continue
@@ -121,12 +121,12 @@ func Config(searchDir string) models.ScanResultModel {
 
 		projectTypeConfigMap[detectorName] = configs
 
-		log.Printft("|                                                                              |")
-		log.Printft("+------------------------------------------------------------------------------+")
+		log.TPrintf("|                                                                              |")
+		log.TPrintf("+------------------------------------------------------------------------------+")
 
 		exludedScanners := detector.ExcludedScannerNames()
 		if len(exludedScanners) > 0 {
-			log.Warnft("Scanner will exclude scanners: %v", exludedScanners)
+			log.TWarnf("Scanner will exclude scanners: %v", exludedScanners)
 			excludedScannerNames = append(excludedScannerNames, exludedScanners...)
 		}
 

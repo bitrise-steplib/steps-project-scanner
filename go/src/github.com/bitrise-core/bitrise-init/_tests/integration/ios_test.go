@@ -3,14 +3,12 @@ package integration
 import (
 	"fmt"
 	"path/filepath"
-	"testing"
-
 	"strings"
+	"testing"
 
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/command/git"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -24,7 +22,7 @@ func TestIOS(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "ios-no-shared-scheme")
 		sampleAppURL := "https://github.com/bitrise-samples/ios-no-shared-schemes.git"
-		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
+		gitClone(t, sampleAppDir, sampleAppURL)
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -41,7 +39,7 @@ func TestIOS(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "ios-cocoapods-at-root")
 		sampleAppURL := "https://github.com/bitrise-samples/ios-cocoapods-at-root.git"
-		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
+		gitClone(t, sampleAppDir, sampleAppURL)
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -58,7 +56,7 @@ func TestIOS(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-ios-watchkit")
 		sampleAppURL := "https://github.com/bitrise-io/sample-apps-ios-watchkit.git"
-		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
+		gitClone(t, sampleAppDir, sampleAppURL)
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -76,7 +74,7 @@ func TestIOS(t *testing.T) {
 		//
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-carthage")
 		sampleAppURL := "https://github.com/bitrise-samples/sample-apps-carthage.git"
-		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
+		gitClone(t, sampleAppDir, sampleAppURL)
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()

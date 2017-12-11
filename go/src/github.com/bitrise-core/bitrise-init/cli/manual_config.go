@@ -23,7 +23,7 @@ var manualConfigCommand = cli.Command{
 	Usage: "Generates default bitrise config files.",
 	Action: func(c *cli.Context) error {
 		if err := initManualConfig(c); err != nil {
-			log.Errorft(err.Error())
+			log.TErrorf(err.Error())
 			os.Exit(1)
 		}
 		return nil
@@ -49,10 +49,10 @@ func initManualConfig(c *cli.Context) error {
 	formatStr := c.String("format")
 
 	if isCI {
-		log.Infoft(colorstring.Yellow("CI mode"))
+		log.TInfof(colorstring.Yellow("CI mode"))
 	}
-	log.Infoft(colorstring.Yellowf("output dir: %s", outputDir))
-	log.Infoft(colorstring.Yellowf("output format: %s", formatStr))
+	log.TInfof(colorstring.Yellowf("output dir: %s", outputDir))
+	log.TInfof(colorstring.Yellowf("output format: %s", formatStr))
 	fmt.Println()
 
 	currentDir, err := pathutil.AbsPath("./")
@@ -94,7 +94,7 @@ func initManualConfig(c *cli.Context) error {
 
 	// Write output to files
 	if isCI {
-		log.Infoft(colorstring.Blue("Saving outputs:"))
+		log.TInfof(colorstring.Blue("Saving outputs:"))
 
 		if err := os.MkdirAll(outputDir, 0700); err != nil {
 			return fmt.Errorf("Failed to create (%s), error: %s", outputDir, err)
@@ -105,14 +105,14 @@ func initManualConfig(c *cli.Context) error {
 		if err != nil {
 			return fmt.Errorf("Failed to print result, error: %s", err)
 		}
-		log.Infoft("  scan result: %s", colorstring.Blue(outputPth))
+		log.TInfof("  scan result: %s", colorstring.Blue(outputPth))
 
 		return nil
 	}
 	// ---
 
 	// Select option
-	log.Infoft(colorstring.Blue("Collecting inputs:"))
+	log.TInfof(colorstring.Blue("Collecting inputs:"))
 
 	config, err := scanner.AskForConfig(scanResult)
 	if err != nil {
@@ -124,7 +124,7 @@ func initManualConfig(c *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to print result, error: %s", err)
 	}
-	log.Infoft("  bitrise.yml template: %s", colorstring.Blue(outputPth))
+	log.TInfof("  bitrise.yml template: %s", colorstring.Blue(outputPth))
 	fmt.Println()
 	// ---
 
