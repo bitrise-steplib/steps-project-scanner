@@ -97,14 +97,14 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.4.2"
+	XcodeArchiveVersion = "2.4.3"
 )
 
 const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "1.18.8"
+	XcodeTestVersion = "1.18.9"
 )
 
 const (
@@ -139,14 +139,14 @@ const (
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...
-	XcodeArchiveMacVersion = "1.6.0"
+	XcodeArchiveMacVersion = "1.6.1"
 )
 
 const (
 	// XcodeTestMacID ...
 	XcodeTestMacID = "xcode-test-mac"
 	// XcodeTestMacVersion ...
-	XcodeTestMacVersion = "1.1.0"
+	XcodeTestMacVersion = "1.1.2"
 )
 
 const (

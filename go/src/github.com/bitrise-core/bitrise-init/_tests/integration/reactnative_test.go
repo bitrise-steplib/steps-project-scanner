@@ -9,7 +9,6 @@ import (
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/command/git"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/stretchr/testify/require"
@@ -23,7 +22,7 @@ func TestReactNative(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-react-native-ios-and-android")
 		sampleAppURL := "https://github.com/bitrise-samples/sample-apps-react-native-ios-and-android.git"
-		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
+		gitClone(t, sampleAppDir, sampleAppURL)
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -40,7 +39,7 @@ func TestReactNative(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-react-native-subdir")
 		sampleAppURL := "https://github.com/bitrise-samples/sample-apps-react-native-subdir.git"
-		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
+		gitClone(t, sampleAppDir, sampleAppURL)
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()

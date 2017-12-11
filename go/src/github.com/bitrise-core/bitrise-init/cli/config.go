@@ -25,7 +25,7 @@ var configCommand = cli.Command{
 	Usage: "Generates a bitrise config files based on your project.",
 	Action: func(c *cli.Context) error {
 		if err := initConfig(c); err != nil {
-			log.Errorft(err.Error())
+			log.TErrorf(err.Error())
 			os.Exit(1)
 		}
 		return nil
@@ -62,11 +62,11 @@ func initConfig(c *cli.Context) error {
 	formatStr := c.String("format")
 
 	if isCI {
-		log.Infoft(colorstring.Yellow("CI mode"))
+		log.TInfof(colorstring.Yellow("CI mode"))
 	}
-	log.Infoft(colorstring.Yellowf("scan dir: %s", searchDir))
-	log.Infoft(colorstring.Yellowf("output dir: %s", outputDir))
-	log.Infoft(colorstring.Yellowf("output format: %s", formatStr))
+	log.TInfof(colorstring.Yellowf("scan dir: %s", searchDir))
+	log.TInfof(colorstring.Yellowf("output dir: %s", outputDir))
+	log.TInfof(colorstring.Yellowf("output format: %s", formatStr))
 	fmt.Println()
 
 	currentDir, err := pathutil.AbsPath("./")
@@ -120,17 +120,17 @@ func initConfig(c *cli.Context) error {
 		cmd := command.New("which", "tree")
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 		if err != nil || out == "" {
-			log.Errorft("tree not installed, can not list files")
+			log.TErrorf("tree not installed, can not list files")
 		} else {
 			fmt.Println()
 			cmd := command.NewWithStandardOuts("tree", ".", "-L", "3")
-			log.Printft("$ %s", cmd.PrintableCommandArgs())
+			log.TPrintf("$ %s", cmd.PrintableCommandArgs())
 			if err := cmd.Run(); err != nil {
-				log.Errorft("Failed to list files in current directory, error: %s", err)
+				log.TErrorf("Failed to list files in current directory, error: %s", err)
 			}
 		}
 
-		log.Infoft("Saving outputs:")
+		log.TInfof("Saving outputs:")
 		scanResult.AddError("general", "No known platform detected")
 
 		outputPth, err := writeScanResult(scanResult, outputDir, format)
@@ -138,26 +138,26 @@ func initConfig(c *cli.Context) error {
 			return fmt.Errorf("Failed to write output, error: %s", err)
 		}
 
-		log.Printft("  scan result: %s", outputPth)
+		log.TPrintf("  scan result: %s", outputPth)
 		return fmt.Errorf("No known platform detected")
 	}
 
 	// Write output to files
 	if isCI {
-		log.Infoft("Saving outputs:")
+		log.TInfof("Saving outputs:")
 
 		outputPth, err := writeScanResult(scanResult, outputDir, format)
 		if err != nil {
 			return fmt.Errorf("Failed to write output, error: %s", err)
 		}
 
-		log.Printft("  scan result: %s", outputPth)
+		log.TPrintf("  scan result: %s", outputPth)
 		return nil
 	}
 	// ---
 
 	// Select option
-	log.Infoft("Collecting inputs:")
+	log.TInfof("Collecting inputs:")
 
 	config, err := scanner.AskForConfig(scanResult)
 	if err != nil {
@@ -177,7 +177,7 @@ func initConfig(c *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to print result, error: %s", err)
 	}
-	log.Infoft("  bitrise.yml template: %s", outputPth)
+	log.TInfof("  bitrise.yml template: %s", outputPth)
 	fmt.Println()
 	// ---
 

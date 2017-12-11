@@ -4,14 +4,14 @@
 [[projects]]
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
-  revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
-  version = "v1.0.3"
+  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
+  version = "v1.0.4"
 
 [[projects]]
+  branch = "master"
   name = "github.com/bitrise-io/bitrise"
   packages = ["models"]
-  revision = "798c1c75ba4e525eb99fbe6fc17029ddaf2b3e7c"
-  version = "1.10.0"
+  revision = "c593bcaf0c7ef71b0a6c99896475c31d13af922a"
 
 [[projects]]
   name = "github.com/bitrise-io/envman"
@@ -23,7 +23,7 @@
   branch = "master"
   name = "github.com/bitrise-io/go-utils"
   packages = ["colorstring","command","command/git","command/rubyscript","errorutil","fileutil","log","parseutil","pathutil","pointers","sliceutil"]
-  revision = "961320f9011cedf55e1da0578949bf63450a96c0"
+  revision = "e2d40cad7992353c1f14cc24c86638d9e164bf52"
 
 [[projects]]
   branch = "master"
@@ -32,16 +32,16 @@
   revision = "f451b19ba4d087d8272d411ad91af5f4218fd517"
 
 [[projects]]
+  branch = "master"
   name = "github.com/bitrise-io/stepman"
   packages = ["models"]
-  revision = "f528959740f424f44e678f4f4e74eebf82fdd582"
-  version = "0.9.35"
+  revision = "0bd88cfa5b4c5b54d38a388b4daaaf22f4780904"
 
 [[projects]]
   branch = "master"
   name = "github.com/bitrise-tools/go-xcode"
   packages = ["plistutil","xcodeproj"]
-  revision = "69c79f6039848745dc3942f8cf1db920264ee1ce"
+  revision = "c23fa74e7b04374fbff484fd12ba87cf64cd89e1"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -68,34 +68,34 @@
   revision = "256dc444b735e061061cf46c809487313d5b0065"
 
 [[projects]]
+  branch = "master"
   name = "github.com/stretchr/testify"
   packages = ["assert","require"]
-  revision = "69483b4bd14f5845b5a1e55bca19e954e827f1d0"
-  version = "v1.1.4"
+  revision = "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f"
 
 [[projects]]
+  branch = "master"
   name = "github.com/urfave/cli"
   packages = ["."]
-  revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
-  version = "v1.20.0"
+  revision = "119bb6564841921ce6f1401e0f5d75317bdd9f4d"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "6a293f2d4b14b8e6d3f0539e383f6d0d30fce3fd"
+  revision = "94eea52f7b742c7cbe0b03b22f0c4c8631ece122"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix","windows"]
-  revision = "75813c647272dd855bda156405bf844a5414f5bf"
+  revision = "a0f4589a76f1f83070cb9e5613809e1d07b97c13"
 
 [[projects]]
   branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "eb3733d160e74a9c7e442f435eb3bea458e1d19f"
+  revision = "287cf08546ab5e7e37d55a84f7ed3fd1db036de5"
 
 [[projects]]
   branch = "master"
@@ -106,6 +106,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7ee047aeb8b6ee609c2cd89ee2f06c433727ee1162c7035ce3023a49e2b1317c"
+  inputs-digest = "d393927ce09aa48bc91362db0094dca09c26f87016f9e4426163f1e18735fdfc"
   solver-name = "gps-cdcl"
   solver-version = 1

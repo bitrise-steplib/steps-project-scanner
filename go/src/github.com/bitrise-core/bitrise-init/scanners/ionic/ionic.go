@@ -74,31 +74,31 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	}
 
 	// Search for config.xml file
-	log.Infoft("Searching for config.xml file")
+	log.TInfof("Searching for config.xml file")
 
 	configXMLPth, err := cordova.FilterRootConfigXMLFile(fileList)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for config.xml file, error: %s", err)
 	}
 
-	log.Printft("config.xml: %s", configXMLPth)
+	log.TPrintf("config.xml: %s", configXMLPth)
 
 	if configXMLPth == "" {
-		log.Printft("platform not detected")
+		log.TPrintf("platform not detected")
 		return false, nil
 	}
 
 	widget, err := cordova.ParseConfigXML(configXMLPth)
 	if err != nil {
-		log.Printft("can not parse config.xml as a Cordova widget, error: %s", err)
-		log.Printft("platform not detected")
+		log.TPrintf("can not parse config.xml as a Cordova widget, error: %s", err)
+		log.TPrintf("platform not detected")
 		return false, nil
 	}
 
 	// ensure it is a cordova widget
 	if !strings.Contains(widget.XMLNSCDV, "cordova.apache.org") {
-		log.Printft("config.xml propert: xmlns:cdv does not contain cordova.apache.org")
-		log.Printft("platform not detected")
+		log.TPrintf("config.xml propert: xmlns:cdv does not contain cordova.apache.org")
+		log.TPrintf("platform not detected")
 		return false, nil
 	}
 
@@ -120,7 +120,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		return false, nil
 	}
 
-	log.Doneft("Platform detected")
+	log.TSuccessf("Platform detected")
 
 	scanner.cordovaConfigPth = configXMLPth
 	scanner.searchDir = searchDir
@@ -150,7 +150,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	}
 
 	// Search for karma/jasmine tests
-	log.Printft("Searching for karma/jasmine test")
+	log.TPrintf("Searching for karma/jasmine test")
 
 	karmaTestDetected := false
 
@@ -167,7 +167,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 			}
 		}
 	}
-	log.Printft("karma-jasmine dependency found: %v", karmaJasmineDependencyFound)
+	log.TPrintf("karma-jasmine dependency found: %v", karmaJasmineDependencyFound)
 
 	if karmaJasmineDependencyFound {
 		karmaConfigJSONPth := filepath.Join(projectRootDir, "karma.conf.js")
@@ -177,7 +177,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 			karmaTestDetected = true
 		}
 	}
-	log.Printft("karma.conf.js found: %v", karmaTestDetected)
+	log.TPrintf("karma.conf.js found: %v", karmaTestDetected)
 
 	scanner.hasKarmaJasmineTest = karmaTestDetected
 	// ---
@@ -186,7 +186,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	jasminTestDetected := false
 
 	if !karmaTestDetected {
-		log.Printft("Searching for jasmine test")
+		log.TPrintf("Searching for jasmine test")
 
 		jasmineDependencyFound := false
 		for dependency := range packages.Dependencies {
@@ -203,7 +203,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 				}
 			}
 		}
-		log.Printft("jasmine dependency found: %v", jasmineDependencyFound)
+		log.TPrintf("jasmine dependency found: %v", jasmineDependencyFound)
 
 		if jasmineDependencyFound {
 			jasmineConfigJSONPth := filepath.Join(projectRootDir, "spec", "support", "jasmine.json")
@@ -214,7 +214,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 			}
 		}
 
-		log.Printft("jasmine.json found: %v", jasminTestDetected)
+		log.TPrintf("jasmine.json found: %v", jasminTestDetected)
 
 		scanner.hasJasmineTest = jasminTestDetected
 	}

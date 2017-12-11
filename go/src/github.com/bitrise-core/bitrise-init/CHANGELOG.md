@@ -1,6 +1,19 @@
-## Changelog (Current version: 1.6.0)
+## Changelog (Current version: 1.6.2)
 
 -----------------
+
+### 1.6.2 (2017 Dec 11)
+
+* [2cf2e0b] prepare for 1.6.2
+* [dd662b3] Update step versions (#106)
+* [437427e] v1.6.1
+* [e139793] prepare for 1.6.1
+* [7634988] dep update (#105)
+
+### 1.6.1 (2017 Dec 08)
+
+* [e139793] prepare for 1.6.1
+* [7634988] dep update (#105)
 
 ### 1.6.0 (2017 Dec 08)
 
@@ -297,4 +310,4 @@
 
 -----------------
 
-Updated: 2017 Dec 08
+Updated: 2017 Dec 11

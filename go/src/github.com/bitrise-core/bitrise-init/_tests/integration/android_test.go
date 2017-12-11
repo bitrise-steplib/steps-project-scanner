@@ -15,6 +15,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func gitClone(t *testing.T, dir, uri string) {
+	fmt.Printf("cloning into: %s\n", dir)
+	g, err := git.New(dir)
+	require.NoError(t, err)
+	require.NoError(t, g.Clone(uri).Run())
+}
+
 func TestAndroid(t *testing.T) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("__android__")
 	require.NoError(t, err)
@@ -23,7 +30,7 @@ func TestAndroid(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "sample-apps-android-sdk22")
 		sampleAppURL := "https://github.com/bitrise-samples/sample-apps-android-sdk22.git"
-		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
+		gitClone(t, sampleAppDir, sampleAppURL)
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -40,7 +47,7 @@ func TestAndroid(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "android-non-executable-gradlew")
 		sampleAppURL := "https://github.com/bitrise-samples/android-non-executable-gradlew.git"
-		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
+		gitClone(t, sampleAppDir, sampleAppURL)
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -57,7 +64,7 @@ func TestAndroid(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "android-sdk22-no-gradlew")
 		sampleAppURL := "https://github.com/bitrise-samples/android-sdk22-no-gradlew.git"
-		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
+		gitClone(t, sampleAppDir, sampleAppURL)
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		_, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -74,7 +81,7 @@ func TestAndroid(t *testing.T) {
 	{
 		sampleAppDir := filepath.Join(tmpDir, "android-sdk22-subdir")
 		sampleAppURL := "https://github.com/bitrise-samples/sample-apps-android-sdk22-subdir"
-		require.NoError(t, git.Clone(sampleAppURL, sampleAppDir))
+		gitClone(t, sampleAppDir, sampleAppURL)
 
 		cmd := command.New(binPath(), "--ci", "config", "--dir", sampleAppDir, "--output-dir", sampleAppDir)
 		_, err := cmd.RunAndReturnTrimmedCombinedOutput()
