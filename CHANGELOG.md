@@ -1,6 +1,12 @@
-## Changelog (Current version: 1.5.8)
+## Changelog (Current version: 1.6.0)
 
 -----------------
+
+### 1.6.0 (2017 Dec 11)
+
+* [31a198f] prepare for 1.6.0
+* [9338504] Bitrise init update (#52)
+* [e37ae2c] bitrise-init update to 1.6.0 (#51)
 
 ### 1.5.8 (2017 Sep 26)
 
@@ -240,4 +246,4 @@
 
 -----------------
 
-Updated: 2017 Sep 26
+Updated: 2017 Dec 11
