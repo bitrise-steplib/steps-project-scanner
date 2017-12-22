@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.6.3)
+## Changelog (Current version: 1.6.4)
 
 -----------------
+
+### 1.6.4 (2017 Dec 22)
+
+* [f26214a] Prepare for 1.6.4
+* [0d3fa74] updated const.go (#108)
 
 ### 1.6.3 (2017 Dec 22)
 

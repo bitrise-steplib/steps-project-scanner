@@ -11,7 +11,7 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "4.0.4"
+	GitCloneVersion = "4.0.5"
 )
 
 const (
@@ -69,7 +69,7 @@ const (
 	// FastlaneID ...
 	FastlaneID = "fastlane"
 	// FastlaneVersion ...
-	FastlaneVersion = "2.3.11"
+	FastlaneVersion = "2.3.12"
 )
 
 const (
