@@ -1,6 +1,10 @@
-## Changelog (Current version: 1.6.1)
+## Changelog (Current version: 1.6.2)
 
 -----------------
+
+### 1.6.2 (2017 Dec 22)
+
+* [f7bc058] Prepare for 1.6.2
 
 ### 1.6.1 (2017 Dec 22)
 
