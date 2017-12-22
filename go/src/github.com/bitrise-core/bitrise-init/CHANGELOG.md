@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.6.2)
+## Changelog (Current version: 1.6.3)
 
 -----------------
+
+### 1.6.3 (2017 Dec 22)
+
+* [a80b37a] Prepare for 1.6.3
+* [a387c3e] Update step versions (#107)
 
 ### 1.6.2 (2017 Dec 11)
 
@@ -310,4 +315,4 @@
 
 -----------------
 
-Updated: 2017 Dec 11
+Updated: 2017 Dec 22
