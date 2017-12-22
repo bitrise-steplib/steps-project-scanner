@@ -11,7 +11,7 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "3.6.2"
+	GitCloneVersion = "4.0.4"
 )
 
 const (
@@ -39,7 +39,7 @@ const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.3.9"
+	DeployToBitriseIoVersion = "1.3.10"
 )
 
 const (
@@ -69,7 +69,7 @@ const (
 	// FastlaneID ...
 	FastlaneID = "fastlane"
 	// FastlaneVersion ...
-	FastlaneVersion = "2.3.9"
+	FastlaneVersion = "2.3.11"
 )
 
 const (
@@ -153,7 +153,7 @@ const (
 	// CordovaArchiveID ...
 	CordovaArchiveID = "cordova-archive"
 	// CordovaArchiveVersion ...
-	CordovaArchiveVersion = "1.0.0"
+	CordovaArchiveVersion = "1.0.1"
 )
 
 const (
