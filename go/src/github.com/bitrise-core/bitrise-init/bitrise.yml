@@ -1,4 +1,4 @@
-format_version: "2"
+format_version: "5"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
@@ -9,10 +9,6 @@ workflows:
   # ----------------------------------------------------------------
   # --- workflows for CI and testing
   ci:
-    title: Bitrise Init CI
-    description: Bitrise Init CI
-    before_run:
-    - _prepare_and_setup
     after_run:
     - go-test
     - integration-test
@@ -20,30 +16,28 @@ workflows:
   go-test:
     steps:
     - script:
-        title: Print go environment
-        inputs:
-        - content: |-
-            set -x
-            go version
-            echo $GO15VENDOREXPERIMENT
-    - script:
         title: Export go files to test
         inputs:
-        - content: |-
-            set -e
-            set -x
+        - content: |
+            #!/usr/bin/env bash
+            set -ex
             no_vendor_paths="$(go list ./... | grep -v vendor)"
             envman add --key GOLIST_WITHOUT_VENDOR --value "$no_vendor_paths"
     - script:
         title: Err check
         inputs:
-        - content: errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
+        - content: |
+            #!/usr/bin/env bash
+            set -ex
+            go get -u github.com/kisielk/errcheck
+            errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
     - script:
         title: Go lint
         inputs:
         - content: |-
-            #!/bin/bash
-            set -e
+            #!/usr/bin/env bash
+            set -ex
+            go get -u github.com/golang/lint/golint
             while read -r line; do
               echo "-> Linting: $line"
               golint_out="$(golint $line)"
@@ -86,33 +80,8 @@ workflows:
 
   # ----------------------------------------------------------------
   # --- workflows for Utility
-  _prepare_and_setup:
-    title: Prepare bitrise and install testing tools
-    description: |
-        Prepares the environment for testing
-    steps:
-    - script:
-        title: Install testing tools
-        run_if: ".IsCI"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -e
-            set -x
-
-            # Install dependencies
-            go get -u github.com/tools/godep
-
-            # Check for unhandled errors
-            go get -u github.com/kisielk/errcheck
-
-            # Go lint
-            go get -u github.com/golang/lint/golint
-
   dep-update:
-    title: Godeps update
-    description: |
-      Used for updating bitrise dependencies with godep
+    title: Do dependency update
     steps:
     - script:
         title: Dependency update
