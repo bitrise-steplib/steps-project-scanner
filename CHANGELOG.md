@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.6.2)
+## Changelog (Current version: 1.6.3)
 
 -----------------
+
+### 1.6.3 (2018 Apr 06)
+
+* [61ab947] Prepare for 1.6.3
+* [a75fc10] Dependency uptade (#54)
 
 ### 1.6.2 (2017 Dec 22)
 
@@ -255,4 +260,4 @@
 
 -----------------
 
-Updated: 2017 Dec 22
+Updated: 2018 Apr 06
