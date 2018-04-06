@@ -24,9 +24,9 @@ type ScannerInterface interface {
 	// - the name of the scanner
 	Name() string
 
-	// Should implement as minimal logic as possible to determin if searchDir contains the - in question - platform or not.
+	// Should implement as minimal logic as possible to determine if searchDir contains the - in question - platform or not.
 	// Inouts:
-	// - searchDir: the directory where the project to scann exists.
+	// - searchDir: the directory where the project to scan exists.
 	// Returns:
 	// - platform detected
 	// - error if (if any)
@@ -38,7 +38,7 @@ type ScannerInterface interface {
 	// OptionModel is the model, used to store the available configuration combintaions.
 	// It defines option branches which leads different bitrise configurations.
 	// Each branch should define a complete and valid options to build the final bitrise config model.
-	// Every OptionModel branch's last options has to be the key of the workflow (in the BitriseConfigMap), which will fulfilled with the selected options.
+	// Every OptionModel branch's last options has to be the key of the workflow (in the BitriseConfigMap), which will be fulfilled with the selected options.
 	// Returns:
 	// - OptionModel
 	// - Warnings (if any)
@@ -49,7 +49,7 @@ type ScannerInterface interface {
 	// - default options for the platform.
 	DefaultOptions() models.OptionModel
 
-	// BitriseConfigMap's each element is a bitrise config template which will fulfilled with the user selected options.
+	// BitriseConfigMap's each element is a bitrise config template which will be fulfilled with the user selected options.
 	// Every config's key should be the last option one of the OptionModel branches.
 	// Returns:
 	// - platform BitriseConfigMap

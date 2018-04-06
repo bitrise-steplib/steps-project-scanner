@@ -11,7 +11,7 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "4.0.5"
+	GitCloneVersion = "4.0.10"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 	// CachePushID ...
 	CachePushID = "cache-push"
 	// CachePushVersion ...
-	CachePushVersion = "2.0.3"
+	CachePushVersion = "2.0.5"
 )
 
 const (
@@ -55,14 +55,14 @@ const (
 	// InstallMissingAndroidToolsID ...
 	InstallMissingAndroidToolsID = "install-missing-android-tools"
 	// InstallMissingAndroidToolsVersion ...
-	InstallMissingAndroidToolsVersion = "2.0.6"
+	InstallMissingAndroidToolsVersion = "2.1.1"
 )
 
 const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.8.0"
+	GradleRunnerVersion = "1.8.3"
 )
 
 const (
@@ -97,14 +97,14 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.4.3"
+	XcodeArchiveVersion = "2.4.6"
 )
 
 const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "1.18.9"
+	XcodeTestVersion = "1.18.13"
 )
 
 const (
@@ -139,7 +139,7 @@ const (
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...
-	XcodeArchiveMacVersion = "1.6.1"
+	XcodeArchiveMacVersion = "1.6.2"
 )
 
 const (
@@ -153,14 +153,14 @@ const (
 	// CordovaArchiveID ...
 	CordovaArchiveID = "cordova-archive"
 	// CordovaArchiveVersion ...
-	CordovaArchiveVersion = "1.0.1"
+	CordovaArchiveVersion = "1.1.1"
 )
 
 const (
 	// IonicArchiveID ...
 	IonicArchiveID = "ionic-archive"
 	// IonicArchiveVersion ...
-	IonicArchiveVersion = "1.2.1"
+	IonicArchiveVersion = "1.2.2"
 )
 
 const (
@@ -188,5 +188,5 @@ const (
 	// NpmID ...
 	NpmID = "npm"
 	// NpmVersion ...
-	NpmVersion = "0.9.0"
+	NpmVersion = "0.9.1"
 )
