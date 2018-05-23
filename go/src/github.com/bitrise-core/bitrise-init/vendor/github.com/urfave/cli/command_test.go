@@ -243,3 +243,77 @@ func TestCommand_Run_SubcommandsCanUseErrWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestCommandFlagReordering(t *testing.T) {
+	cases := []struct {
+		testArgs      []string
+		expectedValue string
+		expectedArgs  []string
+		expectedErr   error
+	}{
+		{[]string{"some-exec", "some-command", "some-arg", "--flag", "foo"}, "foo", []string{"some-arg"}, nil},
+		{[]string{"some-exec", "some-command", "some-arg", "--flag=foo"}, "foo", []string{"some-arg"}, nil},
+		{[]string{"some-exec", "some-command", "--flag=foo", "some-arg"}, "foo", []string{"some-arg"}, nil},
+	}
+
+	for _, c := range cases {
+		value := ""
+		args := []string{}
+		app := &App{
+			Commands: []Command{
+				{
+					Name: "some-command",
+					Flags: []Flag{
+						StringFlag{Name: "flag"},
+					},
+					Action: func(c *Context) {
+						fmt.Printf("%+v\n", c.String("flag"))
+						value = c.String("flag")
+						args = c.Args()
+					},
+				},
+			},
+		}
+
+		err := app.Run(c.testArgs)
+		expect(t, err, c.expectedErr)
+		expect(t, value, c.expectedValue)
+		expect(t, args, c.expectedArgs)
+	}
+}
+
+func TestCommandSkipFlagParsing(t *testing.T) {
+	cases := []struct {
+		testArgs     []string
+		expectedArgs []string
+		expectedErr  error
+	}{
+		{[]string{"some-exec", "some-command", "some-arg", "--flag", "foo"}, []string{"some-arg", "--flag", "foo"}, nil},
+		{[]string{"some-exec", "some-command", "some-arg", "--flag=foo"}, []string{"some-arg", "--flag=foo"}, nil},
+	}
+
+	for _, c := range cases {
+		value := ""
+		args := []string{}
+		app := &App{
+			Commands: []Command{
+				{
+					SkipFlagParsing: true,
+					Name:            "some-command",
+					Flags: []Flag{
+						StringFlag{Name: "flag"},
+					},
+					Action: func(c *Context) {
+						fmt.Printf("%+v\n", c.String("flag"))
+						value = c.String("flag")
+						args = c.Args()
+					},
+				},
+			},
+		}
+
+		err := app.Run(c.testArgs)
+		expect(t, err, c.expectedErr)
+		expect(t, args, c.expectedArgs)
+	}
+}

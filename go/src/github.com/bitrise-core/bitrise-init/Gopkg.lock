@@ -2,28 +2,42 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
-  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
-  version = "v1.0.4"
+  revision = "0dad3b6953e73d351ec8ebfd8a8c6b088d320381"
 
 [[projects]]
-  branch = "master"
   name = "github.com/bitrise-io/bitrise"
   packages = ["models"]
-  revision = "c593bcaf0c7ef71b0a6c99896475c31d13af922a"
+  revision = "ffd2f116ff7d2846613a8f01479f68ef05ee62da"
+  version = "1.16.1"
 
 [[projects]]
   name = "github.com/bitrise-io/envman"
   packages = ["models"]
-  revision = "455072a756cf80ab469ecfbcfd8c1dd614585cfc"
-  version = "1.1.8"
+  revision = "e607e3cb53ff51fe591f33739a36ea05356bf06c"
+  version = "1.1.13"
 
 [[projects]]
   branch = "master"
   name = "github.com/bitrise-io/go-utils"
-  packages = ["colorstring","command","command/git","command/rubyscript","errorutil","fileutil","log","parseutil","pathutil","pointers","sliceutil"]
-  revision = "e2d40cad7992353c1f14cc24c86638d9e164bf52"
+  packages = [
+    "colorstring",
+    "command",
+    "command/git",
+    "command/rubyscript",
+    "errorutil",
+    "fileutil",
+    "log",
+    "parseutil",
+    "pathutil",
+    "pointers",
+    "retry",
+    "sliceutil",
+    "ziputil"
+  ]
+  revision = "d1de0dbcb811588e61362aff67bb700b93c13c17"
 
 [[projects]]
   branch = "master"
@@ -32,22 +46,48 @@
   revision = "f451b19ba4d087d8272d411ad91af5f4218fd517"
 
 [[projects]]
-  branch = "master"
   name = "github.com/bitrise-io/stepman"
   packages = ["models"]
-  revision = "0bd88cfa5b4c5b54d38a388b4daaaf22f4780904"
+  revision = "b6cfe51c9e0bf5d7eab8ef048bf7b3d6174ae3f8"
+  version = "0.9.42"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/bitrise-steplib/steps-install-missing-android-tools"
+  packages = ["androidcomponents"]
+  revision = "59511231d49f9ba328fc4a512f0ba36e189b8989"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/bitrise-tools/go-android"
+  packages = [
+    "gradle",
+    "sdk",
+    "sdkcomponent",
+    "sdkmanager"
+  ]
+  revision = "5e32d58739d3376ecd9e74fc1eee44c0f00984e5"
 
 [[projects]]
   branch = "master"
   name = "github.com/bitrise-tools/go-xcode"
-  packages = ["plistutil","xcodeproj"]
-  revision = "c23fa74e7b04374fbff484fd12ba87cf64cd89e1"
+  packages = [
+    "plistutil",
+    "xcodeproj"
+  ]
+  revision = "2ebe49789dd410cae7f6dc54f0d2f5893e4fd1a0"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/go-version"
+  packages = ["."]
+  revision = "23480c0665776210b5fbbac6eaaee40e3e6a96b7"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -70,42 +110,48 @@
 [[projects]]
   branch = "master"
   name = "github.com/stretchr/testify"
-  packages = ["assert","require"]
-  revision = "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f"
+  packages = [
+    "assert",
+    "require"
+  ]
+  revision = "c679ae2cc0cb27ec3293fea7e254e47386f05d69"
 
 [[projects]]
   branch = "master"
   name = "github.com/urfave/cli"
   packages = ["."]
-  revision = "119bb6564841921ce6f1401e0f5d75317bdd9f4d"
+  revision = "8e01ec4cd3e2d84ab2fe90d8210528ffbb06d8ff"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "94eea52f7b742c7cbe0b03b22f0c4c8631ece122"
+  revision = "1a580b3eff7814fc9b40602fd35256c63b50f491"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix","windows"]
-  revision = "a0f4589a76f1f83070cb9e5613809e1d07b97c13"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "7c87d13f8e835d2fb3a70a2912c811ed0c1d241b"
 
 [[projects]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "287cf08546ab5e7e37d55a84f7ed3fd1db036de5"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [[projects]]
   branch = "master"
   name = "howett.net/plist"
   packages = ["."]
-  revision = "233df3c4f07b0c562da0e8a6fb850681ac49bb90"
+  revision = "3bf914ef8f3a8bec3df2721a531d3a693c0a3db9"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d393927ce09aa48bc91362db0094dca09c26f87016f9e4426163f1e18735fdfc"
+  inputs-digest = "4c0fc80aa15da33393cc54d607511abdbfff1932ab7d7322c694616b0aa081b5"
   solver-name = "gps-cdcl"
   solver-version = 1

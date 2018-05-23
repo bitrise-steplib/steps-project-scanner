@@ -1,6 +1,17 @@
-## Changelog (Current version: 1.6.4)
+## Changelog (Current version: 1.6.5)
 
 -----------------
+
+### 1.6.5 (2018 May 23)
+
+* [cdc5985] Prepare for 1.6.5
+* [ec5a40f] errcheck fix (#118)
+* [e74b03f] New Android scanner (#115)
+* [2be1b40] steps/const.go: Update (#113)
+* [ba5faef] Merge pull request #111 from bitrise-core/feature/yml-update
+* [4d16a67] removed Godeps & updated related README
+* [eac33aa] bitrise.yml update
+* [f257a26] Add how to build section to README (#109)
 
 ### 1.6.4 (2017 Dec 22)
 
@@ -320,4 +331,4 @@
 
 -----------------
 
-Updated: 2017 Dec 22
+Updated: 2018 May 23
