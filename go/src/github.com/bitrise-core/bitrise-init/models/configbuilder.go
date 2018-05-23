@@ -46,6 +46,16 @@ func (builder *ConfigBuilderModel) AppendStepListItemsTo(workflow WorkflowID, it
 	workflowBuilder.appendStepListItems(items...)
 }
 
+// SetWorkflowDescriptionTo ...
+func (builder *ConfigBuilderModel) SetWorkflowDescriptionTo(workflow WorkflowID, description string) {
+	workflowBuilder := builder.workflowBuilderMap[workflow]
+	if workflowBuilder == nil {
+		workflowBuilder = newDefaultWorkflowBuilder()
+		builder.workflowBuilderMap[workflow] = workflowBuilder
+	}
+	workflowBuilder.Description = description
+}
+
 // Generate ...
 func (builder *ConfigBuilderModel) Generate(projectType string, appEnvs ...envmanModels.EnvironmentItemModel) (bitriseModels.BitriseDataModel, error) {
 	primaryWorkflowBuilder, ok := builder.workflowBuilderMap[PrimaryWorkflowID]

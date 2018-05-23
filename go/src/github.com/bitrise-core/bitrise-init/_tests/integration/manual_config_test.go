@@ -45,7 +45,11 @@ var customConfigVersions = []interface{}{
 	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.InstallMissingAndroidToolsVersion,
-	steps.GradleRunnerVersion,
+	steps.ChangeAndroidVersionCodeAndVersionNameVersion,
+	steps.AndroidLintVersion,
+	steps.AndroidUnitTestVersion,
+	steps.AndroidBuildVersion,
+	steps.SignAPKVersion,
 	steps.DeployToBitriseIoVersion,
 	steps.CachePushVersion,
 
@@ -54,7 +58,8 @@ var customConfigVersions = []interface{}{
 	steps.CachePullVersion,
 	steps.ScriptVersion,
 	steps.InstallMissingAndroidToolsVersion,
-	steps.GradleRunnerVersion,
+	steps.AndroidLintVersion,
+	steps.AndroidUnitTestVersion,
 	steps.DeployToBitriseIoVersion,
 	steps.CachePushVersion,
 
@@ -153,7 +158,7 @@ var customConfigVersions = []interface{}{
 	steps.ScriptVersion,
 	steps.NpmVersion,
 	steps.InstallMissingAndroidToolsVersion,
-	steps.GradleRunnerVersion,
+	steps.AndroidBuildVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.XcodeArchiveVersion,
 	steps.DeployToBitriseIoVersion,
@@ -180,12 +185,12 @@ var customConfigVersions = []interface{}{
 
 var customConfigResultYML = fmt.Sprintf(`options:
   android:
-    title: Path to the gradle file to use
-    env_key: GRADLE_BUILD_FILE_PATH
+    title: The root directory of an Android project
+    env_key: PROJECT_LOCATION
     value_map:
       _:
-        title: Gradlew file path
-        env_key: GRADLEW_PATH
+        title: Module
+        env_key: MODULE
         value_map:
           _:
             config: default-android-config
@@ -258,7 +263,7 @@ var customConfigResultYML = fmt.Sprintf(`options:
           _:
             title: |-
               Application export method
-              NOTE: `+"`none`"+` means: Export a copy of the application without re-signing.
+              NOTE: `+"`"+`none`+"`"+` means: Export a copy of the application without re-signing.
             env_key: BITRISE_EXPORT_METHOD
             value_map:
               app-store:
@@ -324,6 +329,38 @@ configs:
         workflow: primary
       workflows:
         deploy:
+          description: |
+            ## How to get a signed APK
+
+            This workflow contains the **Sign APK** step. To sign your APK all you have to do is to:
+
+            1. Click on **Code Signing** tab
+            1. Find the **ANDROID KEYSTORE FILE** section
+            1. Click or drop your file on the upload file field
+            1. Fill the displayed 3 input fields:
+             1. **Keystore password**
+             1. **Keystore alias**
+             1. **Private key password**
+            1. Click on **[Save metadata]** button
+
+            That's it! From now on, **Sign APK** step will receive your uploaded files.
+
+            ## To run this workflow
+
+            If you want to run this workflow manually:
+
+            1. Open the app's build list page
+            2. Click on **[Start/Schedule a Build]** button
+            3. Select **deploy** in **Workflow** dropdown input
+            4. Click **[Start Build]** button
+
+            Or if you need this workflow to be started by a GIT event:
+
+            1. Click on **Triggers** tab
+            2. Setup your desired event (push/tag/pull) and select **deploy** workflow
+            3. Click on **[Done]** and then **[Save]** buttons
+
+            The next change in your repository that matches any of your trigger map event will start **deploy** workflow.
           steps:
           - activate-ssh-key@%s:
               run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
@@ -332,11 +369,26 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - install-missing-android-tools@%s: {}
-          - gradle-runner@%s:
+          - change-android-versioncode-and-versionname@%s:
               inputs:
-              - gradle_file: $GRADLE_BUILD_FILE_PATH
-              - gradle_task: assembleRelease
-              - gradlew_path: $GRADLEW_PATH
+              - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
+          - android-lint@%s:
+              inputs:
+              - project_location: $PROJECT_LOCATION
+              - module: $MODULE
+              - variant: $TEST_VARIANT
+          - android-unit-test@%s:
+              inputs:
+              - project_location: $PROJECT_LOCATION
+              - module: $MODULE
+              - variant: $TEST_VARIANT
+          - android-build@%s:
+              inputs:
+              - project_location: $PROJECT_LOCATION
+              - module: $MODULE
+              - variant: $BUILD_VARIANT
+          - sign-apk@%s:
+              run_if: '{{getenv "BITRISEIO_ANDROID_KEYSTORE_URL" | ne ""}}'
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
         primary:
@@ -348,11 +400,16 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - install-missing-android-tools@%s: {}
-          - gradle-runner@%s:
+          - android-lint@%s:
               inputs:
-              - gradle_file: $GRADLE_BUILD_FILE_PATH
-              - gradle_task: assembleDebug
-              - gradlew_path: $GRADLEW_PATH
+              - project_location: $PROJECT_LOCATION
+              - module: $MODULE
+              - variant: $TEST_VARIANT
+          - android-unit-test@%s:
+              inputs:
+              - project_location: $PROJECT_LOCATION
+              - module: $MODULE
+              - variant: $TEST_VARIANT
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
   cordova:
@@ -591,11 +648,11 @@ configs:
               inputs:
               - command: install
           - install-missing-android-tools@%s: {}
-          - gradle-runner@%s:
+          - android-build@%s:
               inputs:
-              - gradle_file: $GRADLE_BUILD_FILE_PATH
-              - gradle_task: assembleRelease
-              - gradlew_path: $GRADLEW_PATH
+              - project_location: $PROJECT_LOCATION
+              - module: $MODULE
+              - variant: $BUILD_VARIANT
           - certificate-and-profile-installer@%s: {}
           - xcode-archive@%s:
               inputs:

@@ -173,7 +173,9 @@ func triggerCheck(c *cli.Context) error {
 		registerFatal(err.Error(), warnings, triggerParams.Format)
 	}
 
-	triggerModel := map[string]string{"workflow": workflowToRunID}
+	triggerModel := map[string]string{
+		"workflow": workflowToRunID,
+	}
 
 	if triggerParams.TriggerPattern != "" {
 		triggerModel["pattern"] = triggerParams.TriggerPattern
