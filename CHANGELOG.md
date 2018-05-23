@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.6.3)
+## Changelog (Current version: 1.6.4)
 
 -----------------
+
+### 1.6.4 (2018 May 23)
+
+* [55dc63a] Prepare for 1.6.4
+* [72fdd2b] depman update (#55)
 
 ### 1.6.3 (2018 Apr 06)
 
@@ -260,4 +265,4 @@
 
 -----------------
 
-Updated: 2018 Apr 06
+Updated: 2018 May 23
