@@ -1,12 +1,13 @@
-package asynccmd
+package filterwriter
 
 import (
 	"bytes"
 	"io"
 	"sort"
-	"strings"
 	"sync"
 	"time"
+
+	"github.com/bitrise-io/go-utils/log"
 )
 
 // RedactStr ...
@@ -14,23 +15,21 @@ const RedactStr = "[REDACTED]"
 
 var newLine = []byte("\n")
 
-// Buffer ...
-type Buffer struct {
-	Buff bytes.Buffer
-	sync.Mutex
-
+// Writer ...
+type Writer struct {
+	writer  io.Writer
 	secrets [][][]byte
 
-	chunk     []byte
-	store     [][]byte
-	lastWrite time.Time
+	chunk []byte
+	store [][]byte
+	mux   sync.Mutex
 }
 
-func newBuffer(secrets []string) *Buffer {
-	return &Buffer{
-		Buff:    bytes.Buffer{},
+// New ...
+func New(secrets []string, target io.Writer) *Writer {
+	return &Writer{
+		writer:  target,
 		secrets: secretsByteList(secrets),
-		Mutex:   sync.Mutex{},
 	}
 }
 
@@ -40,105 +39,87 @@ func newBuffer(secrets []string) *Buffer {
 // There are may lines which needs to be stored, since they are partial matching to a secret.
 // Since we do not know which is the last call of Write we need to call Flush
 // on buffer to write the remaining lines.
-func (b *Buffer) Write(p []byte) (int, error) {
-	b.Lock()
-	defer b.Unlock()
+func (w *Writer) Write(p []byte) (int, error) {
+	defer func() {
+		w.mux.Unlock()
+	}()
+	w.mux.Lock()
 
 	// previous bytes may not ended with newline
-	data := append(b.chunk, p...)
+	data := append(w.chunk, p...)
 
-	var lastLines [][]byte
-	lastLines, b.chunk = split(data)
+	lastLines, chunk := splitAfterNewline(data)
+	w.chunk = chunk
+	if len(chunk) > 0 {
+		// we have remaining bytes, do not swallow them
+		time.AfterFunc(10*time.Second, func() {
+			if _, err := w.Flush(); err != nil {
+				log.Errorf("Failed to print last lines: %s", err)
+			}
+		})
+	}
+
 	if len(lastLines) == 0 {
-		// it is neccessary to return the count of incoming bytes
+		// it is necessary to return the count of incoming bytes
 		return len(p), nil
 	}
 
 	for _, line := range lastLines {
-		lines := append(b.store, line)
-		matchMap, partialMatchIndexes := b.matchSecrets(lines)
+		lines := append(w.store, line)
+		matchMap, partialMatchIndexes := w.matchSecrets(lines)
 
 		var linesToPrint [][]byte
-		linesToPrint, b.store = b.matchLines(lines, partialMatchIndexes)
+		linesToPrint, w.store = w.matchLines(lines, partialMatchIndexes)
 		if linesToPrint == nil {
 			continue
 		}
 
-		redactedLines := b.redact(linesToPrint, matchMap)
-
+		redactedLines := w.redact(linesToPrint, matchMap)
 		redactedBytes := bytes.Join(redactedLines, nil)
-		c, err := b.Buff.Write(redactedBytes)
-		b.lastWrite = time.Now()
-		if err != nil {
+		if c, err := w.writer.Write(redactedBytes); err != nil {
 			return c, err
 		}
 	}
 
-	// it is neccessary to return the count of incoming bytes
+	// it is necessary to return the count of incoming bytes
+	// to let the exec.Command work properly
 	return len(p), nil
 }
 
 // Flush writes the remaining bytes.
-func (b *Buffer) Flush() error {
-	// chunk is the remaining part of the last Write call
-	if len(b.chunk) > 0 {
-		// lines are containing newline, but the chunk needs to be extendid with newline
-		chunk := append(b.chunk, newLine...)
-		b.chunk = nil
+func (w *Writer) Flush() (int, error) {
+	defer func() {
+		w.mux.Unlock()
+	}()
+	w.mux.Lock()
 
-		b.store = append(b.store, chunk)
+	if len(w.chunk) > 0 {
+		// lines are containing newline, chunk may not
+		chunk := w.chunk
+		w.chunk = nil
+		w.store = append(w.store, chunk)
 	}
 
-	matchMap, _ := b.matchSecrets(b.store)
-	redactedLines := b.redact(b.store, matchMap)
-	b.store = nil
+	// we only need to care about the full matches in the remaining lines
+	// (no more lines were come, why care about the partial matches?)
+	matchMap, _ := w.matchSecrets(w.store)
+	redactedLines := w.redact(w.store, matchMap)
+	w.store = nil
 
-	redactedBytes := bytes.Join(redactedLines, nil)
-	if _, err := b.Buff.Write(redactedBytes); err != nil {
-		return err
-	}
-	b.lastWrite = time.Now()
-	return nil
-}
-
-// ReadLines iterally calls ReadString until it receives EOF.
-func (b *Buffer) ReadLines() ([]string, error) {
-	b.Lock()
-	defer b.Unlock()
-
-	lines := []string{}
-	eof := false
-	for !eof {
-		// every line's byte ends with newline
-		line, err := b.Buff.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				eof = true
-			} else {
-				return nil, err
-			}
-		}
-		// nothing read
-		if len(line) == 0 {
-			continue
-		}
-		line = strings.TrimSuffix(line, "\n")
-		lines = append(lines, line)
-	}
-	return lines, nil
+	return w.writer.Write(bytes.Join(redactedLines, nil))
 }
 
 // matchSecrets collects which secrets matches from which line indexes
 // and which secrets matches partially from which line indexes.
 // matchMap: matching line chunk's first line indexes by secret index
 // partialMatchIndexes: line indexes from which secrets matching but not fully contained in lines
-func (b *Buffer) matchSecrets(lines [][]byte) (matchMap map[int][]int, partialMatchIndexes map[int]bool) {
+func (w *Writer) matchSecrets(lines [][]byte) (matchMap map[int][]int, partialMatchIndexes map[int]bool) {
 	matchMap = make(map[int][]int)
 	partialMatchIndexes = make(map[int]bool)
 
-	for secretIdx, secret := range b.secrets {
+	for secretIdx, secret := range w.secrets {
 		secretLine := secret[0] // every match should begin from the secret first line
-		lineIndexes := []int{}  // the indexes of lines which contains the secret's first line
+		var lineIndexes []int   // the indexes of lines which contains the secret's first line
 
 		for i, line := range lines {
 			if bytes.Contains(line, secretLine) {
@@ -199,9 +180,9 @@ func (b *Buffer) matchSecrets(lines [][]byte) (matchMap map[int][]int, partialMa
 	return
 }
 
-// linesToKeepRange returns a range (first, last index) of lines needs to be observed
+// linesToKeepRange returns the first line index needs to be observed
 // since they contain partially matching secrets.
-func (b *Buffer) linesToKeepRange(partialMatchIndexes map[int]bool) int {
+func (w *Writer) linesToKeepRange(partialMatchIndexes map[int]bool) int {
 	first := -1
 
 	for lineIdx := range partialMatchIndexes {
@@ -218,24 +199,23 @@ func (b *Buffer) linesToKeepRange(partialMatchIndexes map[int]bool) int {
 	return first
 }
 
-// matchLines return which lines can be printed and which should be keept for further observing.
-func (b *Buffer) matchLines(lines [][]byte, partialMatchIndexes map[int]bool) ([][]byte, [][]byte) {
-	first := b.linesToKeepRange(partialMatchIndexes)
-	if first == -1 {
+// matchLines return which lines can be printed and which should be kept for further observing.
+func (w *Writer) matchLines(lines [][]byte, partialMatchIndexes map[int]bool) ([][]byte, [][]byte) {
+	first := w.linesToKeepRange(partialMatchIndexes)
+	switch first {
+	case -1:
 		// no lines needs to be kept
 		return lines, nil
-	}
-
-	if first == 0 {
+	case 0:
 		// partial match is always longer then the lines
 		return nil, lines
+	default:
+		return lines[:first], lines[first:]
 	}
-
-	return lines[:first], lines[first:]
 }
 
 // secretLinesToRedact returns which secret lines should be redacted
-func (b *Buffer) secretLinesToRedact(lineIdxToRedact int, matchMap map[int][]int) [][]byte {
+func (w *Writer) secretLinesToRedact(lineIdxToRedact int, matchMap map[int][]int) [][]byte {
 	// which line is which secrets first matching line
 	secretIdxsByLine := make(map[int][]int)
 	for secretIdx, lineIndexes := range matchMap {
@@ -251,7 +231,7 @@ func (b *Buffer) secretLinesToRedact(lineIdxToRedact int, matchMap map[int][]int
 		}
 
 		for _, secretIdx := range secretIndexes {
-			secret := b.secrets[secretIdx]
+			secret := w.secrets[secretIdx]
 
 			if lineIdxToRedact > firstMatchingLineIdx+len(secret)-1 {
 				continue
@@ -274,11 +254,18 @@ func redact(line []byte, ranges []matchRange) []byte {
 		first := r.first + offset
 		last := first + length
 
+		toRedact := line[first:last]
+		redactStr := RedactStr
+		if bytes.HasSuffix(toRedact, []byte("\n")) {
+			// if string to redact ends with newline redact message should also
+			redactStr += "\n"
+		}
+
 		newLine := append([]byte{}, line[:first]...)
-		newLine = append(newLine, RedactStr...)
+		newLine = append(newLine, redactStr...)
 		newLine = append(newLine, line[last:]...)
 
-		offset += len(RedactStr) - length
+		offset += len(redactStr) - length
 
 		line = newLine
 	}
@@ -286,7 +273,7 @@ func redact(line []byte, ranges []matchRange) []byte {
 }
 
 // redact hides the given secrets in the given lines.
-func (b *Buffer) redact(lines [][]byte, matchMap map[int][]int) [][]byte {
+func (w *Writer) redact(lines [][]byte, matchMap map[int][]int) [][]byte {
 	secretIdxsByLine := map[int][]int{}
 	for secretIdx, lineIndexes := range matchMap {
 		for _, lineIdx := range lineIndexes {
@@ -295,7 +282,7 @@ func (b *Buffer) redact(lines [][]byte, matchMap map[int][]int) [][]byte {
 	}
 
 	for i, line := range lines {
-		linesToRedact := b.secretLinesToRedact(i, matchMap)
+		linesToRedact := w.secretLinesToRedact(i, matchMap)
 		if linesToRedact == nil {
 			continue
 		}
@@ -315,28 +302,45 @@ func (b *Buffer) redact(lines [][]byte, matchMap map[int][]int) [][]byte {
 func secretsByteList(secrets []string) [][][]byte {
 	var s [][][]byte
 	for _, secret := range secrets {
-		s = append(s, bytes.Split([]byte(secret), newLine))
+		lines, lastLine := splitAfterNewline([]byte(secret))
+		if lines == nil && lastLine == nil {
+			continue
+		}
+
+		var secretLines [][]byte
+		if lines != nil {
+			secretLines = append(secretLines, lines...)
+		}
+		if lastLine != nil {
+			secretLines = append(secretLines, lastLine)
+		}
+		s = append(s, secretLines)
 	}
 	return s
 }
 
-// split splits p after "\n", the split is assigned to lines
-// if last line has no "\n" it is assigned to chunk.
-func split(p []byte) (lines [][]byte, chunk []byte) {
-	chunk = p
+// splitAfterNewline splits p after "\n", the split is assigned to lines
+// if last line has no "\n" it is assigned to the chunk.
+// If p is nil both lines and chunk is set to nil.
+func splitAfterNewline(p []byte) ([][]byte, []byte) {
+	chunk := p
+	var lines [][]byte
+
 	for len(chunk) > 0 {
 		idx := bytes.Index(chunk, newLine)
 		if idx == -1 {
-			return
+			return lines, chunk
 		}
 
 		lines = append(lines, chunk[:idx+1])
 
 		if idx == len(chunk)-1 {
-			chunk = []byte{}
-			continue
+			chunk = nil
+			break
 		}
+
 		chunk = chunk[idx+1:]
 	}
-	return
+
+	return lines, chunk
 }

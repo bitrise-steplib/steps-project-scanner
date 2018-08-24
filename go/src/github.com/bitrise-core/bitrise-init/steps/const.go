@@ -4,14 +4,14 @@ const (
 	// ActivateSSHKeyID ...
 	ActivateSSHKeyID = "activate-ssh-key"
 	// ActivateSSHKeyVersion ...
-	ActivateSSHKeyVersion = "3.1.1"
+	ActivateSSHKeyVersion = "4.0.3"
 )
 
 const (
 	// AndroidLintID ...
 	AndroidLintID = "android-lint"
 	// AndroidLintVersion ...
-	AndroidLintVersion = "0.9.2"
+	AndroidLintVersion = "0.9.4"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 	// AndroidBuildID ...
 	AndroidBuildID = "android-build"
 	// AndroidBuildVersion ...
-	AndroidBuildVersion = "0.9.4"
+	AndroidBuildVersion = "0.9.5"
 )
 
 const (
@@ -53,21 +53,21 @@ const (
 	// CertificateAndProfileInstallerID ...
 	CertificateAndProfileInstallerID = "certificate-and-profile-installer"
 	// CertificateAndProfileInstallerVersion ...
-	CertificateAndProfileInstallerVersion = "1.9.3"
+	CertificateAndProfileInstallerVersion = "1.10.1"
 )
 
 const (
 	// ChangeAndroidVersionCodeAndVersionNameID ...
 	ChangeAndroidVersionCodeAndVersionNameID = "change-android-versioncode-and-versionname"
 	// ChangeAndroidVersionCodeAndVersionNameVersion ...
-	ChangeAndroidVersionCodeAndVersionNameVersion = "1.1.0"
+	ChangeAndroidVersionCodeAndVersionNameVersion = "1.1.1"
 )
 
 const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.3.12"
+	DeployToBitriseIoVersion = "1.3.15"
 )
 
 const (
@@ -83,14 +83,14 @@ const (
 	// SignAPKID ...
 	SignAPKID = "sign-apk"
 	// SignAPKVersion ...
-	SignAPKVersion = "1.2.0"
+	SignAPKVersion = "1.2.3"
 )
 
 const (
 	// InstallMissingAndroidToolsID ...
 	InstallMissingAndroidToolsID = "install-missing-android-tools"
 	// InstallMissingAndroidToolsVersion ...
-	InstallMissingAndroidToolsVersion = "2.1.1"
+	InstallMissingAndroidToolsVersion = "2.2.0"
 )
 
 const (
@@ -118,7 +118,7 @@ const (
 	// CarthageID ...
 	CarthageID = "carthage"
 	// CarthageVersion ...
-	CarthageVersion = "3.1.4"
+	CarthageVersion = "3.1.5"
 )
 
 const (
@@ -132,14 +132,14 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.4.8"
+	XcodeArchiveVersion = "2.4.14"
 )
 
 const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "1.18.14"
+	XcodeTestVersion = "1.18.16"
 )
 
 const (
@@ -195,14 +195,14 @@ const (
 	// IonicArchiveID ...
 	IonicArchiveID = "ionic-archive"
 	// IonicArchiveVersion ...
-	IonicArchiveVersion = "1.2.4"
+	IonicArchiveVersion = "1.2.5"
 )
 
 const (
 	// GenerateCordovaBuildConfigID ...
 	GenerateCordovaBuildConfigID = "generate-cordova-build-configuration"
 	// GenerateCordovaBuildConfigVersion ...
-	GenerateCordovaBuildConfigVersion = "0.9.3"
+	GenerateCordovaBuildConfigVersion = "0.9.6"
 )
 
 const (

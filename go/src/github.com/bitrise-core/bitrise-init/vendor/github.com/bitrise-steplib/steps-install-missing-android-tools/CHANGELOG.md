@@ -1,6 +1,12 @@
-## Changelog (Current version: 2.1.1)
+## Changelog (Current version: 2.2.0)
 
 -----------------
+
+### 2.2.0 (2018 Jun 04)
+
+* [b2e3e76] Prepare for 2.2.0
+* [26ec1c8] added ndk install (#36)
+* [5951123] Revision of the code base (#34)
 
 ### 2.1.1 (2018 Jan 26)
 
@@ -91,4 +97,4 @@
 
 -----------------
 
-Updated: 2018 Jan 26
+Updated: 2018 Jun 04

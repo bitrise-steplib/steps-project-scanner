@@ -40,7 +40,8 @@ func TestAndroid(t *testing.T) {
 
 		result, err := fileutil.ReadStringFromFile(scanResultPth)
 		require.NoError(t, err)
-		require.Equal(t, strings.TrimSpace(sampleAppsAndroid22ResultYML), strings.TrimSpace(result))
+
+		validateConfigExpectation(t, "sample-apps-android-sdk22", strings.TrimSpace(sampleAppsAndroid22ResultYML), strings.TrimSpace(result), sampleAppsAndroid22Versions...)
 	}
 
 	t.Log("android-non-executable-gradlew")
@@ -57,7 +58,8 @@ func TestAndroid(t *testing.T) {
 
 		result, err := fileutil.ReadStringFromFile(scanResultPth)
 		require.NoError(t, err)
-		require.Equal(t, strings.TrimSpace(androidNonExecutableGradlewResultYML), strings.TrimSpace(result))
+
+		validateConfigExpectation(t, "android-non-executable-gradlew", strings.TrimSpace(androidNonExecutableGradlewResultYML), strings.TrimSpace(result), androidNonExecutableGradlewVersions...)
 	}
 
 	t.Log("android-sdk22-no-gradlew")
@@ -74,7 +76,8 @@ func TestAndroid(t *testing.T) {
 
 		result, err := fileutil.ReadStringFromFile(scanResultPth)
 		require.NoError(t, err)
-		require.Equal(t, strings.TrimSpace(sampleAppsSDK22NoGradlewResultYML), strings.TrimSpace(result))
+
+		validateConfigExpectation(t, "android-sdk22-no-gradlew", strings.TrimSpace(sampleAppsSDK22NoGradlewResultYML), strings.TrimSpace(result))
 	}
 
 	t.Log("android-sdk22-subdir")
@@ -91,7 +94,8 @@ func TestAndroid(t *testing.T) {
 
 		result, err := fileutil.ReadStringFromFile(scanResultPth)
 		require.NoError(t, err)
-		require.Equal(t, strings.TrimSpace(sampleAppsAndroidSDK22SubdirResultYML), strings.TrimSpace(result))
+
+		validateConfigExpectation(t, "android-sdk22-subdir", strings.TrimSpace(sampleAppsAndroidSDK22SubdirResultYML), strings.TrimSpace(result), sampleAppsAndroidSDK22SubdirVersions...)
 	}
 }
 
@@ -127,87 +131,83 @@ var sampleAppsAndroidSDK22SubdirResultYML = fmt.Sprintf(`options:
     env_key: PROJECT_LOCATION
     value_map:
       src:
-        title: Gradlew file path
-        env_key: GRADLEW_PATH
+        title: Module
+        env_key: MODULE
         value_map:
-          src/gradlew:
-            title: Module
-            env_key: MODULE
+          app:
+            title: Variant for building
+            env_key: BUILD_VARIANT
             value_map:
-              app:
-                title: Variant for building
-                env_key: BUILD_VARIANT
+              "":
+                title: Variant for testing
+                env_key: TEST_VARIANT
                 value_map:
                   "":
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  AndroidTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
+                    config: android-config
                   Debug:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  DebugAndroidTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  DebugUnitTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
+                    config: android-config
                   Release:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  ReleaseUnitTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
+                    config: android-config
+              AndroidTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              Debug:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              DebugAndroidTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              DebugUnitTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              Release:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              ReleaseUnitTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
 configs:
   android:
     android-config: |
@@ -260,7 +260,9 @@ configs:
           - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-missing-android-tools@%s: {}
+          - install-missing-android-tools@%s:
+              inputs:
+              - gradlew_path: $PROJECT_LOCATION/gradlew
           - change-android-versioncode-and-versionname@%s:
               inputs:
               - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
@@ -291,7 +293,9 @@ configs:
           - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-missing-android-tools@%s: {}
+          - install-missing-android-tools@%s:
+              inputs:
+              - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-lint@%s:
               inputs:
               - project_location: $PROJECT_LOCATION
@@ -350,87 +354,83 @@ var sampleAppsAndroid22ResultYML = fmt.Sprintf(`options:
     env_key: PROJECT_LOCATION
     value_map:
       .:
-        title: Gradlew file path
-        env_key: GRADLEW_PATH
+        title: Module
+        env_key: MODULE
         value_map:
-          gradlew:
-            title: Module
-            env_key: MODULE
+          app:
+            title: Variant for building
+            env_key: BUILD_VARIANT
             value_map:
-              app:
-                title: Variant for building
-                env_key: BUILD_VARIANT
+              "":
+                title: Variant for testing
+                env_key: TEST_VARIANT
                 value_map:
                   "":
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  AndroidTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
+                    config: android-config
                   Debug:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  DebugAndroidTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  DebugUnitTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
+                    config: android-config
                   Release:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  ReleaseUnitTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
+                    config: android-config
+              AndroidTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              Debug:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              DebugAndroidTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              DebugUnitTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              Release:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              ReleaseUnitTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
 configs:
   android:
     android-config: |
@@ -483,7 +483,9 @@ configs:
           - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-missing-android-tools@%s: {}
+          - install-missing-android-tools@%s:
+              inputs:
+              - gradlew_path: $PROJECT_LOCATION/gradlew
           - change-android-versioncode-and-versionname@%s:
               inputs:
               - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
@@ -514,7 +516,9 @@ configs:
           - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-missing-android-tools@%s: {}
+          - install-missing-android-tools@%s:
+              inputs:
+              - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-lint@%s:
               inputs:
               - project_location: $PROJECT_LOCATION
@@ -563,87 +567,83 @@ var androidNonExecutableGradlewResultYML = fmt.Sprintf(`options:
     env_key: PROJECT_LOCATION
     value_map:
       .:
-        title: Gradlew file path
-        env_key: GRADLEW_PATH
+        title: Module
+        env_key: MODULE
         value_map:
-          gradlew:
-            title: Module
-            env_key: MODULE
+          app:
+            title: Variant for building
+            env_key: BUILD_VARIANT
             value_map:
-              app:
-                title: Variant for building
-                env_key: BUILD_VARIANT
+              "":
+                title: Variant for testing
+                env_key: TEST_VARIANT
                 value_map:
                   "":
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  AndroidTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
+                    config: android-config
                   Debug:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  DebugAndroidTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  DebugUnitTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
+                    config: android-config
                   Release:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
-                  ReleaseUnitTest:
-                    title: Variant for testing
-                    env_key: TEST_VARIANT
-                    value_map:
-                      "":
-                        config: android-config
-                      Debug:
-                        config: android-config
-                      Release:
-                        config: android-config
+                    config: android-config
+              AndroidTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              Debug:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              DebugAndroidTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              DebugUnitTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              Release:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
+              ReleaseUnitTest:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  "":
+                    config: android-config
+                  Debug:
+                    config: android-config
+                  Release:
+                    config: android-config
 configs:
   android:
     android-config: |
@@ -696,7 +696,9 @@ configs:
           - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-missing-android-tools@%s: {}
+          - install-missing-android-tools@%s:
+              inputs:
+              - gradlew_path: $PROJECT_LOCATION/gradlew
           - change-android-versioncode-and-versionname@%s:
               inputs:
               - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
@@ -727,7 +729,9 @@ configs:
           - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-missing-android-tools@%s: {}
+          - install-missing-android-tools@%s:
+              inputs:
+              - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-lint@%s:
               inputs:
               - project_location: $PROJECT_LOCATION

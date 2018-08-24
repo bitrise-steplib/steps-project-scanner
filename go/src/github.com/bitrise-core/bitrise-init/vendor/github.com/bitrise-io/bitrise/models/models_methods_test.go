@@ -882,7 +882,7 @@ func TestValidateConfig(t *testing.T) {
 
 // Workflow
 func TestValidateWorkflow(t *testing.T) {
-	t.Log("before-afetr test")
+	t.Log("before-after test")
 	{
 		workflow := WorkflowModel{
 			BeforeRun: []string{"befor1", "befor2", "befor3"},
@@ -926,7 +926,7 @@ workflows:
 		require.Equal(t, 0, len(warnings))
 	}
 
-	t.Log("vali workflow - Warning: duplicated inputs")
+	t.Log("valid workflow - Warning: duplicated inputs")
 	{
 		configStr := `format_version: 1.4.0
 

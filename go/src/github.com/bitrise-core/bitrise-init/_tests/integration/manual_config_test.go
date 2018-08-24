@@ -33,7 +33,8 @@ func TestManualConfig(t *testing.T) {
 
 		result, err := fileutil.ReadStringFromFile(scanResultPth)
 		require.NoError(t, err)
-		require.Equal(t, strings.TrimSpace(customConfigResultYML), strings.TrimSpace(result))
+
+		validateConfigExpectation(t, "manual-config", strings.TrimSpace(customConfigResultYML), strings.TrimSpace(result), customConfigVersions...)
 	}
 }
 
@@ -170,6 +171,26 @@ var customConfigVersions = []interface{}{
 	steps.NpmVersion,
 	steps.DeployToBitriseIoVersion,
 
+	// react native expo
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.NpmVersion,
+	steps.NpmVersion,
+	steps.InstallMissingAndroidToolsVersion,
+	steps.AndroidBuildVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.XcodeArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.NpmVersion,
+	steps.NpmVersion,
+	steps.DeployToBitriseIoVersion,
+
 	// xamarin
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
@@ -193,7 +214,15 @@ var customConfigResultYML = fmt.Sprintf(`options:
         env_key: MODULE
         value_map:
           _:
-            config: default-android-config
+            title: Variant for building
+            env_key: BUILD_VARIANT
+            value_map:
+              _:
+                title: Variant for testing
+                env_key: TEST_VARIANT
+                value_map:
+                  _:
+                    config: default-android-config
   cordova:
     title: Directory of Cordova Config.xml
     env_key: CORDOVA_WORK_DIR
@@ -275,33 +304,69 @@ var customConfigResultYML = fmt.Sprintf(`options:
               none:
                 config: default-macos-config
   react-native:
-    title: Path to the gradle file to use
-    env_key: GRADLE_BUILD_FILE_PATH
+    title: The root directory of an Android project
+    env_key: PROJECT_LOCATION
     value_map:
       _:
-        title: Gradlew file path
-        env_key: GRADLEW_PATH
+        title: Module
+        env_key: MODULE
         value_map:
           _:
-            title: Project (or Workspace) path
-            env_key: BITRISE_PROJECT_PATH
+            title: Variant for building
+            env_key: BUILD_VARIANT
             value_map:
               _:
-                title: Scheme name
-                env_key: BITRISE_SCHEME
+                title: Project (or Workspace) path
+                env_key: BITRISE_PROJECT_PATH
                 value_map:
                   _:
-                    title: ipa export method
-                    env_key: BITRISE_EXPORT_METHOD
+                    title: Scheme name
+                    env_key: BITRISE_SCHEME
                     value_map:
-                      ad-hoc:
-                        config: default-react-native-config
-                      app-store:
-                        config: default-react-native-config
-                      development:
-                        config: default-react-native-config
-                      enterprise:
-                        config: default-react-native-config
+                      _:
+                        title: ipa export method
+                        env_key: BITRISE_EXPORT_METHOD
+                        value_map:
+                          ad-hoc:
+                            config: default-react-native-config
+                          app-store:
+                            config: default-react-native-config
+                          development:
+                            config: default-react-native-config
+                          enterprise:
+                            config: default-react-native-config
+  react-native-expo:
+    title: The root directory of an Android project
+    env_key: PROJECT_LOCATION
+    value_map:
+      _:
+        title: Module
+        env_key: MODULE
+        value_map:
+          _:
+            title: Variant for building
+            env_key: BUILD_VARIANT
+            value_map:
+              _:
+                title: Project (or Workspace) path
+                env_key: BITRISE_PROJECT_PATH
+                value_map:
+                  _:
+                    title: Scheme name
+                    env_key: BITRISE_SCHEME
+                    value_map:
+                      _:
+                        title: ipa export method
+                        env_key: BITRISE_EXPORT_METHOD
+                        value_map:
+                          ad-hoc:
+                            config: default-react-native-expo-config
+                          app-store:
+                            config: default-react-native-expo-config
+                          development:
+                            config: default-react-native-expo-config
+                          enterprise:
+                            config: default-react-native-expo-config
   xamarin:
     title: Path to the Xamarin Solution file
     env_key: BITRISE_PROJECT_PATH
@@ -368,7 +433,9 @@ configs:
           - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-missing-android-tools@%s: {}
+          - install-missing-android-tools@%s:
+              inputs:
+              - gradlew_path: $PROJECT_LOCATION/gradlew
           - change-android-versioncode-and-versionname@%s:
               inputs:
               - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
@@ -399,7 +466,9 @@ configs:
           - cache-pull@%s: {}
           - script@%s:
               title: Do anything with Script step
-          - install-missing-android-tools@%s: {}
+          - install-missing-android-tools@%s:
+              inputs:
+              - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-lint@%s:
               inputs:
               - project_location: $PROJECT_LOCATION
@@ -647,7 +716,63 @@ configs:
           - npm@%s:
               inputs:
               - command: install
-          - install-missing-android-tools@%s: {}
+          - install-missing-android-tools@%s:
+              inputs:
+              - gradlew_path: $PROJECT_LOCATION/gradlew
+          - android-build@%s:
+              inputs:
+              - project_location: $PROJECT_LOCATION
+              - module: $MODULE
+              - variant: $BUILD_VARIANT
+          - certificate-and-profile-installer@%s: {}
+          - xcode-archive@%s:
+              inputs:
+              - project_path: $BITRISE_PROJECT_PATH
+              - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
+              - configuration: Release
+          - deploy-to-bitrise-io@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - npm@%s:
+              inputs:
+              - command: install
+          - npm@%s:
+              inputs:
+              - command: test
+          - deploy-to-bitrise-io@%s: {}
+  react-native-expo:
+    default-react-native-expo-config: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: react-native-expo
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        deploy:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - npm@%s:
+              inputs:
+              - command: install
+          - npm@%s:
+              inputs:
+              - command: run eject
+          - install-missing-android-tools@%s:
+              inputs:
+              - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-build@%s:
               inputs:
               - project_location: $PROJECT_LOCATION
