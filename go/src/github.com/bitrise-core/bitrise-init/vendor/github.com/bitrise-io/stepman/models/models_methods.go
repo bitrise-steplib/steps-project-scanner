@@ -125,6 +125,20 @@ func (step StepModel) ValidateInputAndOutputEnvs(checkRequiredFields bool) error
 				if options.Title == nil || *options.Title == "" {
 					return fmt.Errorf("Invalid environment (%s), err: missing or empty title", key)
 				}
+
+				isSensitive := options.IsSensitive
+				if isSensitive == nil {
+					isSensitive = pointers.NewBoolPtr(envmanModels.DefaultIsSensitive)
+				}
+
+				isExpand := options.IsExpand
+				if isExpand == nil {
+					isExpand = pointers.NewBoolPtr(envmanModels.DefaultIsExpand)
+				}
+
+				if *isSensitive && !(*isExpand) {
+					return fmt.Errorf("Invalid environment (%s), err: is_sensitive option is true but is_expand option is not. For sensitive inputs direct value is not allowed", key)
+				}
 			}
 		}
 		return nil

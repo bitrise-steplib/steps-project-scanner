@@ -2,7 +2,10 @@ package gradle
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
+
+	"github.com/bitrise-io/go-utils/command"
 )
 
 // Task ...
@@ -79,13 +82,14 @@ func cleanModuleName(s string) string {
 	return ":" + s + ":"
 }
 
-// Run ...
-func (task *Task) Run(v Variants, args ...string) error {
+// GetCommand ...
+func (task *Task) GetCommand(v Variants, args ...string) *command.Model {
 	var a []string
 	for module, variants := range v {
 		for _, variant := range variants {
 			a = append(a, cleanModuleName(module)+task.name+variant)
 		}
 	}
-	return runGradleCommand(task.project.location, append(a, args...)...)
+	return command.NewWithStandardOuts(filepath.Join(task.project.location, "gradlew"), append(a, args...)...).
+		SetDir(task.project.location)
 }

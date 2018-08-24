@@ -10,6 +10,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/models"
 	"github.com/bitrise-core/bitrise-init/steps"
 	envmanModels "github.com/bitrise-io/envman/models"
+	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-steplib/steps-install-missing-android-tools/androidcomponents"
 	"github.com/bitrise-tools/go-android/gradle"
@@ -118,14 +119,20 @@ that the right Gradle version is installed and used for the build. More info/gui
 }
 
 func (scanner *Scanner) generateOptions(searchDir string) (models.OptionModel, models.Warnings, error) {
-	warnings := models.Warnings{}
-
 	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputEnvKey)
+	moduleOption := models.NewOption(ModuleInputTitle, ModuleInputEnvKey)
+	testVariantOption := models.NewOption(TestVariantInputTitle, TestVariantInputEnvKey)
+	buildVariantOption := models.NewOption(BuildVariantInputTitle, BuildVariantInputEnvKey)
+	configOption := models.NewConfigOption(ConfigName)
+
+	warnings := models.Warnings{}
 
 	androidSdk, err := sdk.New(os.Getenv("ANDROID_HOME"))
 	if err != nil {
 		return models.OptionModel{}, warnings, err
 	}
+
+	androidcomponents.SetLogger(log.NewDefaultLogger(false))
 
 	if err := androidcomponents.InstallLicences(androidSdk); err != nil {
 		return models.OptionModel{}, warnings, err
@@ -146,7 +153,13 @@ func (scanner *Scanner) generateOptions(searchDir string) (models.OptionModel, m
 			return models.OptionModel{}, warnings, err
 		}
 
-		if err := androidcomponents.Ensure(androidSdk, gradlewPath); err != nil {
+		componentInstallErr := androidcomponents.Ensure(androidSdk, gradlewPath)
+		if componentInstallErr != nil {
+			warnings = append(warnings, fmt.Sprintf("failed to run install missing android components, error: %s", componentInstallErr))
+		}
+
+		relProjectRoot, err := filepath.Rel(scanner.SearchDir, projectRoot)
+		if err != nil {
 			return models.OptionModel{}, warnings, err
 		}
 
@@ -154,23 +167,30 @@ func (scanner *Scanner) generateOptions(searchDir string) (models.OptionModel, m
 		if err != nil {
 			return models.OptionModel{}, warnings, err
 		}
-		testVariantsMap, err := proj.GetTask("test").GetVariants()
-		if err != nil {
-			return models.OptionModel{}, warnings, err
-		}
-		buildVariantsMap, err := proj.GetTask("assemble").GetVariants()
-		if err != nil {
-			return models.OptionModel{}, warnings, err
+
+		testVariantsMap, testVariantFetchErr := proj.GetTask("test").GetVariants()
+		if testVariantFetchErr != nil {
+			warnings = append(warnings, fmt.Sprintf("failed to run command: $(%s tasks --all), error: %s", gradlewPath, testVariantFetchErr))
 		}
 
-		moduleOption := models.NewOption(ModuleInputTitle, ModuleInputEnvKey)
+		buildVariantsMap, buildVariantFetchErr := proj.GetTask("assemble").GetVariants()
+		if buildVariantFetchErr != nil {
+			warnings = append(warnings, fmt.Sprintf("failed to run command: $(%s tasks --all), error: %s", gradlewPath, buildVariantFetchErr))
+		}
+
+		if componentInstallErr != nil || testVariantFetchErr != nil || buildVariantFetchErr != nil {
+			if !scanner.ExcludeTest {
+				buildVariantOption.AddOption("_", testVariantOption)
+				testVariantOption.AddOption("_", configOption)
+			} else {
+				buildVariantOption.AddOption("_", configOption)
+			}
+			moduleOption.AddOption("_", buildVariantOption)
+			projectLocationOption.AddOption(relProjectRoot, moduleOption)
+			return *projectLocationOption, warnings, nil
+		}
 
 		for module, variants := range buildVariantsMap {
-			testVariantOption := models.NewOption(TestVariantInputTitle, TestVariantInputEnvKey)
-			buildVariantOption := models.NewOption(BuildVariantInputTitle, BuildVariantInputEnvKey)
-
-			configOption := models.NewConfigOption(ConfigName)
-
 			if !scanner.ExcludeTest {
 				for _, variant := range testVariantsMap[module] {
 					variant = strings.TrimSuffix(variant, "UnitTest")
@@ -186,19 +206,10 @@ func (scanner *Scanner) generateOptions(searchDir string) (models.OptionModel, m
 				buildVariantOption.AddOption(variant, configOption)
 			}
 			buildVariantOption.AddOption("", configOption)
-
 			moduleOption.AddOption(module, buildVariantOption)
 		}
 
-		relProjectRoot, err := filepath.Rel(scanner.SearchDir, projectRoot)
-		if err != nil {
-			return models.OptionModel{}, warnings, err
-		}
-
-		gradlewPthOption := models.NewOption(GradlewPathInputTitle, GradlewPathInputEnvKey)
-		gradlewPthOption.AddOption(filepath.Join(relProjectRoot, "gradlew"), moduleOption)
-
-		projectLocationOption.AddOption(relProjectRoot, gradlewPthOption)
+		projectLocationOption.AddOption(relProjectRoot, moduleOption)
 	}
 	return *projectLocationOption, warnings, nil
 }
@@ -206,12 +217,14 @@ func (scanner *Scanner) generateOptions(searchDir string) (models.OptionModel, m
 func (scanner *Scanner) generateConfigBuilder(isIncludeCache bool) models.ConfigBuilderModel {
 	configBuilder := models.NewDefaultConfigBuilder()
 
-	projectLocationEnv, moduleEnv, testVariantEnv, buildVariantEnv := "$"+ProjectLocationInputEnvKey, "$"+ModuleInputEnvKey, "$"+TestVariantInputEnvKey, "$"+BuildVariantInputEnvKey
+	projectLocationEnv, moduleEnv, testVariantEnv, buildVariantEnv, gradlewPath := "$"+ProjectLocationInputEnvKey, "$"+ModuleInputEnvKey, "$"+TestVariantInputEnvKey, "$"+BuildVariantInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew"
 
 	//-- primary
 	if !scanner.ExcludeTest {
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(isIncludeCache)...)
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallMissingAndroidToolsStepListItem())
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
+			envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
+		))
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.AndroidLintStepListItem(
 			envmanModels.EnvironmentItemModel{ProjectLocationInputKey: projectLocationEnv},
 			envmanModels.EnvironmentItemModel{ModuleInputKey: moduleEnv},
@@ -226,7 +239,9 @@ func (scanner *Scanner) generateConfigBuilder(isIncludeCache bool) models.Config
 	}
 	//-- deploy
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(isIncludeCache)...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem())
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
+		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
+	))
 
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.ChangeAndroidVersionCodeAndVersionNameStepListItem(
 		envmanModels.EnvironmentItemModel{ModuleBuildGradlePathInputKey: filepath.Join(projectLocationEnv, moduleEnv, "build.gradle")},

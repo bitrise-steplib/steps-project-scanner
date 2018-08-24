@@ -9,6 +9,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/scanners/ios"
 	"github.com/bitrise-core/bitrise-init/scanners/macos"
 	"github.com/bitrise-core/bitrise-init/scanners/reactnative"
+	expo "github.com/bitrise-core/bitrise-init/scanners/reactnative-expo"
 	"github.com/bitrise-core/bitrise-init/scanners/xamarin"
 	"github.com/bitrise-core/bitrise-init/steps"
 	"gopkg.in/yaml.v2"
@@ -62,6 +63,7 @@ type ScannerInterface interface {
 
 // ActiveScanners ...
 var ActiveScanners = []ScannerInterface{
+	expo.NewScanner(),
 	reactnative.NewScanner(),
 	ionic.NewScanner(),
 	cordova.NewScanner(),

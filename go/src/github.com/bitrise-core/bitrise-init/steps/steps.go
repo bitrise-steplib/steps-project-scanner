@@ -132,9 +132,9 @@ func SignAPKStepListItem() bitriseModels.StepListItemModel {
 }
 
 // InstallMissingAndroidToolsStepListItem ....
-func InstallMissingAndroidToolsStepListItem() bitriseModels.StepListItemModel {
+func InstallMissingAndroidToolsStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(InstallMissingAndroidToolsID, InstallMissingAndroidToolsVersion)
-	return stepListItem(stepIDComposite, "", "")
+	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
 // GradleRunnerStepListItem ...
