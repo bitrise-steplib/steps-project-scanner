@@ -44,3 +44,4 @@ inputs:
          If provided and `scan_result_submit_url` also provided,
          this API Token will be used for sending the Scan Results.
       is_dont_change_value: true
+      is_sensitive: true
