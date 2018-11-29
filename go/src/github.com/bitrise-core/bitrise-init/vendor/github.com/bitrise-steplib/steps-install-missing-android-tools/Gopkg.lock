@@ -11,7 +11,8 @@
     "fileutil",
     "log",
     "pathutil",
-    "retry"
+    "retry",
+    "sliceutil"
   ]
   revision = "d1de0dbcb811588e61362aff67bb700b93c13c17"
 
@@ -23,23 +24,32 @@
     "sdkcomponent",
     "sdkmanager"
   ]
-  revision = "5e32d58739d3376ecd9e74fc1eee44c0f00984e5"
+  revision = "cad5a20e271b6a9667ca2063ec6286f51387b9e4"
 
 [[projects]]
   branch = "master"
   name = "github.com/bitrise-tools/go-steputils"
-  packages = ["input"]
+  packages = [
+    "input",
+    "tools"
+  ]
   revision = "d4d9e08cc4347e8784bb18419fcdceb932e17019"
 
 [[projects]]
-  branch = "master"
   name = "github.com/hashicorp/go-version"
   packages = ["."]
-  revision = "23480c0665776210b5fbbac6eaaee40e3e6a96b7"
+  revision = "b5a281d3160aa11950a6182bd9a9dc2cb1e02d50"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "37d15dd862ad805907b89237150f8ead24abda7ffedf64cc40256c97370915f3"
+  inputs-digest = "80ecfd9e2c1179fcd11ab7f8159a0322679001e27a096375b88ca656ab37c129"
   solver-name = "gps-cdcl"
   solver-version = 1

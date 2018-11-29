@@ -1,7 +1,6 @@
 package reactnative
 
 import (
-	"github.com/bitrise-core/bitrise-init/scanners/cordova"
 	"github.com/bitrise-core/bitrise-init/utility"
 )
 
@@ -23,7 +22,7 @@ func CollectPackageJSONFiles(searchDir string) ([]string, error) {
 
 	relevantPackageFileList := []string{}
 	for _, packageFile := range packageFileList {
-		packages, err := cordova.ParsePackagesJSON(packageFile)
+		packages, err := utility.ParsePackagesJSON(packageFile)
 		if err != nil {
 			return nil, err
 		}

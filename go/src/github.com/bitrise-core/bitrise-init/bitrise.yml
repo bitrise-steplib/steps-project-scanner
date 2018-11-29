@@ -1,13 +1,19 @@
 format_version: "5"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
-app:
-  envs:
-  - RELEASE_VERSION: 1.6.5
-
 workflows:
   # ----------------------------------------------------------------
   # --- workflows for CI and testing
+  ci-docker:
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/env bash
+            set -ex
+            docker-compose build
+            docker-compose run --rm app bitrise run ci
+
   ci:
     after_run:
     - go-test
@@ -92,30 +98,6 @@ workflows:
             go get -u -v github.com/golang/dep/cmd/dep
             dep ensure -v
             dep ensure -v -update
-
-  # ----------------------------------------------------------------
-  # --- workflows for Releasing
-  create-release:
-    title: Create Release version
-    description: |
-        Creates new version with specified $RELEASE_VERSION environment
-
-        1, Create CHANGELOG
-        2, Create binaries
-    after_run:
-    - create-binaries
-    steps:
-    - script:
-        title: Create CHANGELOG
-        inputs:
-        - content: |
-            #!/bin/bash
-            set -ex
-            go get -u github.com/bitrise-tools/releaseman
-            export CI=true
-            releaseman create-changelog \
-              --version "$RELEASE_VERSION" \
-              --set-version-script "bash _scripts/set_version.sh version/version.go"
 
   create-binaries:
     title: Create binaries

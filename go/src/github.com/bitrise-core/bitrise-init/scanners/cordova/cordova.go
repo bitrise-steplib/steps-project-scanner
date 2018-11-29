@@ -142,7 +142,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	projectRootDir := filepath.Dir(scanner.cordovaConfigPth)
 
 	packagesJSONPth := filepath.Join(projectRootDir, "package.json")
-	packages, err := ParsePackagesJSON(packagesJSONPth)
+	packages, err := utility.ParsePackagesJSON(packagesJSONPth)
 	if err != nil {
 		return models.OptionModel{}, warnings, err
 	}

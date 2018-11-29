@@ -135,79 +135,11 @@ var sampleAppsAndroidSDK22SubdirResultYML = fmt.Sprintf(`options:
         env_key: MODULE
         value_map:
           app:
-            title: Variant for building
-            env_key: BUILD_VARIANT
+            title: Variant
+            env_key: VARIANT
             value_map:
-              "":
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              AndroidTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              Debug:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              DebugAndroidTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              DebugUnitTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              Release:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              ReleaseUnitTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
+              _:
+                config: android-config
 configs:
   android:
     android-config: |
@@ -268,19 +200,19 @@ configs:
               - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
           - android-lint@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - android-unit-test@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - android-build@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $BUILD_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - sign-apk@%s:
               run_if: '{{getenv "BITRISEIO_ANDROID_KEYSTORE_URL" | ne ""}}'
           - deploy-to-bitrise-io@%s: {}
@@ -298,14 +230,14 @@ configs:
               - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-lint@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - android-unit-test@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
 warnings:
@@ -358,79 +290,11 @@ var sampleAppsAndroid22ResultYML = fmt.Sprintf(`options:
         env_key: MODULE
         value_map:
           app:
-            title: Variant for building
-            env_key: BUILD_VARIANT
+            title: Variant
+            env_key: VARIANT
             value_map:
-              "":
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              AndroidTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              Debug:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              DebugAndroidTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              DebugUnitTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              Release:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              ReleaseUnitTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
+              _:
+                config: android-config
 configs:
   android:
     android-config: |
@@ -491,19 +355,19 @@ configs:
               - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
           - android-lint@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - android-unit-test@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - android-build@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $BUILD_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - sign-apk@%s:
               run_if: '{{getenv "BITRISEIO_ANDROID_KEYSTORE_URL" | ne ""}}'
           - deploy-to-bitrise-io@%s: {}
@@ -521,14 +385,14 @@ configs:
               - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-lint@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - android-unit-test@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
 warnings:
@@ -571,79 +435,11 @@ var androidNonExecutableGradlewResultYML = fmt.Sprintf(`options:
         env_key: MODULE
         value_map:
           app:
-            title: Variant for building
-            env_key: BUILD_VARIANT
+            title: Variant
+            env_key: VARIANT
             value_map:
-              "":
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              AndroidTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              Debug:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              DebugAndroidTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              DebugUnitTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              Release:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
-              ReleaseUnitTest:
-                title: Variant for testing
-                env_key: TEST_VARIANT
-                value_map:
-                  "":
-                    config: android-config
-                  Debug:
-                    config: android-config
-                  Release:
-                    config: android-config
+              _:
+                config: android-config
 configs:
   android:
     android-config: |
@@ -704,19 +500,19 @@ configs:
               - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
           - android-lint@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - android-unit-test@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - android-build@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $BUILD_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - sign-apk@%s:
               run_if: '{{getenv "BITRISEIO_ANDROID_KEYSTORE_URL" | ne ""}}'
           - deploy-to-bitrise-io@%s: {}
@@ -734,14 +530,14 @@ configs:
               - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-lint@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - android-unit-test@%s:
               inputs:
-              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-              - variant: $TEST_VARIANT
+                project_location: $PROJECT_LOCATION
+                variant: $VARIANT
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
 warnings:

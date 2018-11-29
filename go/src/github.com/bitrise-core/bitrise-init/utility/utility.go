@@ -1,6 +1,7 @@
 package utility
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -10,6 +11,30 @@ import (
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 )
+
+// PackagesModel ...
+type PackagesModel struct {
+	Scripts         map[string]string `json:"scripts"`
+	Dependencies    map[string]string `json:"dependencies"`
+	DevDependencies map[string]string `json:"devDependencies"`
+}
+
+func parsePackagesJSONContent(content string) (PackagesModel, error) {
+	var packages PackagesModel
+	if err := json.Unmarshal([]byte(content), &packages); err != nil {
+		return PackagesModel{}, err
+	}
+	return packages, nil
+}
+
+// ParsePackagesJSON ...
+func ParsePackagesJSON(packagesJSONPth string) (PackagesModel, error) {
+	content, err := fileutil.ReadStringFromFile(packagesJSONPth)
+	if err != nil {
+		return PackagesModel{}, err
+	}
+	return parsePackagesJSONContent(content)
+}
 
 // RelPath ...
 func RelPath(basePth, pth string) (string, error) {
