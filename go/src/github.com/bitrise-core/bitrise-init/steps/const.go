@@ -11,14 +11,14 @@ const (
 	// AndroidLintID ...
 	AndroidLintID = "android-lint"
 	// AndroidLintVersion ...
-	AndroidLintVersion = "0.9.4"
+	AndroidLintVersion = "0.9.5"
 )
 
 const (
 	// AndroidUnitTestID ...
 	AndroidUnitTestID = "android-unit-test"
 	// AndroidUnitTestVersion ...
-	AndroidUnitTestVersion = "0.9.3"
+	AndroidUnitTestVersion = "0.9.5"
 )
 
 const (
@@ -32,7 +32,7 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "4.0.11"
+	GitCloneVersion = "4.0.13"
 )
 
 const (
@@ -67,7 +67,7 @@ const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.3.15"
+	DeployToBitriseIoVersion = "1.3.18"
 )
 
 const (
@@ -83,14 +83,14 @@ const (
 	// SignAPKID ...
 	SignAPKID = "sign-apk"
 	// SignAPKVersion ...
-	SignAPKVersion = "1.2.3"
+	SignAPKVersion = "1.2.4"
 )
 
 const (
 	// InstallMissingAndroidToolsID ...
 	InstallMissingAndroidToolsID = "install-missing-android-tools"
 	// InstallMissingAndroidToolsVersion ...
-	InstallMissingAndroidToolsVersion = "2.2.0"
+	InstallMissingAndroidToolsVersion = "2.3.3"
 )
 
 const (
@@ -132,14 +132,14 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.4.14"
+	XcodeArchiveVersion = "2.4.16"
 )
 
 const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "1.18.16"
+	XcodeTestVersion = "2.0.0"
 )
 
 const (
@@ -188,14 +188,14 @@ const (
 	// CordovaArchiveID ...
 	CordovaArchiveID = "cordova-archive"
 	// CordovaArchiveVersion ...
-	CordovaArchiveVersion = "1.1.1"
+	CordovaArchiveVersion = "1.2.1"
 )
 
 const (
 	// IonicArchiveID ...
 	IonicArchiveID = "ionic-archive"
 	// IonicArchiveVersion ...
-	IonicArchiveVersion = "1.2.5"
+	IonicArchiveVersion = "1.2.6"
 )
 
 const (
@@ -223,5 +223,19 @@ const (
 	// NpmID ...
 	NpmID = "npm"
 	// NpmVersion ...
-	NpmVersion = "0.9.1"
+	NpmVersion = "1.0.1"
+)
+
+const (
+	// ExpoDetachID ...
+	ExpoDetachID = "expo-detach"
+	// ExpoDetachVersion ...
+	ExpoDetachVersion = "0.9.3"
+)
+
+const (
+	// YarnID ...
+	YarnID = "yarn"
+	// YarnVersion ...
+	YarnVersion = "0.0.8"
 )

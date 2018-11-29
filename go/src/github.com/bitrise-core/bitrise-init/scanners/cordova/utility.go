@@ -1,7 +1,6 @@
 package cordova
 
 import (
-	"encoding/json"
 	"encoding/xml"
 
 	"github.com/bitrise-core/bitrise-init/utility"
@@ -45,28 +44,4 @@ func FilterRootConfigXMLFile(fileList []string) (string, error) {
 	}
 
 	return configXMLs[0], nil
-}
-
-// PackagesModel ...
-type PackagesModel struct {
-	Scripts         map[string]string `json:"scripts"`
-	Dependencies    map[string]string `json:"dependencies"`
-	DevDependencies map[string]string `json:"devDependencies"`
-}
-
-func parsePackagesJSONContent(content string) (PackagesModel, error) {
-	var packages PackagesModel
-	if err := json.Unmarshal([]byte(content), &packages); err != nil {
-		return PackagesModel{}, err
-	}
-	return packages, nil
-}
-
-// ParsePackagesJSON ...
-func ParsePackagesJSON(packagesJSONPth string) (PackagesModel, error) {
-	content, err := fileutil.ReadStringFromFile(packagesJSONPth)
-	if err != nil {
-		return PackagesModel{}, err
-	}
-	return parsePackagesJSONContent(content)
 }

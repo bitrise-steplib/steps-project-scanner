@@ -113,11 +113,12 @@ func Ensure(androidSdk *sdk.Model, gradlewPath string) error {
 
 func (i installer) getDependencyCases() map[string]func(match string) error {
 	return map[string]func(match string) error{
-		`(Observed package id 'ndk-bundle' in inconsistent location)`: i.ndkInconsistentLocation,
-		`(NDK not configured)`:                                        i.ndkNotConfigured,
-		`failed to find target with hash string 'android-(.*)'\s*`:    i.target,
-		`failed to find Build Tools revision ([0-9.]*)\s*`:            i.buildTool,
-		`Could not find (com\.android\.support\..*)\.`:                i.extrasLib,
+		`(Observed package id 'ndk-bundle' in inconsistent location)`:         i.ndkInconsistentLocation,
+		`(NDK not configured)`:                                                i.ndkNotConfigured,
+		`failed to find target with hash string 'android-(.*)'\s*`:            i.target,
+		`failed to find Build Tools revision ([0-9.]*)\s*`:                    i.buildTool,
+		`Could not find (com\.android\.support\..*)\.`:                        i.extrasLib,
+		`Could not find any version that matches (com\.android\.support.*)\.`: i.extrasLib,
 	}
 }
 

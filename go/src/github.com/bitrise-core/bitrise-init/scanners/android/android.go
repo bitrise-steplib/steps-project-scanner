@@ -2,6 +2,7 @@ package android
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 
@@ -44,33 +45,48 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
-	return scanner.generateOptions(scanner.SearchDir)
+	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputEnvKey)
+	warnings := models.Warnings{}
+
+	for _, projectRoot := range scanner.ProjectRoots {
+		if err := checkGradlew(projectRoot); err != nil {
+			return models.OptionModel{}, warnings, err
+		}
+
+		relProjectRoot, err := filepath.Rel(scanner.SearchDir, projectRoot)
+		if err != nil {
+			return models.OptionModel{}, warnings, err
+		}
+
+		configOption := models.NewConfigOption(ConfigName)
+		moduleOption := models.NewOption(ModuleInputTitle, ModuleInputEnvKey)
+		variantOption := models.NewOption(VariantInputTitle, VariantInputEnvKey)
+
+		projectLocationOption.AddOption(relProjectRoot, moduleOption)
+		moduleOption.AddOption("app", variantOption)
+		variantOption.AddOption("_", configOption)
+	}
+
+	return *projectLocationOption, warnings, nil
 }
 
 // DefaultOptions ...
 func (scanner *Scanner) DefaultOptions() models.OptionModel {
 	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputEnvKey)
 	moduleOption := models.NewOption(ModuleInputTitle, ModuleInputEnvKey)
-	testVariantOption := models.NewOption(TestVariantInputTitle, TestVariantInputEnvKey)
-	buildVariantOption := models.NewOption(BuildVariantInputTitle, BuildVariantInputEnvKey)
+	variantOption := models.NewOption(VariantInputTitle, VariantInputEnvKey)
 	configOption := models.NewConfigOption(DefaultConfigName)
 
 	projectLocationOption.AddOption("_", moduleOption)
-	moduleOption.AddConfig("_", buildVariantOption)
+	moduleOption.AddOption("_", variantOption)
+	variantOption.AddOption("_", configOption)
 
-	if !scanner.ExcludeTest {
-		buildVariantOption.AddConfig("_", testVariantOption)
-		testVariantOption.AddConfig("_", configOption)
-		return *projectLocationOption
-	}
-
-	buildVariantOption.AddConfig("_", configOption)
 	return *projectLocationOption
 }
 
 // Configs ...
 func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder(true)
+	configBuilder := scanner.generateConfigBuilder()
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {
@@ -89,7 +105,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 // DefaultConfigs ...
 func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder(true)
+	configBuilder := scanner.generateConfigBuilder()
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {

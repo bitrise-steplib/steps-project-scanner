@@ -33,7 +33,6 @@ toolkit:
 inputs:
   - gradlew_path: $GRADLEW_PATH
     opts:
-      category: Config
       title: gradlew file path
       description: |
         Using a Gradle Wrapper (gradlew) is required, as the wrapper is what makes sure
@@ -45,3 +44,8 @@ inputs:
         **The path should be relative** to the repository root, for example: `./gradlew`,
         or if it's in a sub directory: `./sub/dir/gradlew`.
       is_required: true
+  - ndk_revision:
+    opts:
+      title: NDK Revision
+      summary: "The step will install the given revision of the Android NDK.(eg.: 18) Leave this input empty if you are not using NDK in your project."
+      description: "The step will install the given revision of the Android NDK.(eg.: 18) Leave this input empty if you are not using NDK in your project."

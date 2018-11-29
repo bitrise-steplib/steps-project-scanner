@@ -3,27 +3,27 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c3f7fa9201a7dfd36968c279457b387fd542eb5e0097353f468225d75f93280e"
+  digest = "1:019c7117636a28f84e681161961f43d88d457866f5d3d2caca8521d132791d0b"
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
   pruneopts = ""
-  revision = "fc587f31c804fe6853cd90f0d8d90af588eca5bd"
+  revision = "fd2308367ebd427ec910c1ac82f3805db3de1918"
 
 [[projects]]
   branch = "master"
-  digest = "1:da1acb5d5d6eda9e48a8d53662c31ff297cd734f9d5dab6d2f741d73935265ee"
+  digest = "1:741f89b151237a33a733993138ffa1a5a598df924be2614cedd28308256e8038"
   name = "github.com/bitrise-io/bitrise"
   packages = ["models"]
   pruneopts = ""
-  revision = "e56af2ed7b2243933b297139ee2e3b391f0549bd"
+  revision = "9064eec019a63dcc77d369fea2c06d7fe4ff54cb"
 
 [[projects]]
   branch = "master"
-  digest = "1:77bbf23a128964717334d4eba7769965b8e57b984449970f9a33bcfa42e751a4"
+  digest = "1:2615f247e8af85db1c83f7459d60c3f253745fd8529a44c0c50a382c4720bfee"
   name = "github.com/bitrise-io/envman"
   packages = ["models"]
   pruneopts = ""
-  revision = "9c2802d426f96ffb5ef463dadff07b2fedbf5e53"
+  revision = "5470ead252e98a98189862995fef55faa0236fce"
 
 [[projects]]
   branch = "master"
@@ -57,19 +57,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:90f5cfa3366452e75fd0c5cde3724e39cc3a8dd21a6b5d65293f89b9956d9f8c"
+  digest = "1:ca2395d1359293abbf5af4c58b6a92df639553b4c8e60e8aba955c24bdf79045"
   name = "github.com/bitrise-io/stepman"
   packages = ["models"]
   pruneopts = ""
-  revision = "eb9c1be644696dd0e7b56c574b8585466f151e09"
+  revision = "9a765f7d511cfaea640739e2cb26cde47ceb7481"
 
 [[projects]]
-  digest = "1:db03f18996fde1a95607a584ce7adda5838c0b9a97bf51088bcf411647f5a46a"
+  digest = "1:7bf53b561aefdc567b41bc7f0f7618d203d37c0b8d78f4e81e74d0f8499e4ee4"
   name = "github.com/bitrise-steplib/steps-install-missing-android-tools"
   packages = ["androidcomponents"]
   pruneopts = ""
-  revision = "b7c204200cc406d514a51efca9096d857f859f54"
-  version = "2.2.0"
+  revision = "539b018395b2aaa1bb9aa806f00f636a011a0451"
+  version = "2.3.2"
 
 [[projects]]
   branch = "master"
@@ -94,14 +94,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:165bebf2fc00916648e90c424a19105b0d3afc72ead558e7ae7a56edcde7524c"
+  digest = "1:1bf3bf5167d9a8caa0a3e3e5c62cc59e1bff66c446eebc43929d4ee600ac425e"
   name = "github.com/bitrise-tools/go-xcode"
   packages = [
     "plistutil",
     "xcodeproj",
   ]
   pruneopts = ""
-  revision = "07db8cf760f5213241e12c0595158aedce96669a"
+  revision = "82aa5ad881aad17afd7b73af03dabc4ef89b8a53"
+
+[[projects]]
+  branch = "master"
+  digest = "1:1e7de00b8c4f1d50f48d589636b94e01afcbede84f407763d7dde0bdb7984c6e"
+  name = "github.com/bitrise-tools/xcode-project"
+  packages = ["serialized"]
+  pruneopts = ""
+  revision = "6f0750033d97d0ec766753662d42d40dd6346045"
 
 [[projects]]
   digest = "1:0deddd908b6b4b768cfc272c16ee61e7088a60f7fe2f06c547bd3d8e1f8b8e77"
@@ -112,12 +120,20 @@
   version = "v1.1.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:139bdc2c89779b8ff8b1150be28f889b0ed964e6da96f32cbc9035bd4642881c"
+  digest = "1:8c7fb7f81c06add10a17362abc1ae569ff9765a26c061c6b6e67c909f4f414db"
   name = "github.com/hashicorp/go-version"
   packages = ["."]
   pruneopts = ""
-  revision = "270f2f71b1ee587f3b609f00f422b76a6b28f348"
+  revision = "b5a281d3160aa11950a6182bd9a9dc2cb1e02d50"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:6a874e3ddfb9db2b42bd8c85b6875407c702fa868eed20634ff489bc896ccfd3"
+  name = "github.com/konsorten/go-windows-terminal-sequences"
+  packages = ["."]
+  pruneopts = ""
+  revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
+  version = "v1.0.1"
 
 [[projects]]
   digest = "1:7365acd48986e205ccb8652cc746f09c8b7876030d53710ea6ef7d0bd0dcd7ca"
@@ -145,41 +161,41 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c587772fb8ad29ad4db67575dad25ba17a51f072ff18a22b4f0257a4d9c24f75"
+  digest = "1:2a0cd5a83b9a064d9464bc1825aaff600bb9e5eb1aaba3155d62f345f81d0192"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
     "require",
   ]
   pruneopts = ""
-  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  revision = "04af85275a5c7ac09d16bb3b9b2e751ed45154e5"
 
 [[projects]]
   branch = "master"
-  digest = "1:c4aa2ca0fdab59048820c0ea7b53a035662d4212e6a8098f23c10ea4c59a2f95"
+  digest = "1:438d5957cf1c26ca62975dc4b1b59242acc9e527f39ed3f6cda57ee6d3653daf"
   name = "github.com/urfave/cli"
   packages = ["."]
   pruneopts = ""
-  revision = "934abfb2f102315b5794e15ebc7949e4ca253920"
+  revision = "b67dcf995b6a7b7f14fad5fcb7cc5441b05e814b"
 
 [[projects]]
   branch = "master"
-  digest = "1:793a79198b755828dec284c6f1325e24e09186f1b7ba818b65c7c35104ed86eb"
+  digest = "1:efb97ebbd73c3a7068579327f5d98a17c09f6d8caf1fa3212c506e8bb78126b5"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = ""
-  revision = "614d502a4dac94afa3a6ce146bd1736da82514c6"
+  revision = "4d3f4d9ffa16a13f451c3b2999e9c49e9750bf06"
 
 [[projects]]
   branch = "master"
-  digest = "1:54d1b4c40f05586ddc168fc0f94ceebe85bdb285613ae4a5dafd5e43b52b4d0f"
+  digest = "1:a5320611dcdfc9d79e459a43442b272d9e03276107e75655d7a199aa271d456a"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = ""
-  revision = "3b58ed4ad3395d483fc92d5d14123ce2c3581fec"
+  revision = "9b800f95dbbc54abff0acf7ee32d88ba4e328c89"
 
 [[projects]]
   branch = "v2"
@@ -219,6 +235,7 @@
     "github.com/bitrise-tools/go-android/gradle",
     "github.com/bitrise-tools/go-android/sdk",
     "github.com/bitrise-tools/go-xcode/xcodeproj",
+    "github.com/bitrise-tools/xcode-project/serialized",
     "github.com/stretchr/testify/require",
     "github.com/urfave/cli",
     "gopkg.in/yaml.v2",
