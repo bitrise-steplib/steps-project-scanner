@@ -124,15 +124,23 @@ func (scanner *Scanner) generateConfigBuilder() models.ConfigBuilderModel {
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.AndroidLintStepListItem(
 		envmanModels.EnvironmentItemModel{
 			ProjectLocationInputKey: projectLocationEnv,
-			ModuleInputKey:          moduleEnv,
-			VariantInputKey:         variantEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			ModuleInputKey: moduleEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			VariantInputKey: variantEnv,
 		},
 	))
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.AndroidUnitTestStepListItem(
 		envmanModels.EnvironmentItemModel{
 			ProjectLocationInputKey: projectLocationEnv,
-			ModuleInputKey:          moduleEnv,
-			VariantInputKey:         variantEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			ModuleInputKey: moduleEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			VariantInputKey: variantEnv,
 		},
 	))
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(true)...)
@@ -150,23 +158,35 @@ func (scanner *Scanner) generateConfigBuilder() models.ConfigBuilderModel {
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.AndroidLintStepListItem(
 		envmanModels.EnvironmentItemModel{
 			ProjectLocationInputKey: projectLocationEnv,
-			ModuleInputKey:          moduleEnv,
-			VariantInputKey:         variantEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			ModuleInputKey: moduleEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			VariantInputKey: variantEnv,
 		},
 	))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.AndroidUnitTestStepListItem(
 		envmanModels.EnvironmentItemModel{
 			ProjectLocationInputKey: projectLocationEnv,
-			ModuleInputKey:          moduleEnv,
-			VariantInputKey:         variantEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			ModuleInputKey: moduleEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			VariantInputKey: variantEnv,
 		},
 	))
 
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.AndroidBuildStepListItem(
 		envmanModels.EnvironmentItemModel{
 			ProjectLocationInputKey: projectLocationEnv,
-			ModuleInputKey:          moduleEnv,
-			VariantInputKey:         variantEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			ModuleInputKey: moduleEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			VariantInputKey: variantEnv,
 		},
 	))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.SignAPKStepListItem())
