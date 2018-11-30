@@ -200,19 +200,19 @@ configs:
               - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
           - android-lint@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - android-unit-test@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - android-build@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - sign-apk@%s:
               run_if: '{{getenv "BITRISEIO_ANDROID_KEYSTORE_URL" | ne ""}}'
           - deploy-to-bitrise-io@%s: {}
@@ -230,14 +230,14 @@ configs:
               - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-lint@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - android-unit-test@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
 warnings:
@@ -355,19 +355,19 @@ configs:
               - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
           - android-lint@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - android-unit-test@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - android-build@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - sign-apk@%s:
               run_if: '{{getenv "BITRISEIO_ANDROID_KEYSTORE_URL" | ne ""}}'
           - deploy-to-bitrise-io@%s: {}
@@ -385,14 +385,14 @@ configs:
               - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-lint@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - android-unit-test@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
 warnings:
@@ -500,19 +500,19 @@ configs:
               - build_gradle_path: $PROJECT_LOCATION/$MODULE/build.gradle
           - android-lint@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - android-unit-test@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - android-build@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - sign-apk@%s:
               run_if: '{{getenv "BITRISEIO_ANDROID_KEYSTORE_URL" | ne ""}}'
           - deploy-to-bitrise-io@%s: {}
@@ -530,14 +530,14 @@ configs:
               - gradlew_path: $PROJECT_LOCATION/gradlew
           - android-lint@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - android-unit-test@%s:
               inputs:
+              - project_location: $PROJECT_LOCATION
               - module: $MODULE
-                project_location: $PROJECT_LOCATION
-                variant: $VARIANT
+              - variant: $VARIANT
           - deploy-to-bitrise-io@%s: {}
           - cache-push@%s: {}
 warnings:
