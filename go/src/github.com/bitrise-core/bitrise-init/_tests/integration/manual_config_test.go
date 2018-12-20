@@ -84,6 +84,25 @@ var customConfigVersions = []interface{}{
 	steps.FastlaneVersion,
 	steps.DeployToBitriseIoVersion,
 
+	// flutter
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterTestVersion,
+	steps.FlutterBuildVersion,
+	steps.XcodeArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterTestVersion,
+	steps.DeployToBitriseIoVersion,
+
 	// ionic
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
@@ -264,6 +283,30 @@ var customConfigResultYML = fmt.Sprintf(`options:
         value_map:
           _:
             config: default-fastlane-config
+  flutter:
+    title: Project Location
+    env_key: BITRISE_FLUTTER_PROJECT_LOCATION
+    value_map:
+      _:
+        title: Project (or Workspace) path
+        env_key: BITRISE_PROJECT_PATH
+        value_map:
+          _:
+            title: Scheme name
+            env_key: BITRISE_SCHEME
+            value_map:
+              _:
+                title: ipa export method
+                env_key: BITRISE_EXPORT_METHOD
+                value_map:
+                  ad-hoc:
+                    config: flutter-config
+                  app-store:
+                    config: flutter-config
+                  development:
+                    config: flutter-config
+                  enterprise:
+                    config: flutter-config
   ionic:
     title: Directory of Ionic Config.xml
     env_key: IONIC_WORK_DIR
@@ -734,6 +777,51 @@ configs:
               inputs:
               - lane: $FASTLANE_LANE
               - work_dir: $FASTLANE_WORK_DIR
+          - deploy-to-bitrise-io@%s: {}
+  flutter:
+    flutter-config: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: flutter
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        deploy:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
+          - flutter-installer@%s: {}
+          - flutter-test@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-build@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - xcode-archive@%s:
+              inputs:
+              - project_path: $BITRISE_PROJECT_PATH
+              - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
+              - configuration: Release
+          - deploy-to-bitrise-io@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - flutter-installer@%s: {}
+          - flutter-test@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
           - deploy-to-bitrise-io@%s: {}
   ionic:
     default-ionic-config: |
