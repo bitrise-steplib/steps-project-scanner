@@ -5,6 +5,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/scanners/android"
 	"github.com/bitrise-core/bitrise-init/scanners/cordova"
 	"github.com/bitrise-core/bitrise-init/scanners/fastlane"
+	"github.com/bitrise-core/bitrise-init/scanners/flutter"
 	"github.com/bitrise-core/bitrise-init/scanners/ionic"
 	"github.com/bitrise-core/bitrise-init/scanners/ios"
 	"github.com/bitrise-core/bitrise-init/scanners/macos"
@@ -65,6 +66,7 @@ type ScannerInterface interface {
 var ActiveScanners = []ScannerInterface{
 	expo.NewScanner(),
 	reactnative.NewScanner(),
+	flutter.NewScanner(),
 	ionic.NewScanner(),
 	cordova.NewScanner(),
 	ios.NewScanner(),

@@ -263,3 +263,21 @@ func YarnStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels
 	stepIDComposite := stepIDComposite(YarnID, YarnVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
+
+// FlutterInstallStepListItem ...
+func FlutterInstallStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(FlutterInstallID, FlutterInstallVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
+// FlutterTestStepListItem ...
+func FlutterTestStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(FlutterTestID, FlutterTestVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
+// FlutterBuildStepListItem ...
+func FlutterBuildStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(FlutterBuildID, FlutterBuildVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
