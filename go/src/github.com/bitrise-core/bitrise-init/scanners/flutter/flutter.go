@@ -1,6 +1,7 @@
 package flutter
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/bitrise-core/bitrise-init/models"
@@ -9,6 +10,7 @@ import (
 	"github.com/bitrise-core/bitrise-init/steps"
 	"github.com/bitrise-core/bitrise-init/utility"
 	envmanModels "github.com/bitrise-io/envman/models"
+	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-tools/xcode-project/xcworkspace"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -20,6 +22,16 @@ const (
 	defaultIOSConfiguration    = "Release"
 	projectLocationInputEnvKey = "BITRISE_FLUTTER_PROJECT_LOCATION"
 	projectLocationInputTitle  = "Project Location"
+	projectTypeInputEnvKey     = "BITRISE_FLUTTER_PROJECT_TYPE"
+	projectTypeInputTitle      = "Project Type"
+)
+
+var (
+	projectTypes = []string{
+		"app",
+		"plugin",
+		"package",
+	}
 )
 
 //------------------
@@ -32,8 +44,13 @@ type Scanner struct {
 }
 
 type project struct {
-	path              string
-	xcodeProjectPaths map[string][]string
+	ProjectType       string              `yaml:"project_type"`
+	path              string              `yaml:"-"`
+	xcodeProjectPaths map[string][]string `yaml:"-"`
+}
+
+type pubspec struct {
+	Name string `yaml:"name"`
 }
 
 // NewScanner ...
@@ -95,40 +112,86 @@ func findWorkspaceLocations(projectLocation string) ([]string, error) {
 
 // DetectPlatform ...
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
+	log.TInfof("Search for project(s)")
 	projectLocations, err := findProjectLocations(searchDir)
 	if err != nil {
 		return false, err
 	}
 
+	log.TPrintf("Project paths(%d):", len(projectLocations))
+	for _, p := range projectLocations {
+		log.TPrintf("- %s", p)
+	}
+	log.TPrintf("")
+
+	log.TInfof("Fetching .metadata and pubspec.yaml files")
 	for _, projectLocation := range projectLocations {
-		workspaceLocations, err := findWorkspaceLocations(projectLocation)
+		metaPath := filepath.Join(projectLocation, ".metadata")
+		metaFile, err := os.Open(metaPath)
 		if err != nil {
+			log.TErrorf("Failed to open .metadata file at: %s, error: %s", metaPath, err)
 			return false, err
 		}
 
-		for _, workspaceLocation := range workspaceLocations {
-			ws, err := xcworkspace.Open(workspaceLocation)
+		var proj project
+		if err := yaml.NewDecoder(metaFile).Decode(&proj); err != nil {
+			log.TErrorf("Failed to decode yaml .metadata file at: %s, error: %s", metaPath, err)
+			return false, err
+		}
+
+		pubspecPath := filepath.Join(projectLocation, "pubspec.yaml")
+		pubspecFile, err := os.Open(pubspecPath)
+		if err != nil {
+			log.TErrorf("Failed to open pubspec.yaml file at: %s, error: %s", pubspecPath, err)
+			return false, err
+		}
+
+		var ps pubspec
+		if err := yaml.NewDecoder(pubspecFile).Decode(&ps); err != nil {
+			log.TErrorf("Failed to decode yaml pubspec.yaml file at: %s, error: %s", pubspecPath, err)
+			return false, err
+		}
+
+		log.TPrintf("- Project name: %s", ps.Name)
+		log.TPrintf("  Type: %s", proj.ProjectType)
+		log.TPrintf("  Path: %s", projectLocation)
+
+		proj.path = projectLocation
+
+		if proj.ProjectType == "app" {
+			workspaceLocations, err := findWorkspaceLocations(filepath.Join(projectLocation, "ios"))
 			if err != nil {
-				return false, nil
-			}
-			schemeMap, err := ws.Schemes()
-			if err != nil {
-				return false, nil
+				return false, err
 			}
 
-			proj := project{
-				path:              projectLocation,
-				xcodeProjectPaths: map[string][]string{},
-			}
+			log.TPrintf("  XCWorkspaces(%d):", len(workspaceLocations))
 
-			for _, schemes := range schemeMap {
-				for _, scheme := range schemes {
-					proj.xcodeProjectPaths[workspaceLocation] = append(proj.xcodeProjectPaths[workspaceLocation], scheme.Name)
+			for _, workspaceLocation := range workspaceLocations {
+				log.TPrintf("    Path: %s", workspaceLocation)
+				ws, err := xcworkspace.Open(workspaceLocation)
+				if err != nil {
+					return false, nil
+				}
+				schemeMap, err := ws.Schemes()
+				if err != nil {
+					return false, nil
+				}
+
+				proj.xcodeProjectPaths = map[string][]string{}
+
+				for _, schemes := range schemeMap {
+					if len(schemes) > 0 {
+						log.TPrintf("    Schemes(%d):", len(schemes))
+					}
+					for _, scheme := range schemes {
+						log.TPrintf("    - %s", scheme.Name)
+						proj.xcodeProjectPaths[workspaceLocation] = append(proj.xcodeProjectPaths[workspaceLocation], scheme.Name)
+					}
 				}
 			}
-
-			scanner.projects = append(scanner.projects, proj)
 		}
+
+		scanner.projects = append(scanner.projects, proj)
 	}
 
 	if len(scanner.projects) == 0 {
@@ -151,22 +214,27 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputEnvKey)
 
 	for _, project := range scanner.projects {
-		projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey)
-		flutterProjectLocationOption.AddOption(project.path, projectPathOption)
+		if project.ProjectType == "app" {
+			projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey)
+			flutterProjectLocationOption.AddOption(project.path, projectPathOption)
 
-		for xcodeWorkspacePath, schemes := range project.xcodeProjectPaths {
-			schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey)
-			projectPathOption.AddOption(xcodeWorkspacePath, schemeOption)
+			for xcodeWorkspacePath, schemes := range project.xcodeProjectPaths {
+				schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey)
+				projectPathOption.AddOption(xcodeWorkspacePath, schemeOption)
 
-			for _, scheme := range schemes {
-				exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
-				schemeOption.AddOption(scheme, exportMethodOption)
+				for _, scheme := range schemes {
+					exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
+					schemeOption.AddOption(scheme, exportMethodOption)
 
-				for _, exportMethod := range ios.IosExportMethods {
-					configOption := models.NewConfigOption(configName)
-					exportMethodOption.AddConfig(exportMethod, configOption)
+					for _, exportMethod := range ios.IosExportMethods {
+						configOption := models.NewConfigOption(configName + "-app")
+						exportMethodOption.AddConfig(exportMethod, configOption)
+					}
 				}
 			}
+		} else {
+			configOption := models.NewConfigOption(configName)
+			flutterProjectLocationOption.AddConfig(project.path, configOption)
 		}
 	}
 
@@ -177,18 +245,28 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 func (Scanner) DefaultOptions() models.OptionModel {
 	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputEnvKey)
 
-	projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey)
-	flutterProjectLocationOption.AddOption("_", projectPathOption)
+	typeOption := models.NewOption(projectTypeInputTitle, projectTypeInputEnvKey)
+	flutterProjectLocationOption.AddOption("_", typeOption)
 
-	schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey)
-	projectPathOption.AddOption("_", schemeOption)
+	for _, pType := range projectTypes {
+		if pType == "app" {
+			projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey)
+			typeOption.AddOption(pType, projectPathOption)
 
-	exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
-	schemeOption.AddOption("_", exportMethodOption)
+			schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey)
+			projectPathOption.AddOption("_", schemeOption)
 
-	for _, exportMethod := range ios.IosExportMethods {
-		configOption := models.NewConfigOption(configName)
-		exportMethodOption.AddConfig(exportMethod, configOption)
+			exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
+			schemeOption.AddOption("_", exportMethodOption)
+
+			for _, exportMethod := range ios.IosExportMethods {
+				configOption := models.NewConfigOption(configName + "-app")
+				exportMethodOption.AddConfig(exportMethod, configOption)
+			}
+		} else {
+			configOption := models.NewConfigOption(configName)
+			typeOption.AddConfig(pType, configOption)
+		}
 	}
 
 	return *flutterProjectLocationOption
@@ -200,7 +278,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 }
 
 // DefaultConfigs ...
-func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+func (scanner Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	// primary
@@ -214,6 +292,16 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	))
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+
+	config, err := configBuilder.Generate(scannerName)
+	if err != nil {
+		return models.BitriseConfigMap{}, err
+	}
+
+	primaryData, err := yaml.Marshal(config)
+	if err != nil {
+		return models.BitriseConfigMap{}, err
+	}
 
 	// deploy
 
@@ -242,7 +330,7 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 	//
 
-	config, err := configBuilder.Generate(scannerName)
+	config, err = configBuilder.Generate(scannerName)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
 	}
@@ -253,6 +341,7 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	}
 
 	return models.BitriseConfigMap{
-		configName: string(data),
+		configName:          string(primaryData),
+		configName + "-app": string(data),
 	}, nil
 }
