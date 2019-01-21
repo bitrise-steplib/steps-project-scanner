@@ -97,7 +97,7 @@ const (
 	// GradleRunnerID ...
 	GradleRunnerID = "gradle-runner"
 	// GradleRunnerVersion ...
-	GradleRunnerVersion = "1.8.3"
+	GradleRunnerVersion = "1.8.4"
 )
 
 const (
@@ -118,7 +118,7 @@ const (
 	// CarthageID ...
 	CarthageID = "carthage"
 	// CarthageVersion ...
-	CarthageVersion = "3.1.6"
+	CarthageVersion = "3.1.7"
 )
 
 const (
@@ -132,14 +132,14 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.4.18"
+	XcodeArchiveVersion = "2.4.19"
 )
 
 const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "2.0.0"
+	XcodeTestVersion = "2.1.0"
 )
 
 const (
@@ -252,6 +252,13 @@ const (
 	FlutterTestID = "flutter-test"
 	// FlutterTestVersion ...
 	FlutterTestVersion = "0.9.1"
+)
+
+const (
+	// FlutterAnalyzeID ...
+	FlutterAnalyzeID = "flutter-analyze"
+	// FlutterAnalyzeVersion ...
+	FlutterAnalyzeVersion = "0.1.0"
 )
 
 const (

@@ -276,6 +276,12 @@ func FlutterTestStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitris
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
+// FlutterAnalyzeStepListItem ...
+func FlutterAnalyzeStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(FlutterAnalyzeID, FlutterAnalyzeVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
 // FlutterBuildStepListItem ...
 func FlutterBuildStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(FlutterBuildID, FlutterBuildVersion)

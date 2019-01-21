@@ -90,6 +90,85 @@ var customConfigVersions = []interface{}{
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
 	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.DeployToBitriseIoVersion,
+
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.FlutterBuildVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.DeployToBitriseIoVersion,
+
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.FlutterBuildVersion,
+	steps.XcodeArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.DeployToBitriseIoVersion,
+
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.FlutterBuildVersion,
+	steps.XcodeArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.DeployToBitriseIoVersion,
+
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.FlutterTestVersion,
+	steps.DeployToBitriseIoVersion,
+
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.FlutterTestVersion,
+	steps.FlutterBuildVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
 	steps.FlutterTestVersion,
 	steps.DeployToBitriseIoVersion,
 
@@ -99,6 +178,7 @@ var customConfigVersions = []interface{}{
 	steps.ScriptVersion,
 	steps.CertificateAndProfileInstallerVersion,
 	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
 	steps.FlutterTestVersion,
 	steps.FlutterBuildVersion,
 	steps.XcodeArchiveVersion,
@@ -108,6 +188,27 @@ var customConfigVersions = []interface{}{
 	steps.GitCloneVersion,
 	steps.ScriptVersion,
 	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.FlutterTestVersion,
+	steps.DeployToBitriseIoVersion,
+
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.CertificateAndProfileInstallerVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
+	steps.FlutterTestVersion,
+	steps.FlutterBuildVersion,
+	steps.XcodeArchiveVersion,
+	steps.DeployToBitriseIoVersion,
+
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+	steps.FlutterInstallVersion,
+	steps.FlutterAnalyzeVersion,
 	steps.FlutterTestVersion,
 	steps.DeployToBitriseIoVersion,
 
@@ -265,7 +366,7 @@ var customConfigResultYML = fmt.Sprintf(`options:
             title: Variant
             env_key: VARIANT
             value_map:
-              _:
+              "":
                 config: default-android-config
   cordova:
     title: Directory of Cordova Config.xml
@@ -296,33 +397,102 @@ var customConfigResultYML = fmt.Sprintf(`options:
     env_key: BITRISE_FLUTTER_PROJECT_LOCATION
     value_map:
       _:
-        title: Project Type
-        env_key: BITRISE_FLUTTER_PROJECT_TYPE
+        title: Run tests found in the project
         value_map:
-          app:
-            title: Project (or Workspace) path
-            env_key: BITRISE_PROJECT_PATH
+          "no":
+            title: Platform
             value_map:
-              _:
-                title: Scheme name
-                env_key: BITRISE_SCHEME
+              android:
+                config: flutter-config-app-android
+              both:
+                title: Project (or Workspace) path
+                env_key: BITRISE_PROJECT_PATH
                 value_map:
                   _:
-                    title: ipa export method
-                    env_key: BITRISE_EXPORT_METHOD
+                    title: Scheme name
+                    env_key: BITRISE_SCHEME
                     value_map:
-                      ad-hoc:
-                        config: flutter-config-app
-                      app-store:
-                        config: flutter-config-app
-                      development:
-                        config: flutter-config-app
-                      enterprise:
-                        config: flutter-config-app
-          package:
-            config: flutter-config
-          plugin:
-            config: flutter-config
+                      _:
+                        title: ipa export method
+                        env_key: BITRISE_EXPORT_METHOD
+                        value_map:
+                          ad-hoc:
+                            config: flutter-config-app-both
+                          app-store:
+                            config: flutter-config-app-both
+                          development:
+                            config: flutter-config-app-both
+                          enterprise:
+                            config: flutter-config-app-both
+              ios:
+                title: Project (or Workspace) path
+                env_key: BITRISE_PROJECT_PATH
+                value_map:
+                  _:
+                    title: Scheme name
+                    env_key: BITRISE_SCHEME
+                    value_map:
+                      _:
+                        title: ipa export method
+                        env_key: BITRISE_EXPORT_METHOD
+                        value_map:
+                          ad-hoc:
+                            config: flutter-config-app-ios
+                          app-store:
+                            config: flutter-config-app-ios
+                          development:
+                            config: flutter-config-app-ios
+                          enterprise:
+                            config: flutter-config-app-ios
+              none:
+                config: flutter-config
+          "yes":
+            title: Platform
+            value_map:
+              android:
+                config: flutter-config-test-app-android
+              both:
+                title: Project (or Workspace) path
+                env_key: BITRISE_PROJECT_PATH
+                value_map:
+                  _:
+                    title: Scheme name
+                    env_key: BITRISE_SCHEME
+                    value_map:
+                      _:
+                        title: ipa export method
+                        env_key: BITRISE_EXPORT_METHOD
+                        value_map:
+                          ad-hoc:
+                            config: flutter-config-test-app-both
+                          app-store:
+                            config: flutter-config-test-app-both
+                          development:
+                            config: flutter-config-test-app-both
+                          enterprise:
+                            config: flutter-config-test-app-both
+              ios:
+                title: Project (or Workspace) path
+                env_key: BITRISE_PROJECT_PATH
+                value_map:
+                  _:
+                    title: Scheme name
+                    env_key: BITRISE_SCHEME
+                    value_map:
+                      _:
+                        title: ipa export method
+                        env_key: BITRISE_EXPORT_METHOD
+                        value_map:
+                          ad-hoc:
+                            config: flutter-config-test-app-ios
+                          app-store:
+                            config: flutter-config-test-app-ios
+                          development:
+                            config: flutter-config-test-app-ios
+                          enterprise:
+                            config: flutter-config-test-app-ios
+              none:
+                config: flutter-config-test
   ionic:
     title: Directory of Ionic Config.xml
     env_key: IONIC_WORK_DIR
@@ -391,7 +561,7 @@ var customConfigResultYML = fmt.Sprintf(`options:
             title: Variant
             env_key: VARIANT
             value_map:
-              _:
+              "":
                 title: Project (or Workspace) path
                 env_key: BITRISE_PROJECT_PATH
                 value_map:
@@ -813,11 +983,49 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - flutter-installer@%s: {}
-          - flutter-test@%s:
+          - flutter-analyze@%s:
               inputs:
               - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
           - deploy-to-bitrise-io@%s: {}
-    flutter-config-app: |
+    flutter-config-app-android: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: flutter
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        deploy:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-build@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+              - platform: android
+          - deploy-to-bitrise-io@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - deploy-to-bitrise-io@%s: {}
+    flutter-config-app-both: |
       format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
       project_type: flutter
@@ -836,12 +1044,13 @@ configs:
               title: Do anything with Script step
           - certificate-and-profile-installer@%s: {}
           - flutter-installer@%s: {}
-          - flutter-test@%s:
+          - flutter-analyze@%s:
               inputs:
               - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
           - flutter-build@%s:
               inputs:
               - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+              - platform: both
           - xcode-archive@%s:
               inputs:
               - project_path: $BITRISE_PROJECT_PATH
@@ -857,6 +1066,222 @@ configs:
           - script@%s:
               title: Do anything with Script step
           - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - deploy-to-bitrise-io@%s: {}
+    flutter-config-app-ios: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: flutter
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        deploy:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-build@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+              - platform: ios
+          - xcode-archive@%s:
+              inputs:
+              - project_path: $BITRISE_PROJECT_PATH
+              - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
+              - configuration: Release
+          - deploy-to-bitrise-io@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - deploy-to-bitrise-io@%s: {}
+    flutter-config-test: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: flutter
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-test@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - deploy-to-bitrise-io@%s: {}
+    flutter-config-test-app-android: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: flutter
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        deploy:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-test@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-build@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+              - platform: android
+          - deploy-to-bitrise-io@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-test@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - deploy-to-bitrise-io@%s: {}
+    flutter-config-test-app-both: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: flutter
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        deploy:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-test@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-build@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+              - platform: both
+          - xcode-archive@%s:
+              inputs:
+              - project_path: $BITRISE_PROJECT_PATH
+              - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
+              - configuration: Release
+          - deploy-to-bitrise-io@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-test@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - deploy-to-bitrise-io@%s: {}
+    flutter-config-test-app-ios: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: flutter
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        deploy:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - certificate-and-profile-installer@%s: {}
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-test@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+          - flutter-build@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+              - platform: ios
+          - xcode-archive@%s:
+              inputs:
+              - project_path: $BITRISE_PROJECT_PATH
+              - scheme: $BITRISE_SCHEME
+              - export_method: $BITRISE_EXPORT_METHOD
+              - configuration: Release
+          - deploy-to-bitrise-io@%s: {}
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
+          - flutter-installer@%s: {}
+          - flutter-analyze@%s:
+              inputs:
+              - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
           - flutter-test@%s:
               inputs:
               - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
