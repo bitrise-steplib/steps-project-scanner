@@ -56,11 +56,11 @@ func AskForOptions(options models.OptionModel) (string, []envmanModels.Environme
 			return fmt.Errorf("Failed to ask for value, error: %s", err)
 		}
 
-		if optionEnvKey == "" {
+		if opt.Title == "" {
 			// last option selected, config got
 			configPth = selectedValue
 			return nil
-		} else if optionEnvKey != "_" {
+		} else if optionEnvKey != "" {
 			// env's value selected
 			appEnvs = append(appEnvs, envmanModels.EnvironmentItemModel{
 				optionEnvKey: selectedValue,

@@ -89,7 +89,7 @@ var sampleAppsReactNativeSubdirResultYML = fmt.Sprintf(`options:
             title: Variant
             env_key: VARIANT
             value_map:
-              _:
+              "":
                 title: Project (or Workspace) path
                 env_key: BITRISE_PROJECT_PATH
                 value_map:
@@ -212,7 +212,7 @@ var sampleAppsReactNativeIosAndAndroidResultYML = fmt.Sprintf(`options:
             title: Variant
             env_key: VARIANT
             value_map:
-              _:
+              "":
                 title: Project (or Workspace) path
                 env_key: BITRISE_PROJECT_PATH
                 value_map:

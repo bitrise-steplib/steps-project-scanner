@@ -138,7 +138,7 @@ var sampleAppsAndroidSDK22SubdirResultYML = fmt.Sprintf(`options:
             title: Variant
             env_key: VARIANT
             value_map:
-              _:
+              "":
                 config: android-config
 configs:
   android:
@@ -293,7 +293,7 @@ var sampleAppsAndroid22ResultYML = fmt.Sprintf(`options:
             title: Variant
             env_key: VARIANT
             value_map:
-              _:
+              "":
                 config: android-config
 configs:
   android:
@@ -438,7 +438,7 @@ var androidNonExecutableGradlewResultYML = fmt.Sprintf(`options:
             title: Variant
             env_key: VARIANT
             value_map:
-              _:
+              "":
                 config: android-config
 configs:
   android:
