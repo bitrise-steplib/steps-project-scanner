@@ -4,3 +4,4 @@ _tmp/
 _bin/
 .bitrise*
 .gows*
+bitrise-init

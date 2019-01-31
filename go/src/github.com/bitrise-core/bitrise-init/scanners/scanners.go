@@ -37,22 +37,22 @@ type ScannerInterface interface {
 	// ExcludedScannerNames is used to mark, which scanners should be excluded, if the current scanner detects platform.
 	ExcludedScannerNames() []string
 
-	// OptionModel is the model, used to store the available configuration combintaions.
-	// It defines option branches which leads different bitrise configurations.
+	// OptionNode is the model, an n-ary tree, used to store the available configuration combintaions.
+	// It defines an option decision tree whose every branch maps to a bitrise configuration.
 	// Each branch should define a complete and valid options to build the final bitrise config model.
-	// Every OptionModel branch's last options has to be the key of the workflow (in the BitriseConfigMap), which will be fulfilled with the selected options.
+	// Every leaf node has to be the key of the workflow (in the BitriseConfigMap), which will be fulfilled with the selected options.
 	// Returns:
-	// - OptionModel
+	// - OptionNode
 	// - Warnings (if any)
 	// - error if (if any)
-	Options() (models.OptionModel, models.Warnings, error)
+	Options() (models.OptionNode, models.Warnings, error)
 
 	// Returns:
 	// - default options for the platform.
-	DefaultOptions() models.OptionModel
+	DefaultOptions() models.OptionNode
 
 	// BitriseConfigMap's each element is a bitrise config template which will be fulfilled with the user selected options.
-	// Every config's key should be the last option one of the OptionModel branches.
+	// Every config's key should be the last option one of the OptionNode branches.
 	// Returns:
 	// - platform BitriseConfigMap
 	Configs() (models.BitriseConfigMap, error)
@@ -62,8 +62,15 @@ type ScannerInterface interface {
 	DefaultConfigs() (models.BitriseConfigMap, error)
 }
 
-// ActiveScanners ...
-var ActiveScanners = []ScannerInterface{
+// AutomationToolScanner contains additional methods (relative to ScannerInterface)
+// implemented by an AutomationToolScanner
+type AutomationToolScanner interface {
+	// Set the project types detected
+	SetDetectedProjectTypes(projectTypes []string)
+}
+
+// ProjectScanners ...
+var ProjectScanners = []ScannerInterface{
 	expo.NewScanner(),
 	reactnative.NewScanner(),
 	flutter.NewScanner(),
@@ -73,6 +80,10 @@ var ActiveScanners = []ScannerInterface{
 	macos.NewScanner(),
 	android.NewScanner(),
 	xamarin.NewScanner(),
+}
+
+// AutomationToolScanners contains active automation tool scanners
+var AutomationToolScanners = []ScannerInterface{
 	fastlane.NewScanner(),
 }
 

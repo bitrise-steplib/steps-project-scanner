@@ -12,7 +12,7 @@ import (
 	"github.com/bitrise-io/goinp/goinp"
 )
 
-func askForOptionValue(option models.OptionModel) (string, string, error) {
+func askForOptionValue(option models.OptionNode) (string, string, error) {
 	optionValues := option.GetValues()
 
 	selectedValue := ""
@@ -45,12 +45,12 @@ func askForOptionValue(option models.OptionModel) (string, string, error) {
 }
 
 // AskForOptions ...
-func AskForOptions(options models.OptionModel) (string, []envmanModels.EnvironmentItemModel, error) {
+func AskForOptions(options models.OptionNode) (string, []envmanModels.EnvironmentItemModel, error) {
 	configPth := ""
 	appEnvs := []envmanModels.EnvironmentItemModel{}
 
-	var walkDepth func(models.OptionModel) error
-	walkDepth = func(opt models.OptionModel) error {
+	var walkDepth func(models.OptionNode) error
+	walkDepth = func(opt models.OptionNode) error {
 		optionEnvKey, selectedValue, err := askForOptionValue(opt)
 		if err != nil {
 			return fmt.Errorf("Failed to ask for value, error: %s", err)
@@ -67,7 +67,7 @@ func AskForOptions(options models.OptionModel) (string, []envmanModels.Environme
 			})
 		}
 
-		var nestedOptions *models.OptionModel
+		var nestedOptions *models.OptionNode
 		if len(opt.ChildOptionMap) == 1 {
 			// auto select the next option
 			for _, childOption := range opt.ChildOptionMap {
@@ -103,7 +103,7 @@ func AskForConfig(scanResult models.ScanResultModel) (bitriseModels.BitriseDataM
 	//
 	// Select platform
 	platforms := []string{}
-	for platform := range scanResult.PlatformOptionMap {
+	for platform := range scanResult.ScannerToOptionRoot {
 		platforms = append(platforms, platform)
 	}
 
@@ -123,7 +123,7 @@ func AskForConfig(scanResult models.ScanResultModel) (bitriseModels.BitriseDataM
 
 	//
 	// Select config
-	options, ok := scanResult.PlatformOptionMap[platform]
+	options, ok := scanResult.ScannerToOptionRoot[platform]
 	if !ok {
 		return bitriseModels.BitriseDataModel{}, fmt.Errorf("invalid platform selected: %s", platform)
 	}
@@ -136,7 +136,7 @@ func AskForConfig(scanResult models.ScanResultModel) (bitriseModels.BitriseDataM
 
 	//
 	// Build config
-	configMap := scanResult.PlatformConfigMapMap[platform]
+	configMap := scanResult.ScannerToBitriseConfigMap[platform]
 	configStr := configMap[configPth]
 
 	var config bitriseModels.BitriseDataModel

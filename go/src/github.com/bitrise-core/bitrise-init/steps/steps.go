@@ -137,12 +137,6 @@ func InstallMissingAndroidToolsStepListItem(inputs ...envmanModels.EnvironmentIt
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
-// GradleRunnerStepListItem ...
-func GradleRunnerStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(GradleRunnerID, GradleRunnerVersion)
-	return stepListItem(stepIDComposite, "", "", inputs...)
-}
-
 // FastlaneStepListItem ...
 func FastlaneStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(FastlaneID, FastlaneVersion)

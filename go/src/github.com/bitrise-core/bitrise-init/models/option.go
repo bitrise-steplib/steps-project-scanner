@@ -5,38 +5,38 @@ import (
 	"fmt"
 )
 
-// OptionModel ...
-type OptionModel struct {
+// OptionNode ...
+type OptionNode struct {
 	Title  string `json:"title,omitempty" yaml:"title,omitempty"`
 	EnvKey string `json:"env_key,omitempty" yaml:"env_key,omitempty"`
 
-	ChildOptionMap map[string]*OptionModel `json:"value_map,omitempty" yaml:"value_map,omitempty"`
-	Config         string                  `json:"config,omitempty" yaml:"config,omitempty"`
+	ChildOptionMap map[string]*OptionNode `json:"value_map,omitempty" yaml:"value_map,omitempty"`
+	Config         string                 `json:"config,omitempty" yaml:"config,omitempty"`
 
-	Components []string     `json:"-" yaml:"-"`
-	Head       *OptionModel `json:"-" yaml:"-"`
+	Components []string    `json:"-" yaml:"-"`
+	Head       *OptionNode `json:"-" yaml:"-"`
 }
 
 // NewOption ...
-func NewOption(title, envKey string) *OptionModel {
-	return &OptionModel{
+func NewOption(title, envKey string) *OptionNode {
+	return &OptionNode{
 		Title:          title,
 		EnvKey:         envKey,
-		ChildOptionMap: map[string]*OptionModel{},
+		ChildOptionMap: map[string]*OptionNode{},
 		Components:     []string{},
 	}
 }
 
 // NewConfigOption ...
-func NewConfigOption(name string) *OptionModel {
-	return &OptionModel{
-		ChildOptionMap: map[string]*OptionModel{},
+func NewConfigOption(name string) *OptionNode {
+	return &OptionNode{
+		ChildOptionMap: map[string]*OptionNode{},
 		Config:         name,
 		Components:     []string{},
 	}
 }
 
-func (option *OptionModel) String() string {
+func (option *OptionNode) String() string {
 	bytes, err := json.MarshalIndent(option, "", "\t")
 	if err != nil {
 		return fmt.Sprintf("failed to marshal, error: %s", err)
@@ -45,22 +45,22 @@ func (option *OptionModel) String() string {
 }
 
 // IsConfigOption ...
-func (option *OptionModel) IsConfigOption() bool {
+func (option *OptionNode) IsConfigOption() bool {
 	return option.Config != ""
 }
 
 // IsValueOption ...
-func (option *OptionModel) IsValueOption() bool {
+func (option *OptionNode) IsValueOption() bool {
 	return option.Title != ""
 }
 
 // IsEmpty ...
-func (option *OptionModel) IsEmpty() bool {
+func (option *OptionNode) IsEmpty() bool {
 	return !option.IsValueOption() && !option.IsConfigOption()
 }
 
 // AddOption ...
-func (option *OptionModel) AddOption(forValue string, newOption *OptionModel) {
+func (option *OptionNode) AddOption(forValue string, newOption *OptionNode) {
 	option.ChildOptionMap[forValue] = newOption
 
 	if newOption != nil {
@@ -76,7 +76,7 @@ func (option *OptionModel) AddOption(forValue string, newOption *OptionModel) {
 }
 
 // AddConfig ...
-func (option *OptionModel) AddConfig(forValue string, newConfigOption *OptionModel) {
+func (option *OptionNode) AddConfig(forValue string, newConfigOption *OptionNode) {
 	option.ChildOptionMap[forValue] = newConfigOption
 
 	if newConfigOption != nil {
@@ -92,7 +92,7 @@ func (option *OptionModel) AddConfig(forValue string, newConfigOption *OptionMod
 }
 
 // Parent ...
-func (option *OptionModel) Parent() (*OptionModel, string, bool) {
+func (option *OptionNode) Parent() (*OptionNode, string, bool) {
 	if option.Head == nil {
 		return nil, "", false
 	}
@@ -107,7 +107,7 @@ func (option *OptionModel) Parent() (*OptionModel, string, bool) {
 }
 
 // Child ...
-func (option *OptionModel) Child(components ...string) (*OptionModel, bool) {
+func (option *OptionNode) Child(components ...string) (*OptionNode, bool) {
 	currentOption := option
 	for _, component := range components {
 		childOption := currentOption.ChildOptionMap[component]
@@ -120,11 +120,11 @@ func (option *OptionModel) Child(components ...string) (*OptionModel, bool) {
 }
 
 // LastChilds ...
-func (option *OptionModel) LastChilds() []*OptionModel {
-	lastOptions := []*OptionModel{}
+func (option *OptionNode) LastChilds() []*OptionNode {
+	lastOptions := []*OptionNode{}
 
-	var walk func(*OptionModel)
-	walk = func(opt *OptionModel) {
+	var walk func(*OptionNode)
+	walk = func(opt *OptionNode) {
 		if len(opt.ChildOptionMap) == 0 {
 			lastOptions = append(lastOptions, opt)
 			return
@@ -156,7 +156,7 @@ func (option *OptionModel) LastChilds() []*OptionModel {
 }
 
 // RemoveConfigs ...
-func (option *OptionModel) RemoveConfigs() {
+func (option *OptionNode) RemoveConfigs() {
 	lastChilds := option.LastChilds()
 	for _, child := range lastChilds {
 		for _, child := range child.ChildOptionMap {
@@ -166,7 +166,7 @@ func (option *OptionModel) RemoveConfigs() {
 }
 
 // AttachToLastChilds ...
-func (option *OptionModel) AttachToLastChilds(opt *OptionModel) {
+func (option *OptionNode) AttachToLastChilds(opt *OptionNode) {
 	childs := option.LastChilds()
 	for _, child := range childs {
 		values := child.GetValues()
@@ -177,13 +177,13 @@ func (option *OptionModel) AttachToLastChilds(opt *OptionModel) {
 }
 
 // Copy ...
-func (option *OptionModel) Copy() *OptionModel {
+func (option *OptionNode) Copy() *OptionNode {
 	bytes, err := json.Marshal(*option)
 	if err != nil {
 		return nil
 	}
 
-	var optionCopy OptionModel
+	var optionCopy OptionNode
 	if err := json.Unmarshal(bytes, &optionCopy); err != nil {
 		return nil
 	}
@@ -192,7 +192,7 @@ func (option *OptionModel) Copy() *OptionModel {
 }
 
 // GetValues ...
-func (option *OptionModel) GetValues() []string {
+func (option *OptionNode) GetValues() []string {
 	if option.Config != "" {
 		return []string{option.Config}
 	}
