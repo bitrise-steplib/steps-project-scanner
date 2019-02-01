@@ -941,7 +941,7 @@ configs:
     default-fastlane-config: |
       format_version: "%s"
       default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-      project_type: fastlane
+      project_type: other
       app:
         envs:
         - FASTLANE_XCODE_LIST_TIMEOUT: "120"

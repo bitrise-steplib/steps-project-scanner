@@ -177,7 +177,7 @@ func appJSONIssue(appJSONPth, reason, explanation string) string {
 }
 
 // Options ...
-func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
+func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, error) {
 	warnings := models.Warnings{}
 
 	// we need to know if the project uses the Expo Kit,
@@ -186,7 +186,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 
 	fileList, err := utility.ListPathInDirSortedByComponents(scanner.searchDir, true)
 	if err != nil {
-		return models.OptionModel{}, warnings, err
+		return models.OptionNode{}, warnings, err
 	}
 
 	filters := []utility.FilterFunc{
@@ -195,7 +195,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 	}
 	sourceFiles, err := utility.FilterPaths(fileList, filters...)
 	if err != nil {
-		return models.OptionModel{}, warnings, err
+		return models.OptionNode{}, warnings, err
 	}
 
 	re := regexp.MustCompile(`import .* from 'expo'`)
@@ -204,7 +204,7 @@ SourceFileLoop:
 	for _, sourceFile := range sourceFiles {
 		f, err := os.Open(sourceFile)
 		if err != nil {
-			return models.OptionModel{}, warnings, err
+			return models.OptionNode{}, warnings, err
 		}
 		defer func() {
 			if cerr := f.Close(); cerr != nil {
@@ -220,7 +220,7 @@ SourceFileLoop:
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			return models.OptionModel{}, warnings, err
+			return models.OptionNode{}, warnings, err
 		}
 	}
 
@@ -235,11 +235,11 @@ SourceFileLoop:
 	appJSONPth := filepath.Join(rootDir, "app.json")
 	appJSON, err := fileutil.ReadStringFromFile(appJSONPth)
 	if err != nil {
-		return models.OptionModel{}, warnings, err
+		return models.OptionNode{}, warnings, err
 	}
 	var app serialized.Object
 	if err := json.Unmarshal([]byte(appJSON), &app); err != nil {
-		return models.OptionModel{}, warnings, err
+		return models.OptionNode{}, warnings, err
 	}
 
 	if usesExpoKit {
@@ -253,29 +253,29 @@ entries.`
 
 		expoObj, err := app.Object("expo")
 		if err != nil {
-			return models.OptionModel{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing expo entry", errorMessage))
+			return models.OptionNode{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing expo entry", errorMessage))
 		}
 		projectName, err = expoObj.String("name")
 		if err != nil || projectName == "" {
-			return models.OptionModel{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing or empty expo/name entry", errorMessage))
+			return models.OptionNode{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing or empty expo/name entry", errorMessage))
 		}
 
 		iosObj, err := expoObj.Object("ios")
 		if err != nil {
-			return models.OptionModel{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing expo/ios entry", errorMessage))
+			return models.OptionNode{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing expo/ios entry", errorMessage))
 		}
 		bundleID, err := iosObj.String("bundleIdentifier")
 		if err != nil || bundleID == "" {
-			return models.OptionModel{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing or empty expo/ios/bundleIdentifier entry", errorMessage))
+			return models.OptionNode{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing or empty expo/ios/bundleIdentifier entry", errorMessage))
 		}
 
 		androidObj, err := expoObj.Object("android")
 		if err != nil {
-			return models.OptionModel{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing expo/android entry", errorMessage))
+			return models.OptionNode{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing expo/android entry", errorMessage))
 		}
 		packageName, err := androidObj.String("package")
 		if err != nil || packageName == "" {
-			return models.OptionModel{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing or empty expo/android/package entry", errorMessage))
+			return models.OptionNode{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing or empty expo/android/package entry", errorMessage))
 		}
 	} else {
 		// if the project does not use Expo Kit app.json needs to contain name and displayName entries
@@ -287,11 +287,11 @@ entries.`
 
 		projectName, err = app.String("name")
 		if err != nil || projectName == "" {
-			return models.OptionModel{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing or empty name entry", errorMessage))
+			return models.OptionNode{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing or empty name entry", errorMessage))
 		}
 		displayName, err := app.String("displayName")
 		if err != nil || displayName == "" {
-			return models.OptionModel{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing or empty displayName entry", errorMessage))
+			return models.OptionNode{}, warnings, errors.New(appJSONIssue(appJSONPth, "missing or empty displayName entry", errorMessage))
 		}
 	}
 
@@ -318,14 +318,14 @@ entries.`
 	packageJSONDir := filepath.Dir(scanner.packageJSONPth)
 	relPackageJSONDir, err := utility.RelPath(scanner.searchDir, packageJSONDir)
 	if err != nil {
-		return models.OptionModel{}, warnings, fmt.Errorf("Failed to get relative package.json dir path, error: %s", err)
+		return models.OptionNode{}, warnings, fmt.Errorf("Failed to get relative package.json dir path, error: %s", err)
 	}
 	if relPackageJSONDir == "." {
 		// package.json placed in the search dir, no need to change-dir in the workflows
 		relPackageJSONDir = ""
 	}
 
-	var moduleOption *models.OptionModel
+	var moduleOption *models.OptionNode
 	if relPackageJSONDir == "" {
 		projectLocationOption := models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputEnvKey)
 		for _, exportMethod := range ios.IosExportMethods {
@@ -585,7 +585,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 }
 
 // DefaultOptions ...
-func (Scanner) DefaultOptions() models.OptionModel {
+func (Scanner) DefaultOptions() models.OptionNode {
 	expoKitOption := models.NewOption("Project uses Expo Kit (any js file imports expo dependency)?", "USES_EXPO_KIT")
 
 	// with Expo Kit

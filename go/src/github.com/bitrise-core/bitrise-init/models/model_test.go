@@ -11,10 +11,10 @@ import (
 
 func TestNewOption(t *testing.T) {
 	actual := NewOption("Project (or Workspace) path", "BITRISE_PROJECT_PATH")
-	expected := &OptionModel{
+	expected := &OptionNode{
 		Title:          "Project (or Workspace) path",
 		EnvKey:         "BITRISE_PROJECT_PATH",
-		ChildOptionMap: map[string]*OptionModel{},
+		ChildOptionMap: map[string]*OptionNode{},
 		Components:     []string{},
 	}
 
@@ -22,12 +22,12 @@ func TestNewOption(t *testing.T) {
 }
 
 func TestGetValues(t *testing.T) {
-	option := OptionModel{
-		ChildOptionMap: map[string]*OptionModel{},
+	option := OptionNode{
+		ChildOptionMap: map[string]*OptionNode{},
 	}
-	option.ChildOptionMap["assembleAndroidTest"] = &OptionModel{}
-	option.ChildOptionMap["assembleDebug"] = &OptionModel{}
-	option.ChildOptionMap["assembleRelease"] = &OptionModel{}
+	option.ChildOptionMap["assembleAndroidTest"] = &OptionNode{}
+	option.ChildOptionMap["assembleDebug"] = &OptionNode{}
+	option.ChildOptionMap["assembleRelease"] = &OptionNode{}
 
 	values := option.GetValues()
 
@@ -103,7 +103,7 @@ func TestLastOptions(t *testing.T) {
 	}
 }`
 
-		var option OptionModel
+		var option OptionNode
 		require.NoError(t, json.Unmarshal([]byte(optionJSON), &option))
 
 		lastOptions := option.LastChilds()
@@ -143,7 +143,7 @@ func TestLastOptions(t *testing.T) {
 	}
 }`
 
-		var option OptionModel
+		var option OptionNode
 		require.NoError(t, json.Unmarshal([]byte(optionJSON), &option))
 
 		lastOptions := option.LastChilds()
@@ -184,7 +184,7 @@ func TestLastOptions(t *testing.T) {
 	}
 }`
 
-		var option OptionModel
+		var option OptionNode
 		require.NoError(t, json.Unmarshal([]byte(optionJSON), &option))
 
 		lastOptions := option.LastChilds()
@@ -298,7 +298,7 @@ func TestHead(t *testing.T) {
 	opt021 := NewOption("OPT021", "OPT021_KEY")
 	opt02.AddOption("value1", opt021)
 
-	require.Equal(t, (*OptionModel)(nil), opt0.Head)
+	require.Equal(t, (*OptionNode)(nil), opt0.Head)
 	require.Equal(t, opt0, opt01.Head)
 	require.Equal(t, opt0, opt02.Head)
 	require.Equal(t, opt0, opt021.Head)
@@ -321,7 +321,7 @@ func TestParent(t *testing.T) {
 
 	{
 		parent, underKey, ok := opt0.Parent()
-		require.Equal(t, (*OptionModel)(nil), parent)
+		require.Equal(t, (*OptionNode)(nil), parent)
 		require.Equal(t, "", underKey)
 		require.Equal(t, false, ok)
 	}
@@ -368,7 +368,7 @@ func TestRemoveConfigs(t *testing.T) {
 	}
 }`
 
-	var option OptionModel
+	var option OptionNode
 	require.NoError(t, json.Unmarshal([]byte(optionJSON), &option))
 
 	option.RemoveConfigs()

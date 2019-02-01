@@ -2,7 +2,6 @@ package android
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -85,16 +84,6 @@ func walkMultipleFiles(searchDir string, files ...string) (matches []string, err
 		}
 		return nil
 	})
-}
-
-func checkLocalProperties(projectDir string) string {
-	localPropertiesPth := filepath.Join(projectDir, "local.properties")
-	exist, err := pathutil.IsPathExists(localPropertiesPth)
-	if err == nil && exist {
-		return fmt.Sprintf(`The local.properties file must NOT be checked into Version Control Systems, as it contains information specific to your local configuration.
-The location of the file is: %s`, localPropertiesPth)
-	}
-	return ""
 }
 
 func checkGradlew(projectDir string) error {

@@ -43,10 +43,10 @@ func (Scanner) ExcludedScannerNames() []string {
 }
 
 // Options ...
-func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
+func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, error) {
 	options, configDescriptors, warnings, err := ios.GenerateOptions(ios.XcodeProjectTypeMacOS, scanner.searchDir)
 	if err != nil {
-		return models.OptionModel{}, warnings, err
+		return models.OptionNode{}, warnings, err
 	}
 
 	scanner.configDescriptors = configDescriptors
@@ -55,7 +55,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 }
 
 // DefaultOptions ...
-func (Scanner) DefaultOptions() models.OptionModel {
+func (Scanner) DefaultOptions() models.OptionNode {
 	return ios.GenerateDefaultOptions(ios.XcodeProjectTypeMacOS)
 }
 

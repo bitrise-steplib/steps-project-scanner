@@ -40,10 +40,10 @@ func (Scanner) ExcludedScannerNames() []string {
 }
 
 // Options ...
-func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
+func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, error) {
 	options, configDescriptors, warnings, err := GenerateOptions(XcodeProjectTypeIOS, scanner.SearchDir)
 	if err != nil {
-		return models.OptionModel{}, warnings, err
+		return models.OptionNode{}, warnings, err
 	}
 
 	scanner.ConfigDescriptors = configDescriptors
@@ -52,7 +52,7 @@ func (scanner *Scanner) Options() (models.OptionModel, models.Warnings, error) {
 }
 
 // DefaultOptions ...
-func (Scanner) DefaultOptions() models.OptionModel {
+func (Scanner) DefaultOptions() models.OptionNode {
 	return GenerateDefaultOptions(XcodeProjectTypeIOS)
 }
 
@@ -64,4 +64,9 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 // DefaultConfigs ...
 func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	return GenerateDefaultConfig(XcodeProjectTypeIOS, true)
+}
+
+// GetProjectType returns the project_type property used in a bitrise config
+func (Scanner) GetProjectType() string {
+	return string(XcodeProjectTypeIOS)
 }

@@ -11,19 +11,19 @@ type Errors []string
 
 // ScanResultModel ...
 type ScanResultModel struct {
-	PlatformOptionMap    map[string]OptionModel      `json:"options,omitempty" yaml:"options,omitempty"`
-	PlatformConfigMapMap map[string]BitriseConfigMap `json:"configs,omitempty" yaml:"configs,omitempty"`
-	PlatformWarningsMap  map[string]Warnings         `json:"warnings,omitempty" yaml:"warnings,omitempty"`
-	PlatformErrorsMap    map[string]Errors           `json:"errors,omitempty" yaml:"errors,omitempty"`
+	ScannerToOptionRoot       map[string]OptionNode       `json:"options,omitempty" yaml:"options,omitempty"`
+	ScannerToBitriseConfigMap map[string]BitriseConfigMap `json:"configs,omitempty" yaml:"configs,omitempty"`
+	ScannerToWarnings         map[string]Warnings         `json:"warnings,omitempty" yaml:"warnings,omitempty"`
+	ScannerToErrors           map[string]Errors           `json:"errors,omitempty" yaml:"errors,omitempty"`
 }
 
 // AddError ...
 func (result *ScanResultModel) AddError(platform string, errorMessage string) {
-	if result.PlatformErrorsMap == nil {
-		result.PlatformErrorsMap = map[string]Errors{}
+	if result.ScannerToErrors == nil {
+		result.ScannerToErrors = map[string]Errors{}
 	}
-	if result.PlatformErrorsMap[platform] == nil {
-		result.PlatformErrorsMap[platform] = []string{}
+	if result.ScannerToErrors[platform] == nil {
+		result.ScannerToErrors[platform] = []string{}
 	}
-	result.PlatformErrorsMap[platform] = append(result.PlatformErrorsMap[platform], errorMessage)
+	result.ScannerToErrors[platform] = append(result.ScannerToErrors[platform], errorMessage)
 }
