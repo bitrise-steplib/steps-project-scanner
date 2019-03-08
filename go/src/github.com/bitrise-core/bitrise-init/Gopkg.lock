@@ -2,20 +2,20 @@
 
 
 [[projects]]
-  digest = "1:87c2e02fb01c27060ccc5ba7c5a407cc91147726f8f40b70cceeedbc52b1f3a8"
+  branch = "master"
+  digest = "1:1095190b9aede3d5789679f0459a4a0833e331f291ea67acf9b9c020a8c86cad"
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e1e72e9de974bd926e5c56f83753fba2df402ce5"
-  version = "v1.3.0"
+  revision = "4f5fd631f16452fbd023813c1eb7dbd67130cb0c"
 
 [[projects]]
-  digest = "1:7e26f568122298ee1065b6e264380f1f5387eff732cfc93ad860b6265f9063f9"
+  branch = "master"
+  digest = "1:5b3fc7bd36888debbfd67478cc09b0e4874b547cc5c53bbd25a6d35447de06ba"
   name = "github.com/bitrise-io/bitrise"
   packages = ["models"]
   pruneopts = "UT"
-  revision = "4ff9e54c15d46ddd638030202326ee02734e8b82"
-  version = "1.8.0"
+  revision = "5d52fad1a1fbe34417296f1fbf6d3672c5d5efc9"
 
 [[projects]]
   branch = "master"
@@ -54,12 +54,12 @@
   revision = "f451b19ba4d087d8272d411ad91af5f4218fd517"
 
 [[projects]]
+  branch = "master"
   digest = "1:34e5041861da39ff37f982c3cdfd46c0b0b46836d136151e895be7bf8fb50d86"
   name = "github.com/bitrise-io/stepman"
   packages = ["models"]
   pruneopts = "UT"
-  revision = "076579c0004ea94d98322d3df5d5d21b47412b1c"
-  version = "0.11.0"
+  revision = "9a9514dd0aa576d51fffbd997d9b37d1660f4dd7"
 
 [[projects]]
   branch = "master"
@@ -95,7 +95,8 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:2e3c336fc7fde5c984d2841455a658a6d626450b1754a854b3b32e7a8f49a07a"
+  branch = "master"
+  digest = "1:6eea0eaa87da0bea6716292b4e85dd7d64ec950e755e244bf08276ce4dc4c567"
   name = "github.com/google/go-cmp"
   packages = [
     "cmp",
@@ -104,8 +105,7 @@
     "cmp/internal/value",
   ]
   pruneopts = "UT"
-  revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
-  version = "v0.2.0"
+  revision = "ce5a20dabf115a429c982a468ae9d703c0a11e71"
 
 [[projects]]
   digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
@@ -132,31 +132,31 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:0e792eea6c96ec55ff302ef33886acbaa5006e900fefe82689e88d96439dcd84"
+  branch = "master"
+  digest = "1:6baa565fe16f8657cf93469b2b8a6c61a277827734400d27e44d589547297279"
   name = "github.com/ryanuber/go-glob"
   packages = ["."]
   pruneopts = "UT"
-  revision = "572520ed46dbddaed19ea3d9541bdd0494163693"
-  version = "v0.1"
+  revision = "51a8f68e6c24dc43f1e371749c89a267de4ebc53"
 
 [[projects]]
-  digest = "1:5da8ce674952566deae4dbc23d07c85caafc6cfa815b0b3e03e41979cedb8750"
+  branch = "master"
+  digest = "1:656570e9301c9ce00e7dada49b86b855b5d5bb4df83ba7549bd8f2c7f1ed1025"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
     "require",
   ]
   pruneopts = "UT"
-  revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
-  version = "v1.3.0"
+  revision = "3f658bd5ac42cc0b5de5b427e95a480d5726ea76"
 
 [[projects]]
-  digest = "1:b24d38b282bacf9791408a080f606370efa3d364e4b5fd9ba0f7b87786d3b679"
+  branch = "master"
+  digest = "1:8286f653bf8b8fd155a0c9c3b9ee3dbc2a95b1b51f7a1dc11fe2c66018454a0c"
   name = "github.com/urfave/cli"
   packages = ["."]
   pruneopts = "UT"
-  revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
-  version = "v1.20.0"
+  revision = "693af58b4d51b8fcc7f9d89576da170765980581"
 
 [[projects]]
   branch = "master"
@@ -178,12 +178,12 @@
   revision = "770c60269bf0ef965e9e7ac8bedcb6bca2a1cefd"
 
 [[projects]]
+  branch = "v2"
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
   revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
-  version = "v2.2.2"
 
 [[projects]]
   branch = "master"

@@ -179,6 +179,13 @@ projects:
 			proj.hasAndroidProject = true
 		}
 
+		if !proj.hasAndroidProject {
+			androidProjPath := filepath.Join(projectLocation, "android", "build.gradle.kts")
+			if exists, err := pathutil.IsPathExists(androidProjPath); err == nil && exists {
+				proj.hasAndroidProject = true
+			}
+		}
+
 		log.TPrintf("- Project name: %s", ps.Name)
 		log.TPrintf("  Path: %s", projectLocation)
 		log.TPrintf("  HasTest: %t", proj.hasTest)

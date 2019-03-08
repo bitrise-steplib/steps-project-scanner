@@ -125,7 +125,7 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.4.19"
+	XcodeArchiveVersion = "2.4.20"
 )
 
 const (
