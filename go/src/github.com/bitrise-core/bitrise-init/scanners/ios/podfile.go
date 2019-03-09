@@ -219,9 +219,9 @@ func GetWorkspaceProjectMap(podfilePth string, projects []string) (map[string]st
 		}
 
 		if len(projects) == 0 {
-			return map[string]string{}, errors.New("failed to determin workspace - project mapping: no explicit project specified and no project found in the Podfile's directory")
+			return map[string]string{}, errors.New("failed to determine workspace - project mapping: no explicit project specified and no project found in the Podfile's directory")
 		} else if len(projects) > 1 {
-			return map[string]string{}, errors.New("failed to determin workspace - project mapping: no explicit project specified and more than one project found in the Podfile's directory")
+			return map[string]string{}, errors.New("failed to determine workspace - project mapping: no explicit project specified and more than one project found in the Podfile's directory")
 		}
 
 		projectRelPth = filepath.Base(projects[0])
