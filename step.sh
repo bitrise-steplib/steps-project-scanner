@@ -90,7 +90,7 @@ fi
 tmp_dir=$(mktemp -d)
 current_dir=$(pwd)
 bin_pth="$tmp_dir/scanner"
-scanner_go_path="$THIS_SCRIPTDIR/go/src/github.com/bitrise-core/bitrise-init"
+scanner_go_path="$THIS_SCRIPTDIR/go/src/github.com/bitrise-io/bitrise-init"
 
 cd $scanner_go_path
 GOPATH="$THIS_SCRIPTDIR/go" go build -o "$bin_pth"

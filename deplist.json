@@ -1,8 +1,8 @@
 {
 	"deps": [
 		{
-			"url": "https://github.com/bitrise-core/bitrise-init.git",
-			"store_path": "go/src/github.com/bitrise-core/bitrise-init/"
+			"url": "https://github.com/bitrise-io/bitrise-init.git",
+			"store_path": "go/src/github.com/bitrise-io/bitrise-init/"
 		}
 	]
 }
