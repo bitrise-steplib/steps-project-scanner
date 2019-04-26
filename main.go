@@ -70,12 +70,14 @@ func buildScanner() (string, error) {
 	if out, err := buildCmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
 		if errorutil.IsExitStatusError(err) {
 			return "", fmt.Errorf("failed to build bitrise-init: %s", out)
-		} else {
-			return "", fmt.Errorf("failed to run command: %s", err)
 		}
+		return "", fmt.Errorf("failed to run command: %s", err)
 	}
 
-	os.Chdir(initialWD)
+	err = os.Chdir(initialWD)
+	if err != nil {
+		return "", fmt.Errorf("failed to cahnge dir, error: %s", err)
+	}
 	return initBinary, nil
 }
 
@@ -277,6 +279,9 @@ func uploadIcon(basePath string, iconCandidate appIconCandidateURL) error {
 }
 
 func main() {
+	// log.Printf("dsafsfd")
+	// return
+
 	var cfg config
 	if err := stepconf.Parse(&cfg); err != nil {
 		failf("Invalid configuration: %s", err)
