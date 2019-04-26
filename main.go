@@ -14,8 +14,6 @@ import (
 	"time"
 
 	"github.com/bitrise-io/go-steputils/stepconf"
-	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/retry"
 )
@@ -42,43 +40,6 @@ type appIconCandidateURL struct {
 func failf(format string, args ...interface{}) {
 	log.Errorf(format, args...)
 	os.Exit(1)
-}
-
-func buildScanner() (string, error) {
-	initialWD, err := os.Getwd()
-	if err != nil {
-		failf("Failed to get working directory.")
-	}
-
-	currentDirectory := os.Getenv("BITRISE_SOURCE_DIR")
-	if err := os.Chdir(path.Join(currentDirectory, "vendor", "github.com", "bitrise-io", "bitrise-init")); err != nil {
-		return "", fmt.Errorf("failed to change directory")
-	}
-
-	binaryDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		return "", fmt.Errorf("failed to create temp dir")
-	}
-	initBinary := path.Join(binaryDir, "init")
-
-	buildCmd := command.New("go", "build", "-o", initBinary)
-	log.Printf("GOPATH: %s", os.Getenv("GOPATH"))
-
-	fmt.Println()
-	log.Printf("$ %s", buildCmd.PrintableCommandArgs())
-	fmt.Println()
-	if out, err := buildCmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return "", fmt.Errorf("failed to build bitrise-init: %s", out)
-		}
-		return "", fmt.Errorf("failed to run command: %s", err)
-	}
-
-	err = os.Chdir(initialWD)
-	if err != nil {
-		return "", fmt.Errorf("failed to cahnge dir, error: %s", err)
-	}
-	return initBinary, nil
 }
 
 func uploadResults(URL string, token string, scanResultPath string) error {
@@ -279,9 +240,6 @@ func uploadIcon(basePath string, iconCandidate appIconCandidateURL) error {
 }
 
 func main() {
-	// log.Printf("dsafsfd")
-	// return
-
 	var cfg config
 	if err := stepconf.Parse(&cfg); err != nil {
 		failf("Invalid configuration: %s", err)
@@ -292,24 +250,9 @@ func main() {
 		failf("Unsupported OS: %s", runtime.GOOS)
 	}
 
-	log.Infof("Creating scanner binary...")
-	initBinary, err := buildScanner()
-	if err != nil {
-		failf("Failed to build scanner, error: %s", err)
-	}
-	log.Donef("Created at: %s", initBinary)
-
-	log.Infof("Running scanner...")
-	initCmd := command.New(initBinary, "--ci", "config",
-		"--dir", cfg.ScanDirectory,
-		"--output-dir", cfg.OutputDirectory,
-		"--format", "json")
-	fmt.Println()
-	log.Printf("$ %s", initCmd.PrintableCommandArgs())
-	fmt.Println()
-	exitCode, err := initCmd.SetStdout(os.Stdout).SetStderr(os.Stderr).RunAndReturnExitCode()
-	if err != nil {
-		failf("Failed to run command.")
+	scannerError := runScanner(cfg.ScanDirectory, cfg.OutputDirectory)
+	if scannerError != nil {
+		log.Warnf("Scanner error: %s", scannerError)
 	}
 
 	scanResultPath := path.Join(cfg.OutputDirectory, "result.json")
@@ -337,7 +280,7 @@ func main() {
 		}
 	}
 
-	if exitCode == 0 {
+	if scannerError != nil {
 		log.Donef("Scan finished.")
 	} else {
 		failf("Scanner failed.")
