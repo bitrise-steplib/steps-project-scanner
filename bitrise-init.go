@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/output"
@@ -106,20 +105,23 @@ func runScanner(searchDir string, outputDir string) error {
 }
 
 func writeScanResult(scanResult models.ScanResultModel, outputDir string, format output.Format) (string, error) {
-	if len(scanResult.Icons) != 0 {
-		const iconDirName = "icons"
-		iconsOutputDir := filepath.Join(outputDir, iconDirName)
-		if err := os.MkdirAll(iconsOutputDir, 0755); err != nil {
-			return "", fmt.Errorf("failed to create icons directory")
+	/*
+		if len(scanResult.Icons) != 0 {
+			const iconDirName = "icons"
+			iconsOutputDir := filepath.Join(outputDir, iconDirName)
+			if err := os.MkdirAll(iconsOutputDir, 0755); err != nil {
+				return "", fmt.Errorf("failed to create icons directory")
+			}
+			if err := copyIconsToDir(scanResult.Icons, iconsOutputDir); err != nil {
+				return "", fmt.Errorf("failed to copy icons, error: %s", err)
+			}
 		}
-		if err := copyIconsToDir(scanResult.Icons, iconsOutputDir); err != nil {
-			return "", fmt.Errorf("failed to copy icons, error: %s", err)
-		}
-	}
+	*/
 
 	return output.WriteToFile(scanResult, format, path.Join(outputDir, "result"))
 }
 
+/*
 func copyIconsToDir(icons models.Icons, outputDir string) error {
 	if exist, err := pathutil.IsDirExists(outputDir); err != nil {
 		return err
@@ -134,6 +136,7 @@ func copyIconsToDir(icons models.Icons, outputDir string) error {
 	}
 	return nil
 }
+*/
 
 func copyFile(src string, dst string) (err error) {
 	data, err := ioutil.ReadFile(src)

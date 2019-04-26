@@ -281,8 +281,7 @@ func main() {
 	}
 
 	if scannerError != nil {
-		log.Donef("Scan finished.")
-	} else {
 		failf("Scanner failed.")
 	}
+	log.Donef("Scan finished.")
 }
