@@ -25,6 +25,7 @@ type config struct {
 	OutputDirectory      string `env:"output_dir,required"`
 	ResultSubmitURL      string `env:"scan_result_submit_url"`
 	ResultSubmitAPIToken string `env:"scan_result_submit_url"`
+	IconCandidatesURL    string `env:"icon_candidates_url"`
 }
 
 func failf(format string, args ...interface{}) {
@@ -34,19 +35,19 @@ func failf(format string, args ...interface{}) {
 
 type appIconCandidate struct {
 	FileName string `json:"filename"`
-	FileSize int    `json:"filesize"`
+	FileSize int64  `json:"filesize"`
 }
 
 type appIconCandidateURL struct {
 	FileName  string `json:"filename"`
-	FileSize  int    `json:"filesize"`
+	FileSize  int64  `json:"filesize"`
 	UploadURL string `json:"upload_url"`
 }
 
 func uploadResults(URL string, token string, scanResultPath string) error {
 	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attempt uint) error {
 		if strings.TrimSpace(token) == "" {
-			return fmt.Errorf("submit URL needs to be defined if and only if API Token is defined")
+			log.Warnf("Build trigger token is empty.")
 		}
 
 		result, err := os.Open(scanResultPath)
@@ -78,6 +79,42 @@ func uploadResults(URL string, token string, scanResultPath string) error {
 	}); err != nil {
 		return fmt.Errorf("failed to submit, error: %s", err)
 	}
+	return nil
+}
+
+func uploadIcons(iconsDir string, iconCandidateURL string, buildTriggerToken string) error {
+	entries, err := ioutil.ReadDir(iconsDir)
+	if err != nil && !os.IsNotExist(err) {
+		log.Warnf("failed to read app icons, error: %s", err)
+	}
+	if len(entries) == 0 {
+		return nil
+	}
+
+	log.Infof("Submitting app icons...")
+
+	var candidates []appIconCandidate
+	for _, fileInfo := range entries {
+		if !fileInfo.IsDir() && fileInfo.Size() != 0 {
+			candidates = append(candidates, appIconCandidate{
+				FileName: fileInfo.Name(),
+				FileSize: fileInfo.Size(),
+			})
+		}
+	}
+	candidateURLs, err := getUploadURL(iconCandidateURL, buildTriggerToken, candidates)
+	if err != nil {
+		return fmt.Errorf("failed to get candidate target URLs, error: %s", err)
+	}
+
+	for _, candidateURL := range candidateURLs {
+		err := uploadIcon(iconsDir, candidateURL)
+		if err != nil {
+			return fmt.Errorf("failed to upload icon, error: %s", err)
+		}
+	}
+
+	log.Donef("submitted")
 	return nil
 }
 
@@ -160,7 +197,7 @@ func uploadIcon(basePath string, iconCandidate appIconCandidateURL) error {
 		if err != nil {
 			return fmt.Errorf("can not read file")
 		}
-		if len(data) != iconCandidate.FileSize {
+		if int64(len(data)) != iconCandidate.FileSize {
 			return fmt.Errorf("content-lenght has to match signed URL")
 		}
 
@@ -272,6 +309,13 @@ func main() {
 	}
 
 	// Upload icons
+	if strings.TrimSpace(cfg.IconCandidatesURL) != "" {
+		err := uploadIcons(path.Join(cfg.OutputDirectory, "icons"), cfg.IconCandidatesURL, cfg.ResultSubmitAPIToken)
+		if err != nil {
+			log.Warnf("Failed to submit icons, error: %s", err)
+		}
+	}
+
 	if exitCode == 0 {
 		log.Donef("scan finished")
 	} else {
