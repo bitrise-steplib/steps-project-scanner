@@ -16,13 +16,10 @@ import (
 )
 
 func runScanner(searchDir string, outputDir string) error {
-	// Config
-	const formatStr = "json"
-
 	log.TInfof(colorstring.Yellow("CI mode"))
 	log.TInfof(colorstring.Yellowf("scan dir: %s", searchDir))
 	log.TInfof(colorstring.Yellowf("output dir: %s", outputDir))
-	log.TInfof(colorstring.Yellowf("output format: %s", formatStr))
+	log.TInfof(colorstring.Yellowf("output format: json"))
 	fmt.Println()
 
 	currentDir, err := pathutil.AbsPath("./")
@@ -49,14 +46,6 @@ func runScanner(searchDir string, outputDir string) error {
 			return fmt.Errorf("failed to create (%s), error: %s", outputDir, err)
 		}
 	}
-
-	format, err := output.ParseFormat(formatStr)
-	if err != nil {
-		return fmt.Errorf("failed to parse format (%s), error: %s", formatStr, err)
-	}
-	if format != output.JSONFormat && format != output.YAMLFormat {
-		return fmt.Errorf("not allowed output format (%s), options: [%s, %s]", format.String(), output.YAMLFormat.String(), output.JSONFormat.String())
-	}
 	// ---
 
 	scanResult := scanner.Config(searchDir)
@@ -66,6 +55,7 @@ func runScanner(searchDir string, outputDir string) error {
 		platforms = append(platforms, platform)
 	}
 
+	format := output.JSONFormat
 	if len(platforms) == 0 {
 		cmd := command.New("which", "tree")
 		out, err := cmd.RunAndReturnTrimmedCombinedOutput()

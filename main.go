@@ -19,11 +19,11 @@ import (
 )
 
 type config struct {
-	ScanDirectory        string `env:"scan_dir,required"`
-	OutputDirectory      string `env:"output_dir,required"`
-	ResultSubmitURL      string `env:"scan_result_submit_url"`
-	ResultSubmitAPIToken string `env:"scan_result_submit_url"`
-	IconCandidatesURL    string `env:"icon_candidates_url"`
+	ScanDirectory        string          `env:"scan_dir,required"`
+	OutputDirectory      string          `env:"output_dir,required"`
+	ResultSubmitURL      string          `env:"scan_result_submit_url"`
+	ResultSubmitAPIToken stepconf.Secret `env:"scan_result_submit_api_token"`
+	IconCandidatesURL    string          `env:"icon_candidates_url"`
 }
 
 type appIconCandidate struct {
@@ -43,7 +43,7 @@ func failf(format string, args ...interface{}) {
 }
 
 func uploadResults(URL string, token string, scanResultPath string) error {
-	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attempt uint) error {
+	if err := retry.Times(1).Wait(5 * time.Second).Try(func(attempt uint) error {
 		if attempt != 0 {
 			log.Warnf("%d query attempt failed", attempt)
 		}
@@ -61,7 +61,10 @@ func uploadResults(URL string, token string, scanResultPath string) error {
 		if err != nil {
 			return fmt.Errorf("could not parse submit URL")
 		}
-		submitURL.Query().Set("api_token", url.QueryEscape(token))
+
+		q := submitURL.Query()
+		q.Add("api_token", url.QueryEscape(token))
+		submitURL.RawQuery = q.Encode()
 
 		resp, err := http.Post(submitURL.String(), "application/json", result)
 		if err != nil {
@@ -79,9 +82,10 @@ func uploadResults(URL string, token string, scanResultPath string) error {
 			return fmt.Errorf("failed to read respnse body, error: %s", err)
 		}
 
-		if !(resp.StatusCode != http.StatusOK) {
+		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf("failed to submit results, status code: %d, headers: %s, body: %s", resp.StatusCode, resp.Header, body)
 		}
+
 		return nil
 	}); err != nil {
 		return fmt.Errorf("failed to submit, error: %s", err)
@@ -265,7 +269,7 @@ func main() {
 	// Upload results
 	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
 		log.Infof("Submitting results...")
-		err := uploadResults(cfg.ResultSubmitURL, cfg.ResultSubmitAPIToken, scanResultPath)
+		err := uploadResults(cfg.ResultSubmitURL, string(cfg.ResultSubmitAPIToken), scanResultPath)
 		if err != nil {
 			failf("Failed to submit results, error: %s", err)
 		}
@@ -274,7 +278,7 @@ func main() {
 
 	// Upload icons
 	if strings.TrimSpace(cfg.IconCandidatesURL) != "" {
-		err := uploadIcons(path.Join(cfg.OutputDirectory, "icons"), cfg.IconCandidatesURL, cfg.ResultSubmitAPIToken)
+		err := uploadIcons(path.Join(cfg.OutputDirectory, "icons"), cfg.IconCandidatesURL, string(cfg.ResultSubmitAPIToken))
 		if err != nil {
 			log.Warnf("Failed to submit icons, error: %s", err)
 		}
