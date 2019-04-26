@@ -17,7 +17,6 @@ workflows:
     description: Bitrise Init Test
     envs:
     - CLONE_INTO_DIR: _tmp
-    - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
     steps:
     - go-list:
     - golint:
@@ -30,14 +29,14 @@ workflows:
             #!/bin/bash
             set -x
 
-            rm -rf $ORIG_BITRISE_SOURCE_DIR/_tmp
+            rm -rf ./_tmp
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/ios-no-shared-schemes.git
             git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
     - path::./:
         title: Step Test
         inputs:
         - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
+        - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
@@ -54,7 +53,7 @@ workflows:
         title: Step Test
         inputs:
         - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
+        - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
@@ -71,7 +70,7 @@ workflows:
         title: Step Test
         inputs:
         - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
+        - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
@@ -88,7 +87,7 @@ workflows:
         title: Step Test
         inputs:
         - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
+        - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
@@ -105,7 +104,7 @@ workflows:
         title: Step Test
         inputs:
         - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
+        - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
@@ -122,7 +121,7 @@ workflows:
         title: Step Test
         inputs:
         - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
+        - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
@@ -139,7 +138,7 @@ workflows:
         title: Step Test
         inputs:
         - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
+        - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
@@ -156,7 +155,7 @@ workflows:
         title: Step Test
         inputs:
         - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
+        - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
@@ -173,7 +172,7 @@ workflows:
         title: Step Test
         inputs:
         - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
+        - output_dir: ../result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
 
