@@ -28,11 +28,6 @@ type config struct {
 	IconCandidatesURL    string `env:"icon_candidates_url"`
 }
 
-func failf(format string, args ...interface{}) {
-	log.Errorf(format, args...)
-	os.Exit(1)
-}
-
 type appIconCandidate struct {
 	FileName string `json:"filename"`
 	FileSize int64  `json:"filesize"`
@@ -44,8 +39,52 @@ type appIconCandidateURL struct {
 	UploadURL string `json:"upload_url"`
 }
 
+func failf(format string, args ...interface{}) {
+	log.Errorf(format, args...)
+	os.Exit(1)
+}
+
+func buildScanner() (string, error) {
+	initialWD, err := os.Getwd()
+	if err != nil {
+		failf("Failed to get working directory.")
+	}
+
+	currentDirectory := os.Getenv("BITRISE_SOURCE_DIR")
+	if err := os.Chdir(path.Join(currentDirectory, "vendor", "github.com", "bitrise-io", "bitrise-init")); err != nil {
+		return "", fmt.Errorf("failed to change directory")
+	}
+
+	binaryDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp dir")
+	}
+	initBinary := path.Join(binaryDir, "init")
+
+	buildCmd := command.New("go", "build", "-o", initBinary)
+	log.Printf("GOPATH: %s", os.Getenv("GOPATH"))
+
+	fmt.Println()
+	log.Printf("$ %s", buildCmd.PrintableCommandArgs())
+	fmt.Println()
+	if out, err := buildCmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return "", fmt.Errorf("failed to build bitrise-init: %s", out)
+		} else {
+			return "", fmt.Errorf("failed to run command: %s", err)
+		}
+	}
+
+	os.Chdir(initialWD)
+	return initBinary, nil
+}
+
 func uploadResults(URL string, token string, scanResultPath string) error {
 	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attempt uint) error {
+		if attempt != 0 {
+			log.Warnf("%d query attempt failed", attempt)
+		}
+
 		if strings.TrimSpace(token) == "" {
 			log.Warnf("Build trigger token is empty.")
 		}
@@ -61,19 +100,24 @@ func uploadResults(URL string, token string, scanResultPath string) error {
 		}
 		submitURL.Query().Set("api_token", url.QueryEscape(token))
 
-		response, err := http.Post(submitURL.String(), "application/json", result)
+		resp, err := http.Post(submitURL.String(), "application/json", result)
+		if err != nil {
+			return fmt.Errorf("failed to submit results, error: %s", err)
+		}
 
 		defer func() {
-			if err := response.Body.Close(); err != nil {
+			if err := resp.Body.Close(); err != nil {
 				log.Errorf("failed to close response body, error: %s", err)
 			}
 		}()
 
+		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("failed to submit results, error: %s", err)
+			return fmt.Errorf("failed to read respnse body, error: %s", err)
 		}
-		if !(response.StatusCode != http.StatusOK) {
-			return fmt.Errorf("failed to submit results, status code: %d", response.StatusCode)
+
+		if !(resp.StatusCode != http.StatusOK) {
+			return fmt.Errorf("failed to submit results, status code: %d, headers: %s, body: %s", resp.StatusCode, resp.Header, body)
 		}
 		return nil
 	}); err != nil {
@@ -223,7 +267,7 @@ func uploadIcon(basePath string, iconCandidate appIconCandidateURL) error {
 		}
 
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("Invalid status code: %d, headers: %s, body: %s", resp.StatusCode, resp.Header, body)
+			return fmt.Errorf("invalid status code: %d, headers: %s, body: %s", resp.StatusCode, resp.Header, body)
 		}
 		return nil
 	}); err != nil {
@@ -237,46 +281,18 @@ func main() {
 	if err := stepconf.Parse(&cfg); err != nil {
 		failf("Invalid configuration: %s", err)
 	}
+	stepconf.Print(cfg)
 
 	if !(runtime.GOOS == "darwin" || runtime.GOOS == "linux") {
 		failf("Unsupported OS: %s", runtime.GOOS)
 	}
 
 	log.Infof("Creating scanner binary...")
-
-	initialWD, err := os.Getwd()
+	initBinary, err := buildScanner()
 	if err != nil {
-		failf("Failed to get working directory.")
+		failf("Failed to build scanner, error: %s", err)
 	}
-
-	currentDirectory := os.Getenv("BITRISE_SOURCE_DIR")
-	if err := os.Chdir(path.Join(currentDirectory, "go", "src", "github.com", "bitrise-io", "bitrise-init")); err != nil {
-		failf("Failed to change directory.")
-	}
-
-	binaryDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		failf("Failed to create temp dir.")
-	}
-	initBinary := path.Join(binaryDir, "init")
-
-	buildCmd := command.New("go", "build", "-o", initBinary)
-	buildCmd.AppendEnvs(fmt.Sprintf("GOPATH=%s", path.Join(currentDirectory, "go")))
-	fmt.Println()
-	log.Warnf("$ %s", buildCmd.PrintableCommandArgs())
-	fmt.Println()
-
-	if out, err := buildCmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			failf("Failed to build bitrise-init: %s", out)
-		} else {
-			failf("Failed to run command: %s", err)
-		}
-	}
-
-	os.Chdir(initialWD)
-
-	log.Donef("created at: %s", initBinary)
+	log.Donef("Created at: %s", initBinary)
 
 	log.Infof("Running scanner...")
 	initCmd := command.New(initBinary, "--ci", "config",
@@ -284,7 +300,7 @@ func main() {
 		"--output-dir", cfg.OutputDirectory,
 		"--format", "json")
 	fmt.Println()
-	log.Warnf("$ %s", initCmd.PrintableCommandArgs())
+	log.Printf("$ %s", initCmd.PrintableCommandArgs())
 	fmt.Println()
 	exitCode, err := initCmd.SetStdout(os.Stdout).SetStderr(os.Stderr).RunAndReturnExitCode()
 	if err != nil {
@@ -305,7 +321,7 @@ func main() {
 		if err != nil {
 			failf("Failed to submit results, error: %s", err)
 		}
-		log.Donef("submitted")
+		log.Donef("Submitted.")
 	}
 
 	// Upload icons
@@ -317,8 +333,8 @@ func main() {
 	}
 
 	if exitCode == 0 {
-		log.Donef("scan finished")
+		log.Donef("Scan finished.")
 	} else {
-		failf("scanner failed")
+		failf("Scanner failed.")
 	}
 }
