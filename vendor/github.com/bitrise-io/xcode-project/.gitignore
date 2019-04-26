@@ -1,0 +1,4 @@
+.bitrise*
+Gopkg.lock
+Gopkg.toml
+vendor/

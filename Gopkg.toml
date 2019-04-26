@@ -1,0 +1,13 @@
+
+[[constraint]]
+  name = "github.com/bitrise-io/go-utils"
+  branch = "master"
+
+
+[[constraint]]
+  name = "github.com/bitrise-io/bitrise-init"
+  branch = "master"
+
+#[prune]
+# go-tests = true
+# unused-packages = true
