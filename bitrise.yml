@@ -20,7 +20,7 @@ workflows:
     - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
     steps:
     - go-list:
-    # - golint:
+    - golint:
     - errcheck:
     - go-test:
     - script:
