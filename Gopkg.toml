@@ -3,10 +3,14 @@
   name = "github.com/bitrise-io/go-utils"
   branch = "master"
 
-
 [[constraint]]
+  revision = "master"
   name = "github.com/bitrise-io/bitrise-init"
-  branch = "master"
+
+# Need the previous released version, as bigger bitrise format version is not supported by website
+[[override]]
+  name = "github.com/bitrise-io/bitrise"
+  version = "1.28.0"
 
 [prune]
   go-tests = true
