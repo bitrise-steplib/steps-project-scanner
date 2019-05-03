@@ -274,7 +274,7 @@ func main() {
 		}
 	}
 
-	_, scannerError := scanner.GenerateAndWriteResults(searchDir, outputDir, output.YAMLFormat)
+	_, scannerError := scanner.GenerateAndWriteResults(searchDir, outputDir, output.JSONFormat)
 	if scannerError != nil {
 		log.Warnf("Scanner error: %s", scannerError)
 	}
