@@ -16,7 +16,6 @@ import (
 	"github.com/bitrise-io/bitrise-init/output"
 	"github.com/bitrise-io/bitrise-init/scanner"
 	"github.com/bitrise-io/go-steputils/stepconf"
-	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
@@ -257,10 +256,6 @@ func main() {
 	if !(runtime.GOOS == "darwin" || runtime.GOOS == "linux") {
 		failf("Unsupported OS: %s", runtime.GOOS)
 	}
-
-	log.TInfof(colorstring.Yellowf("scan dir: %s", cfg.ScanDirectory))
-	log.TInfof(colorstring.Yellowf("output dir: %s", cfg.OutputDirectory))
-	fmt.Println()
 
 	searchDir, err := pathutil.AbsPath(cfg.ScanDirectory)
 	if err != nil {
