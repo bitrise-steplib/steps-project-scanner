@@ -13,8 +13,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bitrise-io/bitrise-init/output"
+	"github.com/bitrise-io/bitrise-init/scanner"
 	"github.com/bitrise-io/go-steputils/stepconf"
+	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
 )
 
@@ -254,7 +258,28 @@ func main() {
 		failf("Unsupported OS: %s", runtime.GOOS)
 	}
 
-	scannerError := runScanner(cfg.ScanDirectory, cfg.OutputDirectory)
+	log.TInfof(colorstring.Yellowf("scan dir: %s", cfg.ScanDirectory))
+	log.TInfof(colorstring.Yellowf("output dir: %s", cfg.OutputDirectory))
+	fmt.Println()
+
+	searchDir, err := pathutil.AbsPath(cfg.ScanDirectory)
+	if err != nil {
+		panic(fmt.Errorf("failed to expand path (%s), error: %s", cfg.ScanDirectory, err))
+	}
+
+	outputDir, err := pathutil.AbsPath(cfg.OutputDirectory)
+	if err != nil {
+		panic(fmt.Errorf("failed to expand path (%s), error: %s", cfg.OutputDirectory, err))
+	}
+	if exist, err := pathutil.IsDirExists(outputDir); err != nil {
+		panic(err)
+	} else if !exist {
+		if err := os.MkdirAll(outputDir, 0700); err != nil {
+			panic(fmt.Errorf("failed to create (%s), error: %s", outputDir, err))
+		}
+	}
+
+	_, scannerError := scanner.GenerateAndWriteResults(searchDir, outputDir, output.YAMLFormat)
 	if scannerError != nil {
 		log.Warnf("Scanner error: %s", scannerError)
 	}
