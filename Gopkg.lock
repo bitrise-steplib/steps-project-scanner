@@ -10,7 +10,8 @@
   version = "1.29.0"
 
 [[projects]]
-  digest = "1:6aeba2d4929c4df1bf686bab3c6581a6cce66b689596541492848646cb286780"
+  branch = "feature/scanner-api"
+  digest = "1:ed548e22f5429064871eb9758f99a3673e1a84852082ff75135abf5f43d94b32"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "models",
@@ -32,7 +33,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "master"
+  revision = "26370c92176bf7150fc76205372048c79fadfbce"
 
 [[projects]]
   branch = "master"
@@ -162,14 +163,10 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/bitrise-io/bitrise-init/models",
     "github.com/bitrise-io/bitrise-init/output",
     "github.com/bitrise-io/bitrise-init/scanner",
     "github.com/bitrise-io/go-steputils/stepconf",
-    "github.com/bitrise-io/go-utils/colorstring",
-    "github.com/bitrise-io/go-utils/command",
     "github.com/bitrise-io/go-utils/log",
-    "github.com/bitrise-io/go-utils/pathutil",
     "github.com/bitrise-io/go-utils/retry",
   ]
   solver-name = "gps-cdcl"
