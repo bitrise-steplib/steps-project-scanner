@@ -96,9 +96,9 @@ func CachePullStepListItem() bitriseModels.StepListItemModel {
 }
 
 // CachePushStepListItem ...
-func CachePushStepListItem() bitriseModels.StepListItemModel {
+func CachePushStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(CachePushID, CachePushVersion)
-	return stepListItem(stepIDComposite, "", "")
+	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
 // CertificateAndProfileInstallerStepListItem ...
@@ -279,5 +279,23 @@ func FlutterAnalyzeStepListItem(inputs ...envmanModels.EnvironmentItemModel) bit
 // FlutterBuildStepListItem ...
 func FlutterBuildStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(FlutterBuildID, FlutterBuildVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
+// GoLintBuildStepListItem ...
+func GoLintBuildStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := "git::https://github.com/bitvirago/steps-golint.git@master"
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
+// GoTestBuildStepListItem ...
+func GoTestBuildStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := "git::https://github.com/bitvirago/steps-go-test.git@master"
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
+// ChangeWorkdirStepListItem ...
+func ChangeWorkdirStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(ChangeWorkdirID, ChangeWorkdirVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }

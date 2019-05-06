@@ -219,6 +219,12 @@ var customConfigVersions = []interface{}{
 	steps.FlutterTestVersion,
 	steps.DeployToBitriseIoVersion,
 
+	// go
+	models.FormatVersion,
+	steps.ActivateSSHKeyVersion,
+	steps.GitCloneVersion,
+	steps.ScriptVersion,
+
 	// ionic
 	models.FormatVersion,
 	steps.ActivateSSHKeyVersion,
@@ -505,6 +511,10 @@ var customConfigResultYML = fmt.Sprintf(`options:
                             config: flutter-config-test-app-ios
               none:
                 config: flutter-config-test
+  go:
+    title: _
+    env_key: _
+    config: go-config
   ionic:
     title: Directory of Ionic Config.xml
     env_key: IONIC_WORK_DIR
@@ -1323,6 +1333,24 @@ configs:
               inputs:
               - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
           - deploy-to-bitrise-io@%s: {}
+  go:
+    go-config: |
+      format_version: "%s"
+      default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+      project_type: go
+      trigger_map:
+      - push_branch: '*'
+        workflow: primary
+      - pull_request_source_branch: '*'
+        workflow: primary
+      workflows:
+        primary:
+          steps:
+          - activate-ssh-key@%s:
+              run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+          - git-clone@%s: {}
+          - script@%s:
+              title: Do anything with Script step
   ionic:
     default-ionic-config: |
       format_version: "%s"

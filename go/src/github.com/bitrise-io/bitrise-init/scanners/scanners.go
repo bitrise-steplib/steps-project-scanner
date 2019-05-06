@@ -6,6 +6,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/cordova"
 	"github.com/bitrise-io/bitrise-init/scanners/fastlane"
 	"github.com/bitrise-io/bitrise-init/scanners/flutter"
+	"github.com/bitrise-io/bitrise-init/scanners/golang"
 	"github.com/bitrise-io/bitrise-init/scanners/ionic"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
 	"github.com/bitrise-io/bitrise-init/scanners/macos"
@@ -80,6 +81,8 @@ var ProjectScanners = []ScannerInterface{
 	macos.NewScanner(),
 	android.NewScanner(),
 	xamarin.NewScanner(),
+	golang.NewScanner(),
+	// nodejs.NewScanner(),
 }
 
 // AutomationToolScanners contains active automation tool scanners

@@ -260,3 +260,10 @@ const (
 	// FlutterBuildVersion ...
 	FlutterBuildVersion = "0.9.2"
 )
+
+const (
+	// ChangeWorkdirID ...
+	ChangeWorkdirID = "change-workdir"
+	// ChangeWorkdirVersion ...
+	ChangeWorkdirVersion = "1.0.2"
+)
