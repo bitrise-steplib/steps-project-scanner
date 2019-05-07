@@ -220,6 +220,8 @@ func uploadIcon(basePath string, iconCandidate appIconCandidateURL) error {
 			return fmt.Errorf("failed to create request")
 		}
 
+		request.Header.Add("Content-Type", "image/png")
+
 		resp, err := http.DefaultClient.Do(request)
 		if err != nil {
 			return fmt.Errorf("failed to submit, error: %s", err)
