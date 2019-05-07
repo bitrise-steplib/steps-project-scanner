@@ -22,7 +22,7 @@ import (
 )
 
 type config struct {
-	ScanDirectory        string          `env:"scan_dir,required"`
+	ScanDirectory        string          `env:"scan_dir,dir"`
 	OutputDirectory      string          `env:"output_dir,required"`
 	ResultSubmitURL      string          `env:"scan_result_submit_url"`
 	ResultSubmitAPIToken stepconf.Secret `env:"scan_result_submit_api_token"`
