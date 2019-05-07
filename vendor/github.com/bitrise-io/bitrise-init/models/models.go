@@ -9,12 +9,17 @@ type Warnings []string
 // Errors ...
 type Errors []string
 
+// Icons are potential selectable app icons
+// the key is a id (sha256 hash converted to string), value is the icon path
+type Icons map[string]string
+
 // ScanResultModel ...
 type ScanResultModel struct {
 	ScannerToOptionRoot       map[string]OptionNode       `json:"options,omitempty" yaml:"options,omitempty"`
 	ScannerToBitriseConfigMap map[string]BitriseConfigMap `json:"configs,omitempty" yaml:"configs,omitempty"`
 	ScannerToWarnings         map[string]Warnings         `json:"warnings,omitempty" yaml:"warnings,omitempty"`
 	ScannerToErrors           map[string]Errors           `json:"errors,omitempty" yaml:"errors,omitempty"`
+	Icons                     Icons                       `json:"-" yaml:"-"`
 }
 
 // AddError ...

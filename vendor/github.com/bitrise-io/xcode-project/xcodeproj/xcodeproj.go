@@ -212,40 +212,7 @@ func Open(pth string) (XcodeProj, error) {
 		return XcodeProj{}, err
 	}
 
-	pbxProjPth := filepath.Join(absPth, "project.pbxproj")
-
-	b, err := fileutil.ReadBytesFromFile(pbxProjPth)
-	if err != nil {
-		return XcodeProj{}, err
-	}
-
-	var raw serialized.Object
-	if _, err := plist.Unmarshal(b, &raw); err != nil {
-		return XcodeProj{}, fmt.Errorf("failed to generate json from Pbxproj - error: %s", err)
-	}
-
-	objects, err := raw.Object("objects")
-	if err != nil {
-		return XcodeProj{}, err
-	}
-
-	projectID := ""
-	for id := range objects {
-		object, err := objects.Object(id)
-		if err != nil {
-			return XcodeProj{}, err
-		}
-
-		objectISA, err := object.String("isa")
-		if err != nil {
-			return XcodeProj{}, err
-		}
-
-		if objectISA == "PBXProject" {
-			projectID = id
-			break
-		}
-	}
+	objects, projectID, err := open(pth)
 
 	p, err := parseProj(projectID, objects)
 	if err != nil {
@@ -257,6 +224,44 @@ func Open(pth string) (XcodeProj, error) {
 		Path: absPth,
 		Name: strings.TrimSuffix(filepath.Base(absPth), filepath.Ext(absPth)),
 	}, nil
+}
+
+func open(absPth string) (serialized.Object, string, error) {
+	pbxProjPth := filepath.Join(absPth, "project.pbxproj")
+
+	b, err := fileutil.ReadBytesFromFile(pbxProjPth)
+	if err != nil {
+		return serialized.Object{}, "", err
+	}
+
+	var raw serialized.Object
+	if _, err := plist.Unmarshal(b, &raw); err != nil {
+		return serialized.Object{}, "", fmt.Errorf("failed to generate json from Pbxproj - error: %s", err)
+	}
+
+	objects, err := raw.Object("objects")
+	if err != nil {
+		return serialized.Object{}, "", err
+	}
+
+	projectID := ""
+	for id := range objects {
+		object, err := objects.Object(id)
+		if err != nil {
+			return serialized.Object{}, "", err
+		}
+
+		objectISA, err := object.String("isa")
+		if err != nil {
+			return serialized.Object{}, "", err
+		}
+
+		if objectISA == "PBXProject" {
+			projectID = id
+			break
+		}
+	}
+	return objects, projectID, nil
 }
 
 // IsXcodeProj ...

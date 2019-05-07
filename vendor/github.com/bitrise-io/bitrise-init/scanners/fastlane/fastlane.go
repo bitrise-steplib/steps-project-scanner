@@ -105,7 +105,7 @@ func (*Scanner) ExcludedScannerNames() []string {
 }
 
 // Options ...
-func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, error) {
+func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
 	warnings := models.Warnings{}
 
 	isValidFastfileFound := false
@@ -143,7 +143,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, error) {
 		for _, lane := range lanes {
 			log.TPrintf("- %s", lane)
 
-			configOption := models.NewConfigOption(configName)
+			configOption := models.NewConfigOption(configName, []string{})
 			laneOption.AddConfig(lane, configOption)
 		}
 	}
@@ -151,13 +151,13 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, error) {
 	if !isValidFastfileFound {
 		log.TErrorf("No valid Fastfile found")
 		warnings = append(warnings, "No valid Fastfile found")
-		return models.OptionNode{}, warnings, nil
+		return models.OptionNode{}, warnings, models.Icons{}, nil
 	}
 
 	// Add project_type property option to decision tree
 	optionWithProjectType := toolscanner.AddProjectTypeToOptions(*workDirOption, scanner.projectTypes)
 
-	return optionWithProjectType, warnings, nil
+	return optionWithProjectType, warnings, models.Icons{}, nil
 }
 
 // DefaultOptions ...
@@ -171,7 +171,7 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 	laneOption.AddOption("_", projectTypeOption)
 
 	for _, p := range platforms {
-		configOption := models.NewConfigOption(fmt.Sprintf(defaultConfigNameFormat, p))
+		configOption := models.NewConfigOption(fmt.Sprintf(defaultConfigNameFormat, p), []string{})
 		projectTypeOption.AddConfig(p, configOption)
 	}
 

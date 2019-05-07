@@ -34,6 +34,8 @@ const (
 	GradlewPathInputKey    = "gradlew_path"
 	GradlewPathInputEnvKey = "GRADLEW_PATH"
 	GradlewPathInputTitle  = "Gradlew file path"
+
+	appIconTitle = "Application icon"
 )
 
 func walk(src string, fn func(path string, info os.FileInfo) error) error {

@@ -2,10 +2,9 @@ package ios
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"gopkg.in/yaml.v2"
-
-	"path/filepath"
 
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/steps"
@@ -14,6 +13,7 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-xcode/xcodeproj"
+	"github.com/bitrise-io/xcode-project/xcworkspace"
 )
 
 const (
@@ -48,6 +48,10 @@ const (
 	IosExportMethodInputTitle = "ipa export method"
 	// MacExportMethodInputTitle ...
 	MacExportMethodInputTitle = "Application export method\nNOTE: `none` means: Export a copy of the application without re-signing."
+)
+
+const (
+	appIconTitle = "Application icon"
 )
 
 // IosExportMethods ...
@@ -223,29 +227,43 @@ It is <a href="https://github.com/Carthage/Carthage/blob/master/Documentation/Ar
 	return carthageCommand, warning
 }
 
+func projectPathByScheme(workspacePath string, scheme string) (string, error) {
+	workspace, err := xcworkspace.Open(workspacePath)
+	if err != nil {
+		return "", err
+	}
+
+	_, projectPath, err := workspace.Scheme(scheme)
+	if err != nil {
+		return "", err
+	}
+
+	return projectPath, nil
+}
+
 // GenerateOptions ...
-func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.OptionNode, []ConfigDescriptor, models.Warnings, error) {
+func GenerateOptions(projectType XcodeProjectType, searchDir string, excludeAppIcon bool) (models.OptionNode, []ConfigDescriptor, models.Icons, models.Warnings, error) {
 	warnings := models.Warnings{}
 
 	fileList, err := utility.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
-		return models.OptionNode{}, []ConfigDescriptor{}, models.Warnings{}, err
+		return models.OptionNode{}, []ConfigDescriptor{}, models.Icons{}, models.Warnings{}, err
 	}
 
 	// Separate workspaces and standalon projects
 	projectFiles, err := FilterRelevantProjectFiles(fileList, projectType)
 	if err != nil {
-		return models.OptionNode{}, []ConfigDescriptor{}, models.Warnings{}, err
+		return models.OptionNode{}, []ConfigDescriptor{}, models.Icons{}, models.Warnings{}, err
 	}
 
 	workspaceFiles, err := FilterRelevantWorkspaceFiles(fileList, projectType)
 	if err != nil {
-		return models.OptionNode{}, []ConfigDescriptor{}, models.Warnings{}, err
+		return models.OptionNode{}, []ConfigDescriptor{}, models.Icons{}, models.Warnings{}, err
 	}
 
 	standaloneProjects, workspaces, err := CreateStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles)
 	if err != nil {
-		return models.OptionNode{}, []ConfigDescriptor{}, models.Warnings{}, err
+		return models.OptionNode{}, []ConfigDescriptor{}, models.Icons{}, models.Warnings{}, err
 	}
 
 	exportMethodInputTitle := ""
@@ -263,7 +281,7 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 
 	podfiles, err := FilterRelevantPodfiles(fileList)
 	if err != nil {
-		return models.OptionNode{}, []ConfigDescriptor{}, models.Warnings{}, err
+		return models.OptionNode{}, []ConfigDescriptor{}, models.Icons{}, models.Warnings{}, err
 	}
 
 	log.TPrintf("%d Podfiles detected", len(podfiles))
@@ -296,7 +314,7 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 
 	cartfiles, err := FilterRelevantCartFile(fileList)
 	if err != nil {
-		return models.OptionNode{}, []ConfigDescriptor{}, models.Warnings{}, err
+		return models.OptionNode{}, []ConfigDescriptor{}, models.Icons{}, models.Warnings{}, err
 	}
 
 	log.TPrintf("%d Cartfiles detected", len(cartfiles))
@@ -311,12 +329,24 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 
 	projectPathOption := models.NewOption(ProjectPathInputTitle, ProjectPathInputEnvKey)
 
-	// Standalon Projects
+	// App icons, merged from every project
+	iconsForAllProjects := models.Icons{}
+
+	// Standalone Projects
 	for _, project := range standaloneProjects {
 		log.TInfof("Inspecting standalone project file: %s", project.Pth)
 
 		schemeOption := models.NewOption(SchemeInputTitle, SchemeInputEnvKey)
 		projectPathOption.AddOption(project.Pth, schemeOption)
+
+		projectPath, err := filepath.Abs(filepath.Join(searchDir, project.Pth))
+		if err != nil {
+			return models.OptionNode{},
+				[]ConfigDescriptor{},
+				models.Icons{},
+				warnings,
+				fmt.Errorf("failed to get project path, error: %s", err)
+		}
 
 		carthageCommand, warning := detectCarthageCommand(project.Pth)
 		if warning != "" {
@@ -336,11 +366,25 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 				exportMethodOption := models.NewOption(exportMethodInputTitle, ExportMethodInputEnvKey)
 				schemeOption.AddOption(target.Name, exportMethodOption)
 
+				iconIDs := []string{}
+				if !excludeAppIcon {
+					appIcons, err := lookupByTargetName(projectPath, target.Name, searchDir)
+					if err != nil {
+						warningMsg := fmt.Sprintf("could not get icons for app: %s, error: %s", projectPath, err)
+						log.Warnf(warningMsg)
+						warnings = append(warnings, warningMsg)
+					}
+					for iconID, iconPath := range appIcons {
+						iconsForAllProjects[iconID] = iconPath
+						iconIDs = append(iconIDs, iconID)
+					}
+				}
+
 				for _, exportMethod := range exportMethods {
 					configDescriptor := NewConfigDescriptor(false, carthageCommand, target.HasXCTest, true)
 					configDescriptors = append(configDescriptors, configDescriptor)
+					configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType), []string{})
 
-					configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType))
 					exportMethodOption.AddConfig(exportMethod, configOption)
 				}
 			}
@@ -351,13 +395,26 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 				exportMethodOption := models.NewOption(exportMethodInputTitle, ExportMethodInputEnvKey)
 				schemeOption.AddOption(scheme.Name, exportMethodOption)
 
+				iconIDs := []string{}
+				if !excludeAppIcon {
+					appIcons, err := lookupBySchemeName(projectPath, scheme.Name, searchDir)
+					if err != nil {
+						warningMsg := fmt.Sprintf("could not get icons for app: %s, error: %s", projectPath, err)
+						log.Warnf(warningMsg)
+						warnings = append(warnings, warningMsg)
+					}
+					for iconID, iconPath := range appIcons {
+						iconsForAllProjects[iconID] = iconPath
+						iconIDs = append(iconIDs, iconID)
+					}
+				}
+
 				for _, exportMethod := range exportMethods {
 					configDescriptor := NewConfigDescriptor(false, carthageCommand, scheme.HasXCTest, false)
 					configDescriptors = append(configDescriptors, configDescriptor)
+					configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType), iconIDs)
 
-					configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType))
 					exportMethodOption.AddConfig(exportMethod, configOption)
-
 				}
 			}
 		}
@@ -386,16 +443,32 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 				warnings = append(warnings, message)
 			}
 
-			for _, target := range targets {
-				exportMethodOption := models.NewOption(exportMethodInputTitle, ExportMethodInputEnvKey)
-				schemeOption.AddOption(target.Name, exportMethodOption)
+			for _, project := range workspace.Projects { // Not reusing targets as project path is needed
+				for _, target := range project.Targets {
+					exportMethodOption := models.NewOption(exportMethodInputTitle, ExportMethodInputEnvKey)
+					schemeOption.AddOption(target.Name, exportMethodOption)
 
-				for _, exportMethod := range exportMethods {
-					configDescriptor := NewConfigDescriptor(workspace.IsPodWorkspace, carthageCommand, target.HasXCTest, true)
-					configDescriptors = append(configDescriptors, configDescriptor)
+					iconIDs := []string{}
+					if !excludeAppIcon {
+						appIcons, err := lookupByTargetName(project.Pth, target.Name, searchDir)
+						if err != nil {
+							warningMsg := fmt.Sprintf("could not get icons for app: %s, error: %s", project.Pth, err)
+							log.Warnf(warningMsg)
+							warnings = append(warnings, warningMsg)
+						}
+						for iconID, iconPath := range appIcons {
+							iconsForAllProjects[iconID] = iconPath
+							iconIDs = append(iconIDs, iconID)
+						}
+					}
 
-					configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType))
-					exportMethodOption.AddConfig(exportMethod, configOption)
+					for _, exportMethod := range exportMethods {
+						configDescriptor := NewConfigDescriptor(workspace.IsPodWorkspace, carthageCommand, target.HasXCTest, true)
+						configDescriptors = append(configDescriptors, configDescriptor)
+						configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType), []string{})
+
+						exportMethodOption.AddConfig(exportMethod, configOption)
+					}
 				}
 			}
 		} else {
@@ -405,11 +478,33 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 				exportMethodOption := models.NewOption(exportMethodInputTitle, ExportMethodInputEnvKey)
 				schemeOption.AddOption(scheme.Name, exportMethodOption)
 
+				iconIDs := []string{}
+				if !excludeAppIcon {
+					projectPath, err := projectPathByScheme(workspace.Pth, scheme.Name)
+					if err != nil {
+						warningMsg := fmt.Sprintf("could not get project path (%s) for scheme (%s) and workspace (%s), error: %s",
+							projectPath, scheme.Name, workspace.Pth, err)
+						log.Warnf(warningMsg)
+						warnings = append(warnings, warningMsg)
+					} else {
+						appIcons, err := lookupBySchemeName(projectPath, scheme.Name, searchDir)
+						if err != nil {
+							warningMsg := fmt.Sprintf("could not get icons for app: %s, error: %s", projectPath, err)
+							log.Warnf(warningMsg)
+							warnings = append(warnings, warningMsg)
+						}
+						for iconID, iconPath := range appIcons {
+							iconsForAllProjects[iconID] = iconPath
+							iconIDs = append(iconIDs, iconID)
+						}
+					}
+				}
+
 				for _, exportMethod := range exportMethods {
 					configDescriptor := NewConfigDescriptor(workspace.IsPodWorkspace, carthageCommand, scheme.HasXCTest, false)
 					configDescriptors = append(configDescriptors, configDescriptor)
+					configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType), []string{})
 
-					configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType))
 					exportMethodOption.AddConfig(exportMethod, configOption)
 				}
 			}
@@ -420,10 +515,10 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string) (models.Opt
 
 	if len(configDescriptors) == 0 {
 		log.TErrorf("No valid %s config found", string(projectType))
-		return models.OptionNode{}, []ConfigDescriptor{}, warnings, fmt.Errorf("No valid %s config found", string(projectType))
+		return models.OptionNode{}, []ConfigDescriptor{}, models.Icons{}, warnings, fmt.Errorf("No valid %s config found", string(projectType))
 	}
 
-	return *projectPathOption, configDescriptors, warnings, nil
+	return *projectPathOption, configDescriptors, iconsForAllProjects, warnings, nil
 }
 
 // GenerateDefaultOptions ...
@@ -447,7 +542,7 @@ func GenerateDefaultOptions(projectType XcodeProjectType) models.OptionNode {
 	schemeOption.AddOption("_", exportMethodOption)
 
 	for _, exportMethod := range exportMethods {
-		configOption := models.NewConfigOption(fmt.Sprintf(defaultConfigNameFormat, string(projectType)))
+		configOption := models.NewConfigOption(fmt.Sprintf(defaultConfigNameFormat, string(projectType)), []string{})
 		exportMethodOption.AddConfig(exportMethod, configOption)
 	}
 

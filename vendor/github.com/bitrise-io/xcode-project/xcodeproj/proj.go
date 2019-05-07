@@ -42,7 +42,7 @@ func parseProj(id string, objects serialized.Object) (Proj, error) {
 	}
 
 	return Proj{
-		ID: id,
+		ID:                     id,
 		BuildConfigurationList: buildConfigurationList,
 		Targets:                targets,
 	}, nil

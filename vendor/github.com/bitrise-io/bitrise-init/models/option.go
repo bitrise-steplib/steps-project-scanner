@@ -6,12 +6,14 @@ import (
 )
 
 // OptionNode ...
+// If Selector is not specified, TextSelector is assumed.
 type OptionNode struct {
-	Title  string `json:"title,omitempty" yaml:"title,omitempty"`
-	EnvKey string `json:"env_key,omitempty" yaml:"env_key,omitempty"`
-
+	Title          string                 `json:"title,omitempty" yaml:"title,omitempty"`
+	EnvKey         string                 `json:"env_key,omitempty" yaml:"env_key,omitempty"`
 	ChildOptionMap map[string]*OptionNode `json:"value_map,omitempty" yaml:"value_map,omitempty"`
-	Config         string                 `json:"config,omitempty" yaml:"config,omitempty"`
+	// Leafs only
+	Config string   `json:"config,omitempty" yaml:"config,omitempty"`
+	Icons  []string `json:"icons,omitempty" yaml:"icons,omitempty"`
 
 	Components []string    `json:"-" yaml:"-"`
 	Head       *OptionNode `json:"-" yaml:"-"`
@@ -28,10 +30,11 @@ func NewOption(title, envKey string) *OptionNode {
 }
 
 // NewConfigOption ...
-func NewConfigOption(name string) *OptionNode {
+func NewConfigOption(name string, icons []string) *OptionNode {
 	return &OptionNode{
 		ChildOptionMap: map[string]*OptionNode{},
 		Config:         name,
+		Icons:          icons,
 		Components:     []string{},
 	}
 }

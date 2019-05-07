@@ -2,7 +2,9 @@ package scanner
 
 import (
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/output"
@@ -26,8 +28,18 @@ func printDirTree() {
 }
 
 func writeScanResult(scanResult models.ScanResultModel, outputDir string, format output.Format) (string, error) {
-	pth := path.Join(outputDir, "result")
-	return output.WriteToFile(scanResult, format, pth)
+	if len(scanResult.Icons) != 0 {
+		const iconDirName = "icons"
+		iconsOutputDir := filepath.Join(outputDir, iconDirName)
+		if err := os.MkdirAll(iconsOutputDir, 0755); err != nil {
+			return "", fmt.Errorf("failed to create icons directory")
+		}
+		if err := copyIconsToDir(scanResult.Icons, iconsOutputDir); err != nil {
+			return "", fmt.Errorf("failed to copy icons, error: %s", err)
+		}
+	}
+
+	return output.WriteToFile(scanResult, format, path.Join(outputDir, "result"))
 }
 
 // GenerateAndWriteResults runs the scanner and saves results to the given output dir

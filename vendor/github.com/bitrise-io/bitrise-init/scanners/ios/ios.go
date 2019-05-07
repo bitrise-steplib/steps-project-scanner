@@ -10,6 +10,7 @@ import "github.com/bitrise-io/bitrise-init/models"
 type Scanner struct {
 	SearchDir         string
 	ConfigDescriptors []ConfigDescriptor
+	ExcludeAppIcon    bool
 }
 
 // NewScanner ...
@@ -40,15 +41,15 @@ func (Scanner) ExcludedScannerNames() []string {
 }
 
 // Options ...
-func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, error) {
-	options, configDescriptors, warnings, err := GenerateOptions(XcodeProjectTypeIOS, scanner.SearchDir)
+func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
+	options, configDescriptors, icons, warnings, err := GenerateOptions(XcodeProjectTypeIOS, scanner.SearchDir, scanner.ExcludeAppIcon)
 	if err != nil {
-		return models.OptionNode{}, warnings, err
+		return models.OptionNode{}, warnings, models.Icons{}, err
 	}
 
 	scanner.ConfigDescriptors = configDescriptors
 
-	return options, warnings, nil
+	return options, warnings, icons, nil
 }
 
 // DefaultOptions ...

@@ -7,13 +7,15 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/models"
+	"github.com/bitrise-io/bitrise-init/scanners/android/icon"
 )
 
 // Scanner ...
 type Scanner struct {
-	SearchDir    string
-	ProjectRoots []string
-	ExcludeTest  bool
+	SearchDir      string
+	ProjectRoots   []string
+	ExcludeTest    bool
+	ExcludeAppIcon bool
 }
 
 // NewScanner ...
@@ -51,21 +53,32 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 }
 
 // Options ...
-func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, error) {
+func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
 	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputEnvKey)
 	warnings := models.Warnings{}
+	appIconsAllProjects := models.Icons{}
 
 	for _, projectRoot := range scanner.ProjectRoots {
 		if err := checkGradlew(projectRoot); err != nil {
-			return models.OptionNode{}, warnings, err
+			return models.OptionNode{}, warnings, models.Icons{}, err
 		}
 
 		relProjectRoot, err := filepath.Rel(scanner.SearchDir, projectRoot)
 		if err != nil {
-			return models.OptionNode{}, warnings, err
+			return models.OptionNode{}, warnings, models.Icons{}, err
 		}
 
-		configOption := models.NewConfigOption(ConfigName)
+		appIcons, err := icon.LookupPossibleMatches(projectRoot, scanner.SearchDir)
+		if err != nil {
+			return models.OptionNode{}, warnings, models.Icons{}, err
+		}
+		iconIDs := []string{}
+		for iconID, iconPath := range appIcons {
+			appIconsAllProjects[iconID] = iconPath
+			iconIDs = append(iconIDs, iconID)
+		}
+
+		configOption := models.NewConfigOption(ConfigName, iconIDs)
 		moduleOption := models.NewOption(ModuleInputTitle, ModuleInputEnvKey)
 		variantOption := models.NewOption(VariantInputTitle, VariantInputEnvKey)
 
@@ -74,7 +87,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, error) {
 		variantOption.AddConfig("", configOption)
 	}
 
-	return *projectLocationOption, warnings, nil
+	return *projectLocationOption, warnings, appIconsAllProjects, nil
 }
 
 // DefaultOptions ...
@@ -82,7 +95,7 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputEnvKey)
 	moduleOption := models.NewOption(ModuleInputTitle, ModuleInputEnvKey)
 	variantOption := models.NewOption(VariantInputTitle, VariantInputEnvKey)
-	configOption := models.NewConfigOption(DefaultConfigName)
+	configOption := models.NewConfigOption(DefaultConfigName, []string{})
 
 	projectLocationOption.AddOption("_", moduleOption)
 	moduleOption.AddOption("_", variantOption)
