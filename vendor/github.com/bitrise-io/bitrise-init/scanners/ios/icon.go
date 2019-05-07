@@ -63,7 +63,7 @@ func lookupByTarget(projectPath string, target xcodeproj.Target, basepath string
 	targetToAppIconSetPaths, err := xcodeproj.AppIconSetPaths(projectPath)
 	appIconSetPaths, ok := targetToAppIconSetPaths[target.ID]
 	if !ok {
-		return nil, fmt.Errorf("target not found in project")
+		return nil, nil
 	}
 
 	iconPaths := []string{}

@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "feature/app-icon"
-  digest = "1:825b61527a903951753a7a9ff01e2158d8f84221a31b568746de00843a834bf9"
+  digest = "1:7efa4eace2cecb20d27516f0744cf4bcc876ff57775930da3a358b4aee21d146"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "models",
@@ -42,7 +42,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "165dfb8c9199abb295b29cfb52cab6fc9ce8e27e"
+  revision = "db74a37558a83cd171b04cd2a3804e879cbfb3d3"
 
 [[projects]]
   branch = "master"
