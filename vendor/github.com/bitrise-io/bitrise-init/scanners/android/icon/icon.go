@@ -25,7 +25,8 @@ func lookupIcon(manifestPth, resPth string) (string, error) {
 		return "", err
 	}
 
-	icon, err := parseIconName(doc, resPth)
+	log.Debugf("Looking for app icons. Manifest path: %s", manifestPth)
+	icon, err := parseIconName(doc)
 	if err != nil {
 		return "", err
 	}
@@ -48,20 +49,20 @@ func lookupIcon(manifestPth, resPth string) (string, error) {
 }
 
 // parseIconName fetches icon name from AndroidManifest.xml
-func parseIconName(doc *etree.Document, resPth string) (icon, error) {
+func parseIconName(doc *etree.Document) (icon, error) {
 	man := doc.SelectElement("manifest")
 	if man == nil {
-		log.TPrintf("Key manifest not found in manifest file")
+		log.Debugf("Key manifest not found in manifest file")
 		return icon{}, nil
 	}
 	app := man.SelectElement("application")
 	if app == nil {
-		log.TPrintf("Key application not found in manifest file")
+		log.Debugf("Key application not found in manifest file")
 		return icon{}, nil
 	}
 	ic := app.SelectAttr("android:icon")
 	if ic == nil {
-		log.TPrintf("Attribute not found in manifest file")
+		log.Debugf("Attribute not found in manifest file")
 		return icon{}, nil
 	}
 
