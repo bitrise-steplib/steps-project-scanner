@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/output"
 	"github.com/bitrise-io/bitrise-init/scanner"
 	"github.com/bitrise-io/go-steputils/stepconf"
@@ -45,31 +46,30 @@ func failf(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func uploadResults(URL string, token string, scanResultPath string) error {
+func uploadResults(URL string, token string, result models.ScanResultModel) error {
+	if strings.TrimSpace(token) == "" {
+		log.Warnf("Build trigger token is empty.")
+	}
+
+	submitURL, err := url.Parse(URL)
+	if err != nil {
+		return fmt.Errorf("could not parse submit URL, error: %s", err)
+	}
+	q := submitURL.Query()
+	q.Add("api_token", url.QueryEscape(token))
+	submitURL.RawQuery = q.Encode()
+
+	bytes, err := json.MarshalIndent(result, "", "\t")
+	if err != nil {
+		return fmt.Errorf("failed to marshal results, error: %s", err)
+	}
+
 	if err := retry.Times(1).Wait(5 * time.Second).Try(func(attempt uint) error {
 		if attempt != 0 {
 			log.Warnf("%d query attempt failed", attempt)
 		}
 
-		if strings.TrimSpace(token) == "" {
-			log.Warnf("Build trigger token is empty.")
-		}
-
-		result, err := os.Open(scanResultPath)
-		if err != nil {
-			return fmt.Errorf("could not open results file, error: %s", err)
-		}
-
-		submitURL, err := url.Parse(URL)
-		if err != nil {
-			return fmt.Errorf("could not parse submit URL, error: %s", err)
-		}
-
-		q := submitURL.Query()
-		q.Add("api_token", url.QueryEscape(token))
-		submitURL.RawQuery = q.Encode()
-
-		resp, err := http.Post(submitURL.String(), "application/json", result)
+		resp, err := http.Post(submitURL.String(), "application/json", strings.NewReader(string(bytes)))
 		if err != nil {
 			return fmt.Errorf("failed to submit results, error: %s", err)
 		}
@@ -80,15 +80,14 @@ func uploadResults(URL string, token string, scanResultPath string) error {
 			}
 		}()
 
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read respnse body, error: %s", err)
-		}
-
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("failed to submit results, status code: %d, headers: %s, body: %s", resp.StatusCode, resp.Header, body)
+			log.Errorf("Submit failed, status code: %d, headers: %s", resp.StatusCode, resp.Header)
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return fmt.Errorf("failed to read response body, error: %s", err)
+			}
+			return fmt.Errorf("failed to submit results, body: %s", body)
 		}
-
 		return nil
 	}); err != nil {
 		return fmt.Errorf("failed to submit, error: %s", err)
@@ -282,22 +281,15 @@ func main() {
 		}
 	}
 
-	_, scannerError := scanner.GenerateAndWriteResults(searchDir, outputDir, output.JSONFormat)
+	result, scannerError := scanner.GenerateAndWriteResults(searchDir, outputDir, output.JSONFormat)
 	if scannerError != nil {
 		log.Warnf("Scanner error: %s", scannerError)
-	}
-
-	scanResultPath := path.Join(cfg.OutputDirectory, "result.json")
-	if _, err := os.Stat(scanResultPath); os.IsNotExist(err) {
-		failf("No scan result found at %s", scanResultPath)
-	} else if err != nil {
-		failf("Failed to get file info, error: %s", err)
 	}
 
 	// Upload results
 	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
 		log.Infof("Submitting results...")
-		err := uploadResults(cfg.ResultSubmitURL, string(cfg.ResultSubmitAPIToken), scanResultPath)
+		err := uploadResults(cfg.ResultSubmitURL, string(cfg.ResultSubmitAPIToken), result)
 		if err != nil {
 			failf("Failed to submit results, error: %s", err)
 		}
