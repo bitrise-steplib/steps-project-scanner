@@ -57,12 +57,12 @@ func uploadResults(URL string, token string, scanResultPath string) error {
 
 		result, err := os.Open(scanResultPath)
 		if err != nil {
-			return fmt.Errorf("could not open results file")
+			return fmt.Errorf("could not open results file, error: %s", err)
 		}
 
 		submitURL, err := url.Parse(URL)
 		if err != nil {
-			return fmt.Errorf("could not parse submit URL")
+			return fmt.Errorf("could not parse submit URL, error: %s", err)
 		}
 
 		q := submitURL.Query()
@@ -141,7 +141,7 @@ func getUploadURL(url string, buildTriggerToken string, appIcons []appIconCandid
 
 		data, err := json.Marshal(appIcons)
 		if err != nil {
-			return fmt.Errorf("failed to marshal json")
+			return fmt.Errorf("failed to marshal json, error: %s", err)
 		}
 
 		request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
@@ -162,10 +162,6 @@ func getUploadURL(url string, buildTriggerToken string, appIcons []appIconCandid
 			}
 		}()
 
-		if err != nil {
-			return fmt.Errorf("failed to submit, err: %s", err)
-		}
-
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("failed to read respnse body, error: %s", err)
@@ -181,7 +177,7 @@ func getUploadURL(url string, buildTriggerToken string, appIcons []appIconCandid
 
 		err = json.Unmarshal(body, &decoded)
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal resoponse bodys")
+			return fmt.Errorf("failed to unmarshal resoponse body, error: %s", err)
 		}
 		uploadURLs = decoded["data"]
 		return nil
@@ -197,27 +193,30 @@ func uploadIcon(basePath string, iconCandidate appIconCandidateURL) error {
 			log.Warnf("%d query attemp failed", attemp)
 		}
 
-		file, err := os.Open(path.Join(basePath, iconCandidate.FileName))
+		filePath := path.Join(basePath, iconCandidate.FileName)
+		file, err := os.Open(filePath)
 		if err != nil {
-			return fmt.Errorf("failed to open file")
+			return fmt.Errorf("failed to open file (%s), error: %s", filePath, err)
 		}
 		defer func() {
 			if err := file.Close(); err != nil {
-				log.Warnf("failed to close file")
+				log.Warnf("failed to close file, error: %s", err)
 			}
 		}()
 
 		data, err := ioutil.ReadAll(file)
 		if err != nil {
-			return fmt.Errorf("can not read file")
+			return fmt.Errorf("can not read file, error: %s", err)
 		}
 		if int64(len(data)) != iconCandidate.FileSize {
-			return fmt.Errorf("content-lenght has to match signed URL")
+			return fmt.Errorf("content-lenght has to match signed URL, "+
+				"actual: %d, expected: %d",
+				len(data), iconCandidate.FileSize)
 		}
 
 		request, err := http.NewRequest(http.MethodPut, iconCandidate.UploadURL, bytes.NewReader(data))
 		if err != nil {
-			return fmt.Errorf("failed to create request")
+			return fmt.Errorf("failed to create request, error: %s", err)
 		}
 
 		request.Header.Add("Content-Type", "image/png")
