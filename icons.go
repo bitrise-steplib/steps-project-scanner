@@ -32,7 +32,7 @@ type iconCandidateQuery struct {
 }
 
 func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
-	log.Infof("Submitting app icons...")
+	log.TInfof("Submitting app icons...")
 
 	nameToPath := map[string]string{}
 	for _, icon := range icons {
@@ -42,12 +42,12 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 	var candidates []appIconCandidate
 	for name, path := range nameToPath {
 		if err := validateIcon(path); err != nil {
-			log.Warnf("Invalid icon file, error: %s", err)
+			log.TWarnf("Invalid icon file, error: %s", err)
 			continue
 		}
 		fileInfo, err := os.Stat(path)
 		if err != nil {
-			log.Warnf("Failed to get file (%s) info, error: ", path, err)
+			log.TWarnf("Failed to get file (%s) info, error: ", path, err)
 			continue
 		}
 		if !fileInfo.IsDir() && fileInfo.Size() != 0 {
@@ -70,7 +70,7 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 		}
 	}
 
-	log.Donef("submitted")
+	log.TDonef("submitted")
 	return nil
 }
 
@@ -83,7 +83,7 @@ func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidate) ([]appI
 	var uploadURLs []appIconCandidateURL
 	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attempt uint) error {
 		if attempt > 0 {
-			log.Warnf("%d query attempt failed", attempt)
+			log.TWarnf("%d query attempt failed", attempt)
 		}
 
 		request, err := http.NewRequest(http.MethodPost, query.URL, bytes.NewReader(data))
@@ -100,7 +100,7 @@ func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidate) ([]appI
 
 		defer func() {
 			if err := resp.Body.Close(); err != nil {
-				log.Errorf("Failed to close response body, error: %s", err)
+				log.TErrorf("Failed to close response body, error: %s", err)
 			}
 		}()
 
@@ -135,7 +135,7 @@ func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			log.Warnf("failed to close file, error: %s", err)
+			log.TWarnf("failed to close file, error: %s", err)
 		}
 	}()
 
@@ -155,7 +155,7 @@ func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 
 	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attemp uint) error {
 		if attemp != 0 {
-			log.Warnf("%d query attemp failed", attemp)
+			log.TWarnf("%d query attemp failed", attemp)
 		}
 
 		request, err := http.NewRequest(http.MethodPut, iconCandidate.UploadURL, bytes.NewReader(data))
@@ -172,7 +172,7 @@ func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 
 		defer func() {
 			if err := resp.Body.Close(); err != nil {
-				log.Errorf("Failed to close response body, error: %s", err)
+				log.TErrorf("Failed to close response body, error: %s", err)
 			}
 		}()
 

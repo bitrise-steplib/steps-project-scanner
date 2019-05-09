@@ -28,13 +28,13 @@ type config struct {
 }
 
 func failf(format string, args ...interface{}) {
-	log.Errorf(format, args...)
+	log.TErrorf(format, args...)
 	os.Exit(1)
 }
 
 func uploadResults(URL string, token string, result models.ScanResultModel) error {
 	if strings.TrimSpace(token) == "" {
-		log.Warnf("Build trigger token is empty.")
+		log.TWarnf("Build trigger token is empty.")
 	}
 
 	submitURL, err := url.Parse(URL)
@@ -52,7 +52,7 @@ func uploadResults(URL string, token string, result models.ScanResultModel) erro
 
 	if err := retry.Times(1).Wait(5 * time.Second).Try(func(attempt uint) error {
 		if attempt != 0 {
-			log.Warnf("%d query attempt failed", attempt)
+			log.TWarnf("%d query attempt failed", attempt)
 		}
 
 		resp, err := http.Post(submitURL.String(), "application/json", strings.NewReader(string(bytes)))
@@ -62,12 +62,12 @@ func uploadResults(URL string, token string, result models.ScanResultModel) erro
 
 		defer func() {
 			if err := resp.Body.Close(); err != nil {
-				log.Errorf("failed to close response body, error: %s", err)
+				log.TErrorf("failed to close response body, error: %s", err)
 			}
 		}()
 
 		if resp.StatusCode != http.StatusOK {
-			log.Errorf("Submit failed, status code: %d, headers: %s", resp.StatusCode, resp.Header)
+			log.TErrorf("Submit failed, status code: %d, headers: %s", resp.StatusCode, resp.Header)
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				return fmt.Errorf("failed to read response body, error: %s", err)
@@ -116,12 +116,12 @@ func main() {
 
 	// Upload results
 	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
-		log.Infof("Submitting results...")
+		log.TInfof("Submitting results...")
 		err := uploadResults(cfg.ResultSubmitURL, string(cfg.ResultSubmitAPIToken), result)
 		if err != nil {
 			failf("Failed to submit results, error: %s", err)
 		}
-		log.Donef("Submitted.")
+		log.TDonef("Submitted.")
 	}
 
 	// Upload icons
@@ -131,7 +131,7 @@ func main() {
 				URL:               cfg.IconCandidatesURL,
 				buildTriggerToken: string(cfg.ResultSubmitAPIToken),
 			}); err != nil {
-			log.Warnf("Failed to submit icons, error: %s", err)
+			log.TWarnf("Failed to submit icons, error: %s", err)
 		}
 	}
 
@@ -139,5 +139,5 @@ func main() {
 		printDirTree()
 		failf("No known platform detected")
 	}
-	log.Donef("Scan finished.")
+	log.TDonef("Scan finished.")
 }
