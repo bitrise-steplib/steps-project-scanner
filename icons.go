@@ -41,6 +41,10 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 
 	var candidates []appIconCandidate
 	for name, path := range nameToPath {
+		if err := validateIcon(path); err != nil {
+			log.Warnf("Invalid icon file, error: %s", err)
+			continue
+		}
 		fileInfo, err := os.Stat(path)
 		if err != nil {
 			log.Warnf("Failed to get file (%s) info, error: ", path, err)
@@ -149,7 +153,7 @@ func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 			return fmt.Errorf("can not read file, error: %s", err)
 		}
 		if int64(len(data)) != iconCandidate.FileSize {
-			return fmt.Errorf("Array lenght deos not match to file size reported to the API, "+
+			return fmt.Errorf("array lenght deos not match to file size reported to the API, "+
 				"actual: %d, expected: %d",
 				len(data), iconCandidate.FileSize)
 		}
@@ -207,7 +211,7 @@ func validateIcon(iconPath string) error {
 	}
 
 	if config.Width > maxImageSize || config.Height > maxImageSize {
-		return fmt.Errorf("Image dimensions larger than %d", maxImageSize)
+		return fmt.Errorf("image dimensions larger than %d", maxImageSize)
 	}
 	return nil
 }
