@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"runtime"
 	"strings"
 	"time"
@@ -100,33 +99,37 @@ type iconCandidateQuery struct {
 	buildTriggerToken string
 }
 
-func uploadIcons(iconsDir string, query iconCandidateQuery) error {
-	entries, err := ioutil.ReadDir(iconsDir)
-	if err != nil && !os.IsNotExist(err) {
-		log.Warnf("failed to read app icons, error: %s", err)
-	}
-	if len(entries) == 0 {
-		return nil
-	}
-
+func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 	log.Infof("Submitting app icons...")
 
+	nameToPath := map[string]string{}
+	for _, icon := range icons {
+		nameToPath[icon.Filename] = icon.Path
+	}
+
 	var candidates []appIconCandidate
-	for _, fileInfo := range entries {
+	for name, path := range nameToPath {
+		fileInfo, err := os.Stat(path)
+		if err != nil {
+			log.Warnf("Failed to get file (%s) info, error: ", path, err)
+			continue
+		}
 		if !fileInfo.IsDir() && fileInfo.Size() != 0 {
+			// Using the generated name instead of the filesystem name as it is unique
 			candidates = append(candidates, appIconCandidate{
-				FileName: fileInfo.Name(),
+				FileName: name,
 				FileSize: fileInfo.Size(),
 			})
 		}
 	}
+
 	candidateURLs, err := getUploadURL(query, candidates)
 	if err != nil {
 		return fmt.Errorf("failed to get candidate target URLs, error: %s", err)
 	}
 
 	for _, candidateURL := range candidateURLs {
-		if err := uploadIcon(iconsDir, candidateURL); err != nil {
+		if err := uploadIcon(nameToPath[candidateURL.FileName], candidateURL); err != nil {
 			return fmt.Errorf("failed to upload icon, error: %s", err)
 		}
 	}
@@ -189,13 +192,12 @@ func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidate) ([]appI
 	return uploadURLs, nil
 }
 
-func uploadIcon(basePath string, iconCandidate appIconCandidateURL) error {
+func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attemp uint) error {
 		if attemp != 0 {
 			log.Warnf("%d query attemp failed", attemp)
 		}
 
-		filePath := path.Join(basePath, iconCandidate.FileName)
 		file, err := os.Open(filePath)
 		if err != nil {
 			return fmt.Errorf("failed to open file (%s), error: %s", filePath, err)
@@ -298,7 +300,7 @@ func main() {
 
 	// Upload icons
 	if strings.TrimSpace(cfg.IconCandidatesURL) != "" {
-		if err := uploadIcons(path.Join(cfg.OutputDirectory, "icons"),
+		if err := uploadIcons(result.Icons,
 			iconCandidateQuery{
 				URL:               cfg.IconCandidatesURL,
 				buildTriggerToken: string(cfg.ResultSubmitAPIToken),
