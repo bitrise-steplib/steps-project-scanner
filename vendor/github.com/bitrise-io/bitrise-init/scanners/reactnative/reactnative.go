@@ -117,7 +117,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	// react options
 	packages, err := utility.ParsePackagesJSON(scanner.packageJSONPth)
 	if err != nil {
-		return models.OptionNode{}, warnings, models.Icons{}, err
+		return models.OptionNode{}, warnings, nil, err
 	}
 
 	hasNPMTest := false
@@ -132,12 +132,12 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	var androidOptions *models.OptionNode
 	androidDir := filepath.Join(projectDir, "android")
 	if exist, err := pathutil.IsDirExists(androidDir); err != nil {
-		return models.OptionNode{}, warnings, models.Icons{}, err
+		return models.OptionNode{}, warnings, nil, err
 	} else if exist {
 		androidScanner := android.NewScanner()
 
 		if detected, err := androidScanner.DetectPlatform(scanner.searchDir); err != nil {
-			return models.OptionNode{}, warnings, models.Icons{}, err
+			return models.OptionNode{}, warnings, nil, err
 		} else if detected {
 			// only the first match we need
 			androidScanner.ExcludeTest = true
@@ -149,14 +149,14 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 			if out, err := npmCmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
 				return models.OptionNode{},
 					warnings,
-					models.Icons{},
+					nil,
 					fmt.Errorf("failed to npm install react-native in: %s\noutput: %s\nerror: %s", projectDir, out, err)
 			}
 
 			options, warns, _, err := androidScanner.Options()
 			warnings = append(warnings, warns...)
 			if err != nil {
-				return models.OptionNode{}, warnings, models.Icons{}, err
+				return models.OptionNode{}, warnings, nil, err
 			}
 
 			androidOptions = &options
@@ -168,18 +168,18 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	var iosOptions *models.OptionNode
 	iosDir := filepath.Join(projectDir, "ios")
 	if exist, err := pathutil.IsDirExists(iosDir); err != nil {
-		return models.OptionNode{}, warnings, models.Icons{}, err
+		return models.OptionNode{}, warnings, nil, err
 	} else if exist {
 		iosScanner := ios.NewScanner()
 		iosScanner.ExcludeAppIcon = true
 
 		if detected, err := iosScanner.DetectPlatform(scanner.searchDir); err != nil {
-			return models.OptionNode{}, warnings, models.Icons{}, err
+			return models.OptionNode{}, warnings, nil, err
 		} else if detected {
 			options, warns, _, err := iosScanner.Options()
 			warnings = append(warnings, warns...)
 			if err != nil {
-				return models.OptionNode{}, warnings, models.Icons{}, err
+				return models.OptionNode{}, warnings, nil, err
 			}
 
 			iosOptions = &options
@@ -190,7 +190,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	if androidOptions == nil && iosOptions == nil {
 		return models.OptionNode{},
 			warnings,
-			models.Icons{},
+			nil,
 			errors.New("no ios nor android project detected")
 	}
 	// ---
@@ -205,7 +205,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 					if child.Config == "" {
 						return models.OptionNode{},
 							warnings,
-							models.Icons{},
+							nil,
 							fmt.Errorf("no config for option: %s", child.String())
 					}
 
@@ -230,7 +230,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 				if child.Config == "" {
 					return models.OptionNode{},
 						warnings,
-						models.Icons{},
+						nil,
 						fmt.Errorf("no config for option: %s", child.String())
 				}
 
@@ -250,7 +250,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 	}
 
-	return rootOption, warnings, models.Icons{}, nil
+	return rootOption, warnings, nil, nil
 }
 
 // DefaultOptions ...

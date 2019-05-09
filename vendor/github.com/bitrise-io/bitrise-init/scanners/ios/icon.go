@@ -11,11 +11,8 @@ import (
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 )
 
-// lookupBySchemeName returns possible ios app icons for a scheme,
-// Icons key: unique id for relative paths under basepath(sha256 hash converted to string) as a filename,
-// with the original (png) file extension appended
-// Icons value: absolute icon path
-func lookupBySchemeName(projectPath string, schemeName string, basepath string) (models.Icons, error) {
+// lookupIconBySchemeName returns possible ios app icons for a scheme.
+func lookupIconBySchemeName(projectPath string, schemeName string, basepath string) (models.Icons, error) {
 	project, err := xcodeproj.Open(projectPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open project file: %s, error: %s", projectPath, err)
@@ -28,20 +25,17 @@ func lookupBySchemeName(projectPath string, schemeName string, basepath string) 
 
 	mainTarget, err := mainTargetOfScheme(project, scheme.Name)
 
-	return lookupByTarget(projectPath, mainTarget, basepath)
+	return lookupIconByTarget(projectPath, mainTarget, basepath)
 }
 
-// lookupByTargetName returns possible ios app icons for a scheme,
-// Icons key: unique id for relative paths under basepath(sha256 hash converted to string) as a filename,
-// with the original (png) file extension appended
-// Icons value: absolute icon path
-func lookupByTargetName(projectPath string, targetName string, basepath string) (models.Icons, error) {
+// lookupIconByTargetName returns possible ios app icons for a target.
+func lookupIconByTargetName(projectPath string, targetName string, basepath string) (models.Icons, error) {
 	target, err := nameToTarget(projectPath, targetName)
 	if err != nil {
-		return models.Icons{}, nil
+		return nil, nil
 	}
 
-	return lookupByTarget(projectPath, target, basepath)
+	return lookupIconByTarget(projectPath, target, basepath)
 }
 
 func nameToTarget(projectPath string, targetName string) (xcodeproj.Target, error) {
@@ -59,7 +53,7 @@ func nameToTarget(projectPath string, targetName string) (xcodeproj.Target, erro
 	return target, nil
 }
 
-func lookupByTarget(projectPath string, target xcodeproj.Target, basepath string) (models.Icons, error) {
+func lookupIconByTarget(projectPath string, target xcodeproj.Target, basepath string) (models.Icons, error) {
 	targetToAppIconSetPaths, err := xcodeproj.AppIconSetPaths(projectPath)
 	appIconSetPaths, ok := targetToAppIconSetPaths[target.ID]
 	if !ok {
@@ -84,11 +78,11 @@ func lookupByTarget(projectPath string, target xcodeproj.Target, basepath string
 		iconPaths = append(iconPaths, iconPath)
 	}
 
-	iconIDToPath, err := utility.ConvertPathsToUniqueFileNames(iconPaths, basepath)
+	icons, err := utility.CreateIconDescriptors(iconPaths, basepath)
 	if err != nil {
 		return nil, err
 	}
-	return iconIDToPath, nil
+	return icons, nil
 }
 
 func mainTargetOfScheme(proj xcodeproj.XcodeProj, scheme string) (xcodeproj.Target, error) {

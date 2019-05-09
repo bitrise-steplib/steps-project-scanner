@@ -133,9 +133,7 @@ func Config(searchDir string) models.ScanResultModel {
 			scannerToOptions[scanner] = scannerOutput.options
 			scannerToConfigMap[scanner] = scannerOutput.configs
 		}
-		for iconID, iconPath := range scannerOutput.icons {
-			icons[iconID] = iconPath
-		}
+		icons = append(icons, scannerOutput.icons...)
 	}
 	return models.ScanResultModel{
 		ScannerToOptionRoot:       scannerToOptions,

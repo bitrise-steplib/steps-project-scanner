@@ -1,7 +1,7 @@
 
 [[constraint]]
-  name = "github.com/bitrise-io/go-utils"
   branch = "master"
+  name = "github.com/bitrise-io/go-utils"
 
 [[constraint]]
   branch = "feature/app-icon"

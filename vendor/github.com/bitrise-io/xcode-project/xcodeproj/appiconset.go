@@ -13,10 +13,10 @@ import (
 	"github.com/bitrise-io/xcode-project/serialized"
 )
 
-// TargetsToAppIconSets maps target names to an array of asset catalog paths
+// TargetsToAppIconSets maps target names to an array app icon set absolute paths.
 type TargetsToAppIconSets map[string][]string
 
-// AppIconSetPaths parses an Xcode project and returns targets mapped to app icon set paths
+// AppIconSetPaths parses an Xcode project and returns targets mapped to app icon set absolute paths.
 func AppIconSetPaths(projectPath string) (TargetsToAppIconSets, error) {
 	absPth, err := pathutil.AbsPath(projectPath)
 	if err != nil {
@@ -38,23 +38,14 @@ func appIconSetPaths(project Proj, projectPath string, objects serialized.Object
 		appIconSetNames []string
 	}
 
-	targetsWithAppIconSetName := []iconTarget{}
+	targetToAppIcons := map[string][]string{}
 	for _, target := range project.Targets {
-		appIconSetNames, err := getAppIconSetNames(target)
-		if err != nil {
-			return nil, fmt.Errorf("app icon set name not found in project, error: %s", err)
-		} else if len(appIconSetNames) == 0 {
+		appIconSetNames := getAppIconSetNames(target)
+		if len(appIconSetNames) == 0 {
 			continue
 		}
-		targetsWithAppIconSetName = append(targetsWithAppIconSetName, iconTarget{
-			target:          target,
-			appIconSetNames: appIconSetNames,
-		})
-	}
 
-	targetToAppIcons := map[string][]string{}
-	for _, iconTarget := range targetsWithAppIconSetName {
-		assetCatalogs, err := assetCatalogs(iconTarget.target, project.ID, objects)
+		assetCatalogs, err := assetCatalogs(target, project.ID, objects)
 		if err != nil {
 			return nil, err
 		} else if len(assetCatalogs) == 0 {
@@ -62,17 +53,16 @@ func appIconSetPaths(project Proj, projectPath string, objects serialized.Object
 		}
 
 		appIcons := []string{}
-		for _, appIconSetName := range iconTarget.appIconSetNames {
+		for _, appIconSetName := range appIconSetNames {
 			appIconSetPaths, err := lookupAppIconPaths(projectPath, assetCatalogs, appIconSetName, project.ID, objects)
 			if err != nil {
 				return nil, err
 			} else if len(appIconSetPaths) == 0 {
-				// continue
 				return nil, fmt.Errorf("not found app icon set (%s) on paths: %s", appIconSetName, assetCatalogs)
 			}
 			appIcons = append(appIcons, appIconSetPaths...)
 		}
-		targetToAppIcons[iconTarget.target.ID] = sliceutil.UniqueStringSlice(appIcons)
+		targetToAppIcons[target.ID] = sliceutil.UniqueStringSlice(appIcons)
 	}
 
 	return targetToAppIcons, nil
@@ -165,22 +155,17 @@ func filterAssetCatalogs(buildPhase resourcesBuildPhase, projectID string, objec
 	return assetCatalogs, nil
 }
 
-func getAppIconSetNames(target Target) ([]string, error) {
+func getAppIconSetNames(target Target) []string {
 	const appIconSetNameKey = "ASSETCATALOG_COMPILER_APPICON_NAME"
 
 	appIconSetNames := []string{}
 	for _, configuration := range target.BuildConfigurationList.BuildConfigurations {
-		appIconSetNameRaw, ok := configuration.BuildSettings[appIconSetNameKey]
-		if !ok {
-			return nil, nil
+		appIconSetName, err := configuration.BuildSettings.String(appIconSetNameKey)
+		if err != nil {
+			return nil
 		}
-		appIconSetName, ok := appIconSetNameRaw.(string)
-		if !ok {
-			return nil, fmt.Errorf("type assertion failed for value of key %s", appIconSetNameKey)
-		}
-
 		appIconSetNames = append(appIconSetNames, appIconSetName)
 	}
 
-	return appIconSetNames, nil
+	return appIconSetNames
 }

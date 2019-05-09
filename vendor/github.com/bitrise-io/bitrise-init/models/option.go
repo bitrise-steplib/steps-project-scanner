@@ -6,7 +6,6 @@ import (
 )
 
 // OptionNode ...
-// If Selector is not specified, TextSelector is assumed.
 type OptionNode struct {
 	Title          string                 `json:"title,omitempty" yaml:"title,omitempty"`
 	EnvKey         string                 `json:"env_key,omitempty" yaml:"env_key,omitempty"`

@@ -54,10 +54,8 @@ func parseResourceSet(resourceSetPath string) (appIcon, bool, error) {
 }
 
 func parseResourceSetMetadata(input io.Reader) ([]appIcon, error) {
-	decoder := json.NewDecoder(input)
 	var decoded assetMetadata
-	err := decoder.Decode(&decoded)
-	if err != nil {
+	if err := json.NewDecoder(input).Decode(&decoded); err != nil {
 		return nil, fmt.Errorf("failed to decode asset metadata file, error: %s", err)
 	}
 

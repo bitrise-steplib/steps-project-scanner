@@ -7,7 +7,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/models"
-	"github.com/bitrise-io/bitrise-init/scanners/android/icon"
 )
 
 // Scanner ...
@@ -60,22 +59,22 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 	for _, projectRoot := range scanner.ProjectRoots {
 		if err := checkGradlew(projectRoot); err != nil {
-			return models.OptionNode{}, warnings, models.Icons{}, err
+			return models.OptionNode{}, warnings, nil, err
 		}
 
 		relProjectRoot, err := filepath.Rel(scanner.SearchDir, projectRoot)
 		if err != nil {
-			return models.OptionNode{}, warnings, models.Icons{}, err
+			return models.OptionNode{}, warnings, nil, err
 		}
 
-		appIcons, err := icon.LookupPossibleMatches(projectRoot, scanner.SearchDir)
+		icons, err := LookupIcons(projectRoot, scanner.SearchDir)
 		if err != nil {
-			return models.OptionNode{}, warnings, models.Icons{}, err
+			return models.OptionNode{}, warnings, nil, err
 		}
-		iconIDs := []string{}
-		for iconID, iconPath := range appIcons {
-			appIconsAllProjects[iconID] = iconPath
-			iconIDs = append(iconIDs, iconID)
+		appIconsAllProjects = append(appIconsAllProjects, icons...)
+		iconIDs := make([]string, len(icons))
+		for i, icon := range icons {
+			iconIDs[i] = icon.Filename
 		}
 
 		configOption := models.NewConfigOption(ConfigName, iconIDs)
@@ -95,7 +94,7 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputEnvKey)
 	moduleOption := models.NewOption(ModuleInputTitle, ModuleInputEnvKey)
 	variantOption := models.NewOption(VariantInputTitle, VariantInputEnvKey)
-	configOption := models.NewConfigOption(DefaultConfigName, []string{})
+	configOption := models.NewConfigOption(DefaultConfigName, nil)
 
 	projectLocationOption.AddOption("_", moduleOption)
 	moduleOption.AddOption("_", variantOption)

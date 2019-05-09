@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "feature/app-icon"
-  digest = "1:f3ac6d128b4a5937ac65a8b2c646d8fe93a5b96ef435b530a6a93cef13c30d8b"
+  digest = "1:0e7d72fe219ef52db2525ce57554339c69db21fdd406937f962954a93ec87973"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "models",
@@ -27,7 +27,6 @@
     "scanner",
     "scanners",
     "scanners/android",
-    "scanners/android/icon",
     "scanners/cordova",
     "scanners/fastlane",
     "scanners/flutter",
@@ -42,7 +41,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "6c33249bb567064526a42e9e8c3ac2b1504365f5"
+  revision = "6c459671ecd71ae6e2dd2d72b31366fd5f9d032d"
 
 [[projects]]
   branch = "master"
@@ -108,8 +107,8 @@
   revision = "8cd3398fab6c211eef53502b65ec7ad5510f556a"
 
 [[projects]]
-  branch = "feature/asset-catalog"
-  digest = "1:e6bb654c30c6b3e26298b2da9e831f407552737052f3a2e1c2777ab62242956b"
+  branch = "master"
+  digest = "1:d30f24e344dc73c47a2e18a658fe46cc22b18a756b0fed3e8056c2fd4669a125"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "serialized",
@@ -119,7 +118,7 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "4934572be67745e0e95eed46e9305002aa0b089d"
+  revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -172,9 +171,10 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/bitrise-io/bitrise-init/output",
+    "github.com/bitrise-io/bitrise-init/models",
     "github.com/bitrise-io/bitrise-init/scanner",
     "github.com/bitrise-io/go-steputils/stepconf",
+    "github.com/bitrise-io/go-utils/command",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
     "github.com/bitrise-io/go-utils/retry",

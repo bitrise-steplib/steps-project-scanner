@@ -160,7 +160,6 @@ func resolveObjectAbsolutePath(targetID string, projectID string, projectPath st
 	if err != nil {
 		return "", fmt.Errorf("failed to find target ID in project, error: %s", err)
 	}
-
 	pathInProjectTree = append(pathInProjectTree, projectEntry{
 		path:         path.Join(projectPath, "..", projectDirPath, projectRoot),
 		pathRelation: absoluteParentPath,
