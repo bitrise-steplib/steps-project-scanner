@@ -204,12 +204,16 @@ func uploadIcon(basePath string, iconCandidate appIconCandidateURL) error {
 			}
 		}()
 
+		// If a byte array is passed to http.NewRequest, the Content-lenght header is set to its lenght.
+		// That does not seem apply to a stream (as it has no defined lenght).
+		// The Content-lenght header is signed by S3, so has to match to the filesize sent
+		// in the getUploadURL() function.
 		data, err := ioutil.ReadAll(file)
 		if err != nil {
 			return fmt.Errorf("can not read file, error: %s", err)
 		}
 		if int64(len(data)) != iconCandidate.FileSize {
-			return fmt.Errorf("content-lenght has to match signed URL, "+
+			return fmt.Errorf("Array lenght deos not match to file size reported to the API, "+
 				"actual: %d, expected: %d",
 				len(data), iconCandidate.FileSize)
 		}
@@ -260,18 +264,18 @@ func main() {
 
 	searchDir, err := pathutil.AbsPath(cfg.ScanDirectory)
 	if err != nil {
-		panic(fmt.Errorf("failed to expand path (%s), error: %s", cfg.ScanDirectory, err))
+		failf("failed to expand path (%s), error: %s", cfg.ScanDirectory, err)
 	}
 
 	outputDir, err := pathutil.AbsPath(cfg.OutputDirectory)
 	if err != nil {
-		panic(fmt.Errorf("failed to expand path (%s), error: %s", cfg.OutputDirectory, err))
+		failf("failed to expand path (%s), error: %s", cfg.OutputDirectory, err)
 	}
 	if exist, err := pathutil.IsDirExists(outputDir); err != nil {
-		panic(err)
+		failf("failed to check if dir (%s) exists, error: %s", outputDir, err)
 	} else if !exist {
 		if err := os.MkdirAll(outputDir, 0700); err != nil {
-			panic(fmt.Errorf("failed to create (%s), error: %s", outputDir, err))
+			failf("failed to create dir (%s), error: %s", outputDir, err)
 		}
 	}
 
