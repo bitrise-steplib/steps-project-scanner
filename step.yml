@@ -29,10 +29,6 @@ inputs:
     opts:
       title: "Directory to scan."
       is_required: true
-  - output_dir: $BITRISE_SOURCE_DIR/scan_result
-    opts:
-      title: "Directory to save scan results."
-      is_required: true
   - scan_result_submit_url: "$BITRISE_SCAN_RESULT_POST_URL"
     opts:
       title: "POST url to send the scan results to"

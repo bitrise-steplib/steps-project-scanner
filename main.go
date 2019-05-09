@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/bitrise-io/bitrise-init/models"
-	"github.com/bitrise-io/bitrise-init/output"
 	"github.com/bitrise-io/bitrise-init/scanner"
 	"github.com/bitrise-io/go-steputils/stepconf"
+	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
@@ -22,7 +22,6 @@ import (
 
 type config struct {
 	ScanDirectory        string          `env:"scan_dir,dir"`
-	OutputDirectory      string          `env:"output_dir,required"`
 	ResultSubmitURL      string          `env:"scan_result_submit_url"`
 	ResultSubmitAPIToken stepconf.Secret `env:"scan_result_submit_api_token"`
 	IconCandidatesURL    string          `env:"icon_candidates_url"`
@@ -82,6 +81,21 @@ func uploadResults(URL string, token string, result models.ScanResultModel) erro
 	return nil
 }
 
+func printDirTree() {
+	cmd := command.New("which", "tree")
+	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
+	if err != nil || out == "" {
+		log.TErrorf("tree not installed, can not list files")
+	} else {
+		fmt.Println()
+		cmd := command.NewWithStandardOuts("tree", ".", "-L", "3")
+		log.TPrintf("$ %s", cmd.PrintableCommandArgs())
+		if err := cmd.Run(); err != nil {
+			log.TErrorf("Failed to list files in current directory, error: %s", err)
+		}
+	}
+}
+
 func main() {
 	var cfg config
 	if err := stepconf.Parse(&cfg); err != nil {
@@ -98,22 +112,7 @@ func main() {
 		failf("failed to expand path (%s), error: %s", cfg.ScanDirectory, err)
 	}
 
-	outputDir, err := pathutil.AbsPath(cfg.OutputDirectory)
-	if err != nil {
-		failf("failed to expand path (%s), error: %s", cfg.OutputDirectory, err)
-	}
-	if exist, err := pathutil.IsDirExists(outputDir); err != nil {
-		failf("failed to check if dir (%s) exists, error: %s", outputDir, err)
-	} else if !exist {
-		if err := os.MkdirAll(outputDir, 0700); err != nil {
-			failf("failed to create dir (%s), error: %s", outputDir, err)
-		}
-	}
-
-	result, scannerError := scanner.GenerateAndWriteResults(searchDir, outputDir, output.JSONFormat)
-	if scannerError != nil {
-		log.Warnf("Scanner error: %s", scannerError)
-	}
+	result, platformsDetected := scanner.GenerateScanResult(searchDir)
 
 	// Upload results
 	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
@@ -136,8 +135,9 @@ func main() {
 		}
 	}
 
-	if scannerError != nil {
-		failf("Scanner failed.")
+	if !platformsDetected {
+		printDirTree()
+		failf("No known platform detected")
 	}
 	log.Donef("Scan finished.")
 }
