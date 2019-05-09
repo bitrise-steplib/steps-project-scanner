@@ -75,15 +75,15 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 }
 
 func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidate) ([]appIconCandidateURL, error) {
+	data, err := json.Marshal(appIcons)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal json, error: %s", err)
+	}
+
 	var uploadURLs []appIconCandidateURL
 	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attempt uint) error {
 		if attempt > 0 {
 			log.Warnf("%d query attempt failed", attempt)
-		}
-
-		data, err := json.Marshal(appIcons)
-		if err != nil {
-			return fmt.Errorf("failed to marshal json, error: %s", err)
 		}
 
 		request, err := http.NewRequest(http.MethodPost, query.URL, bytes.NewReader(data))
@@ -129,33 +129,33 @@ func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidate) ([]appI
 }
 
 func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open file (%s), error: %s", filePath, err)
+	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Warnf("failed to close file, error: %s", err)
+		}
+	}()
+
+	// If a byte array is passed to http.NewRequest, the Content-lenght header is set to its lenght.
+	// That does not seem apply to a stream (as it has no defined lenght).
+	// The Content-lenght header is signed by S3, so has to match to the filesize sent
+	// in the getUploadURL() function.
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("can not read file, error: %s", err)
+	}
+	if int64(len(data)) != iconCandidate.FileSize {
+		return fmt.Errorf("array lenght deos not match to file size reported to the API, "+
+			"actual: %d, expected: %d",
+			len(data), iconCandidate.FileSize)
+	}
+
 	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attemp uint) error {
 		if attemp != 0 {
 			log.Warnf("%d query attemp failed", attemp)
-		}
-
-		file, err := os.Open(filePath)
-		if err != nil {
-			return fmt.Errorf("failed to open file (%s), error: %s", filePath, err)
-		}
-		defer func() {
-			if err := file.Close(); err != nil {
-				log.Warnf("failed to close file, error: %s", err)
-			}
-		}()
-
-		// If a byte array is passed to http.NewRequest, the Content-lenght header is set to its lenght.
-		// That does not seem apply to a stream (as it has no defined lenght).
-		// The Content-lenght header is signed by S3, so has to match to the filesize sent
-		// in the getUploadURL() function.
-		data, err := ioutil.ReadAll(file)
-		if err != nil {
-			return fmt.Errorf("can not read file, error: %s", err)
-		}
-		if int64(len(data)) != iconCandidate.FileSize {
-			return fmt.Errorf("array lenght deos not match to file size reported to the API, "+
-				"actual: %d, expected: %d",
-				len(data), iconCandidate.FileSize)
 		}
 
 		request, err := http.NewRequest(http.MethodPut, iconCandidate.UploadURL, bytes.NewReader(data))
