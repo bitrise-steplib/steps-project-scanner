@@ -96,7 +96,12 @@ func uploadResults(URL string, token string, scanResultPath string) error {
 	return nil
 }
 
-func uploadIcons(iconsDir string, iconCandidateURL string, buildTriggerToken string) error {
+type iconCandidateQuery struct {
+	URL               string
+	buildTriggerToken string
+}
+
+func uploadIcons(iconsDir string, query iconCandidateQuery) error {
 	entries, err := ioutil.ReadDir(iconsDir)
 	if err != nil && !os.IsNotExist(err) {
 		log.Warnf("failed to read app icons, error: %s", err)
@@ -116,14 +121,13 @@ func uploadIcons(iconsDir string, iconCandidateURL string, buildTriggerToken str
 			})
 		}
 	}
-	candidateURLs, err := getUploadURL(iconCandidateURL, buildTriggerToken, candidates)
+	candidateURLs, err := getUploadURL(query, candidates)
 	if err != nil {
 		return fmt.Errorf("failed to get candidate target URLs, error: %s", err)
 	}
 
 	for _, candidateURL := range candidateURLs {
-		err := uploadIcon(iconsDir, candidateURL)
-		if err != nil {
+		if err := uploadIcon(iconsDir, candidateURL); err != nil {
 			return fmt.Errorf("failed to upload icon, error: %s", err)
 		}
 	}
@@ -132,7 +136,7 @@ func uploadIcons(iconsDir string, iconCandidateURL string, buildTriggerToken str
 	return nil
 }
 
-func getUploadURL(url string, buildTriggerToken string, appIcons []appIconCandidate) ([]appIconCandidateURL, error) {
+func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidate) ([]appIconCandidateURL, error) {
 	var uploadURLs []appIconCandidateURL
 	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attempt uint) error {
 		if attempt > 0 {
@@ -144,11 +148,11 @@ func getUploadURL(url string, buildTriggerToken string, appIcons []appIconCandid
 			return fmt.Errorf("failed to marshal json, error: %s", err)
 		}
 
-		request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
+		request, err := http.NewRequest(http.MethodPost, query.URL, bytes.NewReader(data))
 		if err != nil {
 			return fmt.Errorf("failed to create request")
 		}
-		request.Header.Set("Authorization", fmt.Sprintf("token %s", buildTriggerToken))
+		request.Header.Set("Authorization", fmt.Sprintf("token %s", query.buildTriggerToken))
 		request.Header.Set("Content-Type", "application/json")
 
 		resp, err := http.DefaultClient.Do(request)
@@ -175,8 +179,7 @@ func getUploadURL(url string, buildTriggerToken string, appIcons []appIconCandid
 			"data": uploadURLs,
 		}
 
-		err = json.Unmarshal(body, &decoded)
-		if err != nil {
+		if err = json.Unmarshal(body, &decoded); err != nil {
 			return fmt.Errorf("failed to unmarshal resoponse body, error: %s", err)
 		}
 		uploadURLs = decoded["data"]
@@ -303,8 +306,11 @@ func main() {
 
 	// Upload icons
 	if strings.TrimSpace(cfg.IconCandidatesURL) != "" {
-		err := uploadIcons(path.Join(cfg.OutputDirectory, "icons"), cfg.IconCandidatesURL, string(cfg.ResultSubmitAPIToken))
-		if err != nil {
+		if err := uploadIcons(path.Join(cfg.OutputDirectory, "icons"),
+			iconCandidateQuery{
+				URL:               cfg.IconCandidatesURL,
+				buildTriggerToken: string(cfg.ResultSubmitAPIToken),
+			}); err != nil {
 			log.Warnf("Failed to submit icons, error: %s", err)
 		}
 	}
