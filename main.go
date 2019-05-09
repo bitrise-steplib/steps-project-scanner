@@ -32,19 +32,7 @@ func failf(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func uploadResults(URL string, token string, result models.ScanResultModel) error {
-	if strings.TrimSpace(token) == "" {
-		log.TWarnf("Build trigger token is empty.")
-	}
-
-	submitURL, err := url.Parse(URL)
-	if err != nil {
-		return fmt.Errorf("could not parse submit URL, error: %s", err)
-	}
-	q := submitURL.Query()
-	q.Add("api_token", url.QueryEscape(token))
-	submitURL.RawQuery = q.Encode()
-
+func uploadResults(submitURL *url.URL, result models.ScanResultModel) error {
 	bytes, err := json.MarshalIndent(result, "", "\t")
 	if err != nil {
 		return fmt.Errorf("failed to marshal results, error: %s", err)
@@ -117,8 +105,19 @@ func main() {
 	// Upload results
 	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
 		log.TInfof("Submitting results...")
-		err := uploadResults(cfg.ResultSubmitURL, string(cfg.ResultSubmitAPIToken), result)
+
+		if strings.TrimSpace(string(cfg.ResultSubmitAPIToken)) == "" {
+			log.TWarnf("Build trigger token is empty.")
+		}
+		submitURL, err := url.Parse(cfg.ResultSubmitURL)
 		if err != nil {
+			failf("could not parse submit URL, error: %s", err)
+		}
+		q := submitURL.Query()
+		q.Add("api_token", url.QueryEscape(string(cfg.ResultSubmitAPIToken)))
+		submitURL.RawQuery = q.Encode()
+
+		if err := uploadResults(submitURL, result); err != nil {
 			failf("Failed to submit results, error: %s", err)
 		}
 		log.TDonef("Submitted.")
