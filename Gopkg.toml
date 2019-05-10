@@ -4,7 +4,7 @@
   name = "github.com/bitrise-io/go-utils"
 
 [[constraint]]
-  branch = "feature/app-icon"
+  branch = "master"
   name = "github.com/bitrise-io/bitrise-init"
 
 # Need the previous released version, as bigger bitrise format version is not supported by website

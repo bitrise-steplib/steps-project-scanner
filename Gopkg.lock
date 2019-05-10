@@ -18,7 +18,7 @@
   version = "1.29.0"
 
 [[projects]]
-  branch = "feature/app-icon"
+  branch = "master"
   digest = "1:0e7d72fe219ef52db2525ce57554339c69db21fdd406937f962954a93ec87973"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
@@ -41,7 +41,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "6c459671ecd71ae6e2dd2d72b31366fd5f9d032d"
+  revision = "cbfa37e7d671195a188c0894fa41fe422d087a81"
 
 [[projects]]
   branch = "master"
