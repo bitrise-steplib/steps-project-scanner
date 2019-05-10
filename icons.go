@@ -15,15 +15,10 @@ import (
 	"github.com/bitrise-io/go-utils/retry"
 )
 
-type appIconCandidate struct {
-	FileName string `json:"filename"`
-	FileSize int64  `json:"filesize"`
-}
-
 type appIconCandidateURL struct {
 	FileName  string `json:"filename"`
 	FileSize  int64  `json:"filesize"`
-	UploadURL string `json:"upload_url"`
+	UploadURL string `json:"upload_url,omitempty"`
 }
 
 type iconCandidateQuery struct {
@@ -39,7 +34,7 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 		nameToPath[icon.Filename] = icon.Path
 	}
 
-	var candidates []appIconCandidate
+	var candidates []appIconCandidateURL
 	for name, path := range nameToPath {
 		if err := validateIcon(path); err != nil {
 			log.TWarnf("Invalid icon file, error: %s", err)
@@ -52,7 +47,7 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 		}
 		if !fileInfo.IsDir() && fileInfo.Size() != 0 {
 			// Using the generated name instead of the filesystem name as it is unique
-			candidates = append(candidates, appIconCandidate{
+			candidates = append(candidates, appIconCandidateURL{
 				FileName: name,
 				FileSize: fileInfo.Size(),
 			})
@@ -74,7 +69,7 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 	return nil
 }
 
-func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidate) ([]appIconCandidateURL, error) {
+func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidateURL) ([]appIconCandidateURL, error) {
 	data, err := json.Marshal(appIcons)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal json, error: %s", err)
