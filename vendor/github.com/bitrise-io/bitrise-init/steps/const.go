@@ -125,7 +125,7 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.4.21"
+	XcodeArchiveVersion = "2.5.0"
 )
 
 const (
@@ -167,14 +167,14 @@ const (
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...
-	XcodeArchiveMacVersion = "1.6.2"
+	XcodeArchiveMacVersion = "1.7.0"
 )
 
 const (
 	// XcodeTestMacID ...
 	XcodeTestMacID = "xcode-test-mac"
 	// XcodeTestMacVersion ...
-	XcodeTestMacVersion = "1.3.0"
+	XcodeTestMacVersion = "1.4.0"
 )
 
 const (
