@@ -98,7 +98,7 @@ func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidateURL) ([]a
 
 		request, err := http.NewRequest(http.MethodPost, query.URL, bytes.NewReader(data))
 		if err != nil {
-			return fmt.Errorf("failed to create request")
+			return fmt.Errorf("failed to create request, error: %s", err)
 		}
 		request.Header.Set("Authorization", fmt.Sprintf("token %s", query.buildTriggerToken))
 		request.Header.Set("Content-Type", "application/json")
