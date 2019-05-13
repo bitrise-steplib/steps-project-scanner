@@ -101,7 +101,7 @@ func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidateURL) ([]a
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("failed to read respnse body, error: %s", err)
+			return fmt.Errorf("failed to read response body, error: %s", err)
 		}
 
 		if resp.StatusCode != http.StatusCreated {
@@ -109,7 +109,7 @@ func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidateURL) ([]a
 		}
 
 		decoded := map[string][]appIconCandidateURL{
-			"data": uploadURLs,
+			"data": nil,
 		}
 
 		if err = json.Unmarshal(body, &decoded); err != nil {
@@ -146,6 +146,10 @@ func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 		return fmt.Errorf("array lenght deos not match to file size reported to the API, "+
 			"actual: %d, expected: %d",
 			len(data), iconCandidate.FileSize)
+	}
+
+	if iconCandidate.UploadURL == "" {
+		return fmt.Errorf("targer URL is empty, %v+", iconCandidate)
 	}
 
 	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attemp uint) error {
@@ -197,7 +201,7 @@ func validateIcon(iconPath string) error {
 	if fileInfo, err := file.Stat(); err != nil {
 		return fmt.Errorf("failed to get icon file stats, error: %s", err)
 	} else if fileInfo.Size() > maxFileSize {
-		return fmt.Errorf("icon file too large")
+		return fmt.Errorf("icon file larger than 2 MB")
 	}
 
 	config, err := png.DecodeConfig(file)
