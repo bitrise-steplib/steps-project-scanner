@@ -54,6 +54,11 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 		}
 	}
 
+	if len(candidates) == 0 {
+		log.Warnf("No valid icons specified.")
+		return nil
+	}
+
 	candidateURLs, err := getUploadURL(query, candidates)
 	if err != nil {
 		return fmt.Errorf("failed to get candidate target URLs, error: %s", err)
@@ -70,6 +75,16 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 }
 
 func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidateURL) ([]appIconCandidateURL, error) {
+	if query.URL == "" {
+		return nil, fmt.Errorf("query URL is empty")
+	}
+	if query.buildTriggerToken == "" {
+		return nil, fmt.Errorf("no token specified for URL: %s", query.URL)
+	}
+	if len(appIcons) == 0 {
+		return nil, fmt.Errorf("no icons to submit")
+	}
+
 	data, err := json.Marshal(appIcons)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal json, error: %s", err)
@@ -149,7 +164,7 @@ func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 	}
 
 	if iconCandidate.UploadURL == "" {
-		return fmt.Errorf("targer URL is empty, %v+", iconCandidate)
+		return fmt.Errorf("target URL is empty, %v+", iconCandidate)
 	}
 
 	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attemp uint) error {
