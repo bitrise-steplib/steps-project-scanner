@@ -117,7 +117,10 @@ func Test_uploadIcons(t *testing.T) {
 		})
 		fileIDtoSize[fileID] = fileinfo.Size()
 
-		file.Close()
+		err = file.Close()
+		if err != nil {
+			t.Errorf("setup: failed to close file")
+		}
 	}
 
 	type args struct {
