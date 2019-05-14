@@ -27,8 +27,10 @@ type iconCandidateQuery struct {
 }
 
 func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
-	log.TInfof("Submitting app icons...")
+	log.TInfof("Validating app icons.")
+	icons = filterValidIcons(icons)
 
+	log.TInfof("Submitting app icons...")
 	nameToPath := map[string]string{}
 	for _, icon := range icons {
 		nameToPath[icon.Filename] = icon.Path
@@ -36,10 +38,6 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 
 	var candidates []appIconCandidateURL
 	for name, path := range nameToPath {
-		if err := validateIcon(path); err != nil {
-			log.TWarnf("Invalid icon file, error: %s", err)
-			continue
-		}
 		fileInfo, err := os.Stat(path)
 		if err != nil {
 			log.TWarnf("Failed to get file (%s) info, error: ", path, err)
@@ -59,7 +57,7 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 		return nil
 	}
 
-	candidateURLs, err := getUploadURL(query, candidates)
+	candidateURLs, err := getUploadURLs(query, candidates)
 	if err != nil {
 		return fmt.Errorf("failed to get candidate target URLs, error: %s", err)
 	}
@@ -74,7 +72,7 @@ func uploadIcons(icons []models.Icon, query iconCandidateQuery) error {
 	return nil
 }
 
-func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidateURL) ([]appIconCandidateURL, error) {
+func getUploadURLs(query iconCandidateQuery, appIcons []appIconCandidateURL) ([]appIconCandidateURL, error) {
 	if query.URL == "" {
 		return nil, fmt.Errorf("query URL is empty")
 	}
@@ -123,14 +121,15 @@ func getUploadURL(query iconCandidateQuery, appIcons []appIconCandidateURL) ([]a
 			return fmt.Errorf("invalid status code: %d, headers: %s, body: %s", resp.StatusCode, resp.Header, body)
 		}
 
-		decoded := map[string][]appIconCandidateURL{
-			"data": nil,
-		}
-
+		var decoded map[string][]appIconCandidateURL
 		if err = json.Unmarshal(body, &decoded); err != nil {
 			return fmt.Errorf("failed to unmarshal resoponse body, error: %s", err)
 		}
-		uploadURLs = decoded["data"]
+		URLs, found := decoded["data"]
+		if !found {
+			return fmt.Errorf("no data key found in response json")
+		}
+		uploadURLs = URLs
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("failed to upload, error: %s", err)
@@ -203,6 +202,18 @@ func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 		return fmt.Errorf("failed to upload, error: %s", err)
 	}
 	return nil
+}
+
+func filterValidIcons(icons []models.Icon) []models.Icon {
+	var validIcons []models.Icon
+	for _, icon := range icons {
+		if err := validateIcon(icon.Path); err != nil {
+			log.TWarnf("Invalid icon file (%v+), error: %s", icon, err)
+			continue
+		}
+		validIcons = append(validIcons, icon)
+	}
+	return validIcons
 }
 
 func validateIcon(iconPath string) error {

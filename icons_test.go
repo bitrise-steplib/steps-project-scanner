@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/bitrise-io/bitrise-init/models"
@@ -69,6 +70,7 @@ func Test_uploadIcons(t *testing.T) {
 
 		var responseCandidates []appIconCandidateURL
 		for _, candidate := range candidates {
+			fileIDtoSize[candidate.FileName] = candidate.FileSize
 			responseCandidates = append(responseCandidates, appIconCandidateURL{
 				FileName:  candidate.FileName,
 				FileSize:  candidate.FileSize,
@@ -105,17 +107,11 @@ func Test_uploadIcons(t *testing.T) {
 			t.Errorf("setup: failed to write file, error: %s", err)
 		}
 
-		fileinfo, err := file.Stat()
-		if err != nil {
-			t.Errorf("setup: failed to get file stat, error: %s", err)
-		}
-
-		fileID := string(rand.Int()) + ".png"
+		fileID := strconv.Itoa(rand.Int()) + ".png"
 		iconCandidates = append(iconCandidates, models.Icon{
 			Filename: fileID,
 			Path:     pathAbs,
 		})
-		fileIDtoSize[fileID] = fileinfo.Size()
 
 		err = file.Close()
 		if err != nil {
