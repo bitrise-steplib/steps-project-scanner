@@ -21,14 +21,13 @@ type_tags:
 is_requires_admin_user: false
 is_always_run: false
 is_skippable: false
+toolkit:
+  go:
+    package_name: github.com/bitrise-io/steps-project-scanner
 inputs:
   - scan_dir: $BITRISE_SOURCE_DIR
     opts:
       title: "Directory to scan."
-      is_required: true
-  - output_dir: $BITRISE_SOURCE_DIR/scan_result
-    opts:
-      title: "Directory to save scan results."
       is_required: true
   - scan_result_submit_url: "$BITRISE_SCAN_RESULT_POST_URL"
     opts:
@@ -45,3 +44,8 @@ inputs:
          this API Token will be used for sending the Scan Results.
       is_dont_change_value: true
       is_sensitive: true
+  - icon_candidates_url: "$BITRISE_AVATAR_CANDIDATES_POST_URL"
+    opts:
+      title: "URL to get app icon candidates upload URLs"
+      description: |
+        If provided, the app icons will be uploaded.
