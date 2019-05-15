@@ -7,11 +7,6 @@
   branch = "master"
   name = "github.com/bitrise-io/bitrise-init"
 
-# Need the previous released version, as bigger bitrise format version is not supported by website
-[[override]]
-  name = "github.com/bitrise-io/bitrise"
-  version = "1.28.0"
-
 [prune]
   go-tests = true
   unused-packages = true
