@@ -26,7 +26,7 @@ type config struct {
 	ResultSubmitAPIToken stepconf.Secret `env:"scan_result_submit_api_token"`
 	IconCandidatesURL    string          `env:"icon_candidates_url"`
 	// Debug
-	DebugLog bool `env:"verbose_log"`
+	DebugLog bool `env:"verbose_log,opt[false,true]"`
 }
 
 func failf(format string, args ...interface{}) {
