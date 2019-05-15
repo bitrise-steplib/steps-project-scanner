@@ -9,6 +9,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/utility"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
+	"github.com/bitrise-io/xcode-project/xcscheme"
 )
 
 // lookupIconBySchemeName returns possible ios app icons for a scheme.
@@ -20,10 +21,20 @@ func lookupIconBySchemeName(projectPath string, schemeName string, basepath stri
 
 	scheme, found := project.Scheme(schemeName)
 	if !found {
-		return nil, fmt.Errorf("scheme (%s) not found in project", schemeName)
+		return nil, fmt.Errorf("failed to find scheme (%s) in project (%s)", schemeName, project.Path)
 	}
 
-	mainTarget, err := mainTargetOfScheme(project, scheme.Name)
+	blueprintID := getBlueprintID(scheme)
+	if blueprintID == "" {
+		log.TDebugf("scheme (%s) does not contain app buildable reference in project (%s)", scheme.Name, project.Path)
+		return nil, nil
+	}
+
+	// Search for the main target
+	mainTarget, found := targetByBlueprintID(project.Proj.Targets, blueprintID)
+	if !found {
+		return nil, fmt.Errorf("no target found for blueprint ID (%s) project (%s)", blueprintID, project.Path)
+	}
 
 	return lookupIconByTarget(projectPath, mainTarget, basepath)
 }
@@ -32,7 +43,7 @@ func lookupIconBySchemeName(projectPath string, schemeName string, basepath stri
 func lookupIconByTargetName(projectPath string, targetName string, basepath string) (models.Icons, error) {
 	target, err := nameToTarget(projectPath, targetName)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return lookupIconByTarget(projectPath, target, basepath)
@@ -44,10 +55,8 @@ func nameToTarget(projectPath string, targetName string) (xcodeproj.Target, erro
 		return xcodeproj.Target{}, fmt.Errorf("failed to open project file: %s, error: %s", projectPath, err)
 	}
 
-	target, found, err := targetByName(project, targetName)
-	if err != nil {
-		return xcodeproj.Target{}, err
-	} else if !found {
+	target, found := targetByName(project, targetName)
+	if !found {
 		return xcodeproj.Target{}, fmt.Errorf("not found target: %s, in project: %s", targetName, projectPath)
 	}
 	return target, nil
@@ -55,7 +64,11 @@ func nameToTarget(projectPath string, targetName string) (xcodeproj.Target, erro
 
 func lookupIconByTarget(projectPath string, target xcodeproj.Target, basepath string) (models.Icons, error) {
 	targetToAppIconSetPaths, err := xcodeproj.AppIconSetPaths(projectPath)
+	if err != nil {
+		return nil, err
+	}
 	appIconSetPaths, ok := targetToAppIconSetPaths[target.ID]
+	log.TDebugf("Appiconsets for target (%s): %s", target.Name, appIconSetPaths)
 	if !ok {
 		return nil, nil
 	}
@@ -66,12 +79,12 @@ func lookupIconByTarget(projectPath string, target xcodeproj.Target, basepath st
 		if err != nil {
 			return nil, fmt.Errorf("could not get icon, error: %s", err)
 		} else if !found {
+			log.TDebugf("No icon found at %s", appIconSetPath)
 			return nil, nil
 		}
-		log.Debugf("App icons: %s", icon)
+		log.TDebugf("App icons: %+v", icon)
 
 		iconPath := filepath.Join(appIconSetPath, icon.Filename)
-
 		if _, err := os.Stat(iconPath); err != nil && os.IsNotExist(err) {
 			return nil, fmt.Errorf("icon file does not exist: %s, error: %err", iconPath, err)
 		}
@@ -85,37 +98,32 @@ func lookupIconByTarget(projectPath string, target xcodeproj.Target, basepath st
 	return icons, nil
 }
 
-func mainTargetOfScheme(proj xcodeproj.XcodeProj, scheme string) (xcodeproj.Target, error) {
-	projTargets := proj.Proj.Targets
-	sch, ok := proj.Scheme(scheme)
-	if !ok {
-		return xcodeproj.Target{}, fmt.Errorf("Failed to find scheme (%s) in project", scheme)
-	}
-
-	var blueIdent string
-	for _, entry := range sch.BuildAction.BuildActionEntries {
+func getBlueprintID(scheme xcscheme.Scheme) string {
+	var blueprintID string
+	for _, entry := range scheme.BuildAction.BuildActionEntries {
 		if entry.BuildableReference.IsAppReference() {
-			blueIdent = entry.BuildableReference.BlueprintIdentifier
+			blueprintID = entry.BuildableReference.BlueprintIdentifier
 			break
 		}
 	}
-
-	// Search for the main target
-	for _, t := range projTargets {
-		if t.ID == blueIdent {
-			return t, nil
-
-		}
-	}
-	return xcodeproj.Target{}, fmt.Errorf("failed to find the project's main target for scheme (%s)", scheme)
+	return blueprintID
 }
 
-func targetByName(proj xcodeproj.XcodeProj, target string) (xcodeproj.Target, bool, error) {
+func targetByBlueprintID(targets []xcodeproj.Target, blueprintID string) (xcodeproj.Target, bool) {
+	for _, target := range targets {
+		if target.ID == blueprintID {
+			return target, true
+		}
+	}
+	return xcodeproj.Target{}, false
+}
+
+func targetByName(proj xcodeproj.XcodeProj, target string) (xcodeproj.Target, bool) {
 	projTargets := proj.Proj.Targets
 	for _, t := range projTargets {
 		if t.Name == target {
-			return t, true, nil
+			return t, true
 		}
 	}
-	return xcodeproj.Target{}, false, nil
+	return xcodeproj.Target{}, false
 }
