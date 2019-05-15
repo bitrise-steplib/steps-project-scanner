@@ -25,6 +25,8 @@ type config struct {
 	ResultSubmitURL      string          `env:"scan_result_submit_url"`
 	ResultSubmitAPIToken stepconf.Secret `env:"scan_result_submit_api_token"`
 	IconCandidatesURL    string          `env:"icon_candidates_url"`
+	// Debug
+	DebugLog bool `env:"verbose_log"`
 }
 
 func failf(format string, args ...interface{}) {
@@ -90,6 +92,8 @@ func main() {
 		failf("Invalid configuration: %s", err)
 	}
 	stepconf.Print(cfg)
+
+	log.SetEnableDebugLog(cfg.DebugLog)
 
 	if !(runtime.GOOS == "darwin" || runtime.GOOS == "linux") {
 		failf("Unsupported OS: %s", runtime.GOOS)

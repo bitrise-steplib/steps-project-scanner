@@ -49,3 +49,11 @@ inputs:
       title: "URL to get app icon candidates upload URLs"
       description: |
         If provided, the app icons will be uploaded.
+  - verbose_log: "true"
+    opts:
+      title: "Verbose log option"
+      description: |
+        You can enable the verbose log for easier debugging.
+      value_options:
+        - "true"
+        - "false"
