@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c79c4b55db10e4fa1e3aa355c6be56a5bd0a3947e920758fe14b7f8f0b7b93d1"
+  digest = "1:f1965b8cda6ed9d551b3bd5bf22e28bf0d0672cc63832d9e8d314ef97050b7a0"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "models",
@@ -34,14 +34,13 @@
     "scanners/ios",
     "scanners/macos",
     "scanners/reactnative",
-    "scanners/reactnative-expo",
     "scanners/xamarin",
     "steps",
     "toolscanner",
     "utility",
   ]
   pruneopts = "UT"
-  revision = "154640ae6f12ad9b58a313d76c63cebac9b9fe01"
+  revision = "1e39bdac80b8db8e4fcf0bac16f27369df08fc15"
 
 [[projects]]
   branch = "master"

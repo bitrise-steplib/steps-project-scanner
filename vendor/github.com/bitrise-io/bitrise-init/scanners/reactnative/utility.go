@@ -4,7 +4,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/utility"
 )
 
-// CollectPackageJSONFiles - Collects package.json files, with react-native dependency
+// CollectPackageJSONFiles collects package.json files, with react-native dependency.
 func CollectPackageJSONFiles(searchDir string) ([]string, error) {
 	fileList, err := utility.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
@@ -34,23 +34,4 @@ func CollectPackageJSONFiles(searchDir string) ([]string, error) {
 	}
 
 	return relevantPackageFileList, nil
-}
-
-func configName(hasAndroidProject, hasIosProject, hasNPMTest bool) string {
-	name := "react-native"
-	if hasAndroidProject {
-		name += "-android"
-	}
-	if hasIosProject {
-		name += "-ios"
-	}
-	if hasNPMTest {
-		name += "-test"
-	}
-	name += "-config"
-	return name
-}
-
-func defaultConfigName() string {
-	return "default-react-native-config"
 }
