@@ -1,9 +1,8 @@
-package expo
+package reactnative
 
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,7 +12,6 @@ import (
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/scanners/android"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
-	"github.com/bitrise-io/bitrise-init/scanners/reactnative"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"github.com/bitrise-io/bitrise-init/utility"
 	envmanModels "github.com/bitrise-io/envman/models"
@@ -21,163 +19,21 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/xcode-project/serialized"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 const (
-	configName        = "react-native-expo-config"
-	defaultConfigName = "default-" + configName
+	expoConfigName                   = "react-native-expo-config"
+	expoDefaultConfigName            = "default-" + expoConfigName
+	expoWithExpoKitDefaultConfigName = "default-react-native-expo-expo-kit-config"
 )
 
-const deployWorkflowDescription = `## Configure Android part of the deploy workflow
-
-To generate a signed APK:
-
-1. Open the **Workflow** tab of your project on Bitrise.io
-1. Add **Sign APK step right after Android Build step**
-1. Click on **Code Signing** tab
-1. Find the **ANDROID KEYSTORE FILE** section
-1. Click or drop your file on the upload file field
-1. Fill the displayed 3 input fields:
-1. **Keystore password**
-1. **Keystore alias**
-1. **Private key password**
-1. Click on **[Save metadata]** button
-
-That's it! From now on, **Sign APK** step will receive your uploaded files.
-
-## Configure iOS part of the deploy workflow
-
-To generate IPA:
-
-1. Open the **Workflow** tab of your project on Bitrise.io
-1. Click on **Code Signing** tab
-1. Find the **PROVISIONING PROFILE** section
-1. Click or drop your file on the upload file field
-1. Find the **CODE SIGNING IDENTITY** section
-1. Click or drop your file on the upload file field
-1. Click on **Workflows** tab
-1. Select deploy workflow
-1. Select **Xcode Archive & Export for iOS** step
-1. Open **Force Build Settings** input group
-1. Specify codesign settings
-Set **Force code signing with Development Team**, **Force code signing with Code Signing Identity**  
-and **Force code signing with Provisioning Profile** inputs regarding to the uploaded codesigning files
-1. Specify manual codesign style
-If the codesigning files, are generated manually on the Apple Developer Portal,  
-you need to explicitly specify to use manual coedsign settings  
-(as ejected rn projects have xcode managed codesigning turned on).  
-To do so, add 'CODE_SIGN_STYLE="Manual"' to 'Additional options for xcodebuild call' input
-
-## To run this workflow
-
-If you want to run this workflow manually:
-
-1. Open the app's build list page
-2. Click on **[Start/Schedule a Build]** button
-3. Select **deploy** in **Workflow** dropdown input
-4. Click **[Start Build]** button
-
-Or if you need this workflow to be started by a GIT event:
-
-1. Click on **Triggers** tab
-2. Setup your desired event (push/tag/pull) and select **deploy** workflow
-3. Click on **[Done]** and then **[Save]** buttons
-
-The next change in your repository that matches any of your trigger map event will start **deploy** workflow.
-`
-
-// Name ...
-const Name = "react-native-expo"
-
-// Scanner ...
-type Scanner struct {
-	searchDir      string
-	packageJSONPth string
-	usesExpoKit    bool
+func appJSONError(appJSONPth, reason, explanation string) error {
+	return fmt.Errorf("app.json file (%s) %s\n%s", appJSONPth, reason, explanation)
 }
 
-// NewScanner ...
-func NewScanner() *Scanner {
-	return &Scanner{}
-}
-
-// Name ...
-func (Scanner) Name() string {
-	return Name
-}
-
-// DetectPlatform ...
-func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
-	scanner.searchDir = searchDir
-
-	log.TInfof("Collect package.json files")
-
-	packageJSONPths, err := reactnative.CollectPackageJSONFiles(searchDir)
-	if err != nil {
-		return false, err
-	}
-
-	if len(packageJSONPths) == 0 {
-		return false, nil
-	}
-
-	log.TPrintf("%d package.json file detected", len(packageJSONPths))
-	for _, pth := range packageJSONPths {
-		log.TPrintf("- %s", pth)
-	}
-	log.TPrintf("")
-
-	log.TInfof("Filter package.json files with expo dependency")
-
-	relevantPackageJSONPths := []string{}
-	for _, packageJSONPth := range packageJSONPths {
-		packages, err := utility.ParsePackagesJSON(packageJSONPth)
-		if err != nil {
-			log.Warnf("Failed to parse package json file: %s, skipping...", packageJSONPth)
-			continue
-		}
-
-		_, found := packages.Dependencies["expo"]
-		if !found {
-			continue
-		}
-
-		// app.json file is a required part of react native projects and it exists next to the root package.json file
-		appJSONPth := filepath.Join(filepath.Dir(packageJSONPth), "app.json")
-		if exist, err := pathutil.IsPathExists(appJSONPth); err != nil {
-			log.Warnf("Failed to check if app.json file exist at: %s, skipping package json file: %s, error: %s", appJSONPth, packageJSONPth, err)
-			continue
-		} else if !exist {
-			log.Warnf("No app.json file exist at: %s, skipping package json file: %s", appJSONPth, packageJSONPth)
-			continue
-		}
-
-		relevantPackageJSONPths = append(relevantPackageJSONPths, packageJSONPth)
-	}
-
-	log.TPrintf("%d package.json file detected with expo dependency", len(relevantPackageJSONPths))
-	for _, pth := range relevantPackageJSONPths {
-		log.TPrintf("- %s", pth)
-	}
-	log.TPrintf("")
-
-	if len(relevantPackageJSONPths) == 0 {
-		return false, nil
-	} else if len(relevantPackageJSONPths) > 1 {
-		log.TWarnf("Multiple package.json file found, using: %s\n", relevantPackageJSONPths[0])
-	}
-
-	scanner.packageJSONPth = relevantPackageJSONPths[0]
-	return true, nil
-}
-
-func appJSONIssue(appJSONPth, reason, explanation string) string {
-	return fmt.Sprintf("app.json file (%s) %s\n%s", appJSONPth, reason, explanation)
-}
-
-// Options ...
-func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
+// expoOptions implements ScannerInterface.Options function for Expo based React Native projects.
+func (scanner *Scanner) expoOptions() (models.OptionNode, models.Warnings, error) {
 	warnings := models.Warnings{}
 
 	// we need to know if the project uses the Expo Kit,
@@ -186,7 +42,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 	fileList, err := utility.ListPathInDirSortedByComponents(scanner.searchDir, true)
 	if err != nil {
-		return models.OptionNode{}, warnings, nil, err
+		return models.OptionNode{}, warnings, err
 	}
 
 	filters := []utility.FilterFunc{
@@ -195,7 +51,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	}
 	sourceFiles, err := utility.FilterPaths(fileList, filters...)
 	if err != nil {
-		return models.OptionNode{}, warnings, nil, err
+		return models.OptionNode{}, warnings, err
 	}
 
 	re := regexp.MustCompile(`import .* from 'expo'`)
@@ -204,7 +60,7 @@ SourceFileLoop:
 	for _, sourceFile := range sourceFiles {
 		f, err := os.Open(sourceFile)
 		if err != nil {
-			return models.OptionNode{}, warnings, nil, err
+			return models.OptionNode{}, warnings, err
 		}
 		defer func() {
 			if cerr := f.Close(); cerr != nil {
@@ -220,7 +76,7 @@ SourceFileLoop:
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			return models.OptionNode{}, warnings, nil, err
+			return models.OptionNode{}, warnings, err
 		}
 	}
 
@@ -235,11 +91,11 @@ SourceFileLoop:
 	appJSONPth := filepath.Join(rootDir, "app.json")
 	appJSON, err := fileutil.ReadStringFromFile(appJSONPth)
 	if err != nil {
-		return models.OptionNode{}, warnings, nil, err
+		return models.OptionNode{}, warnings, err
 	}
 	var app serialized.Object
 	if err := json.Unmarshal([]byte(appJSON), &app); err != nil {
-		return models.OptionNode{}, warnings, nil, err
+		return models.OptionNode{}, warnings, err
 	}
 
 	if usesExpoKit {
@@ -253,29 +109,29 @@ entries.`
 
 		expoObj, err := app.Object("expo")
 		if err != nil {
-			return models.OptionNode{}, warnings, nil, errors.New(appJSONIssue(appJSONPth, "missing expo entry", errorMessage))
+			return models.OptionNode{}, warnings, appJSONError(appJSONPth, "missing expo entry", errorMessage)
 		}
 		projectName, err = expoObj.String("name")
 		if err != nil || projectName == "" {
-			return models.OptionNode{}, warnings, nil, errors.New(appJSONIssue(appJSONPth, "missing or empty expo/name entry", errorMessage))
+			return models.OptionNode{}, warnings, appJSONError(appJSONPth, "missing or empty expo/name entry", errorMessage)
 		}
 
 		iosObj, err := expoObj.Object("ios")
 		if err != nil {
-			return models.OptionNode{}, warnings, nil, errors.New(appJSONIssue(appJSONPth, "missing expo/ios entry", errorMessage))
+			return models.OptionNode{}, warnings, appJSONError(appJSONPth, "missing expo/ios entry", errorMessage)
 		}
 		bundleID, err := iosObj.String("bundleIdentifier")
 		if err != nil || bundleID == "" {
-			return models.OptionNode{}, warnings, nil, errors.New(appJSONIssue(appJSONPth, "missing or empty expo/ios/bundleIdentifier entry", errorMessage))
+			return models.OptionNode{}, warnings, appJSONError(appJSONPth, "missing or empty expo/ios/bundleIdentifier entry", errorMessage)
 		}
 
 		androidObj, err := expoObj.Object("android")
 		if err != nil {
-			return models.OptionNode{}, warnings, nil, errors.New(appJSONIssue(appJSONPth, "missing expo/android entry", errorMessage))
+			return models.OptionNode{}, warnings, appJSONError(appJSONPth, "missing expo/android entry", errorMessage)
 		}
 		packageName, err := androidObj.String("package")
 		if err != nil || packageName == "" {
-			return models.OptionNode{}, warnings, nil, errors.New(appJSONIssue(appJSONPth, "missing or empty expo/android/package entry", errorMessage))
+			return models.OptionNode{}, warnings, appJSONError(appJSONPth, "missing or empty expo/android/package entry", errorMessage)
 		}
 	} else {
 		// if the project does not use Expo Kit app.json needs to contain name and displayName entries
@@ -287,11 +143,11 @@ entries.`
 
 		projectName, err = app.String("name")
 		if err != nil || projectName == "" {
-			return models.OptionNode{}, warnings, nil, errors.New(appJSONIssue(appJSONPth, "missing or empty name entry", errorMessage))
+			return models.OptionNode{}, warnings, appJSONError(appJSONPth, "missing or empty name entry", errorMessage)
 		}
 		displayName, err := app.String("displayName")
 		if err != nil || displayName == "" {
-			return models.OptionNode{}, warnings, nil, errors.New(appJSONIssue(appJSONPth, "missing or empty displayName entry", errorMessage))
+			return models.OptionNode{}, warnings, appJSONError(appJSONPth, "missing or empty displayName entry", errorMessage)
 		}
 	}
 
@@ -318,7 +174,7 @@ entries.`
 	packageJSONDir := filepath.Dir(scanner.packageJSONPth)
 	relPackageJSONDir, err := utility.RelPath(scanner.searchDir, packageJSONDir)
 	if err != nil {
-		return models.OptionNode{}, warnings, nil, fmt.Errorf("Failed to get relative package.json dir path, error: %s", err)
+		return models.OptionNode{}, warnings, fmt.Errorf("Failed to get relative package.json dir path, error: %s", err)
 	}
 	if relPackageJSONDir == "." {
 		// package.json placed in the search dir, no need to change-dir in the workflows
@@ -358,18 +214,18 @@ entries.`
 		passwordOption := models.NewOption("Expo password", "EXPO_PASSWORD")
 		userNameOption.AddOption("_", passwordOption)
 
-		configOption := models.NewConfigOption(configName, nil)
+		configOption := models.NewConfigOption(expoConfigName, nil)
 		passwordOption.AddConfig("_", configOption)
 	} else {
-		configOption := models.NewConfigOption(configName, nil)
+		configOption := models.NewConfigOption(expoConfigName, nil)
 		buildVariantOption.AddConfig("Release", configOption)
 	}
 
-	return *projectPathOption, warnings, nil, nil
+	return *projectPathOption, warnings, nil
 }
 
-// Configs ...
-func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
+// expoConfigs implements ScannerInterface.Configs function for Expo based React Native projects.
+func (scanner *Scanner) expoConfigs() (models.BitriseConfigMap, error) {
 	configMap := models.BitriseConfigMap{}
 
 	// determine workdir
@@ -386,7 +242,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 	workdirEnvList := []envmanModels.EnvironmentItemModel{}
 	if relPackageJSONDir != "" {
-		workdirEnvList = append(workdirEnvList, envmanModels.EnvironmentItemModel{reactnative.WorkDirInputKey: relPackageJSONDir})
+		workdirEnvList = append(workdirEnvList, envmanModels.EnvironmentItemModel{workDirInputKey: relPackageJSONDir})
 	}
 
 	// determine dependency manager step
@@ -417,7 +273,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 			hasTest = true
 		}
 	}
-	log.TPrintf("test script found in package.json: %v", hasTest)
+	log.TPrintf("Test script found in package.json: %v", hasTest)
 
 	if !hasTest {
 		// if the project has no test script defined,
@@ -484,7 +340,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 		configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, deployWorkflowDescription)
 
-		bitriseDataModel, err := configBuilder.Generate(Name)
+		bitriseDataModel, err := configBuilder.Generate(scannerName)
 		if err != nil {
 			return models.BitriseConfigMap{}, err
 		}
@@ -494,7 +350,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 			return models.BitriseConfigMap{}, err
 		}
 
-		configMap[configName] = string(data)
+		configMap[expoConfigName] = string(data)
 
 		return configMap, nil
 	}
@@ -569,7 +425,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 
-	bitriseDataModel, err := configBuilder.Generate(Name)
+	bitriseDataModel, err := configBuilder.Generate(scannerName)
 	if err != nil {
 		return models.BitriseConfigMap{}, err
 	}
@@ -579,13 +435,13 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 		return models.BitriseConfigMap{}, err
 	}
 
-	configMap[configName] = string(data)
+	configMap[expoConfigName] = string(data)
 
 	return configMap, nil
 }
 
-// DefaultOptions ...
-func (Scanner) DefaultOptions() models.OptionNode {
+// expoDefaultOptions implements ScannerInterface.DefaultOptions function for Expo based React Native projects.
+func (Scanner) expoDefaultOptions() models.OptionNode {
 	expoKitOption := models.NewOption("Project uses Expo Kit (any js file imports expo dependency)?", "USES_EXPO_KIT")
 
 	// with Expo Kit
@@ -622,7 +478,7 @@ func (Scanner) DefaultOptions() models.OptionNode {
 		passwordOption := models.NewOption("Expo password", "EXPO_PASSWORD")
 		userNameOption.AddOption("_", passwordOption)
 
-		configOption := models.NewConfigOption("react-native-expo-expo-kit-default-config", nil)
+		configOption := models.NewConfigOption(expoWithExpoKitDefaultConfigName, nil)
 		passwordOption.AddConfig("_", configOption)
 	}
 
@@ -653,29 +509,31 @@ func (Scanner) DefaultOptions() models.OptionNode {
 		buildVariantOption := models.NewOption(android.VariantInputTitle, android.VariantInputEnvKey)
 		moduleOption.AddOption("app", buildVariantOption)
 
-		configOption := models.NewConfigOption("react-native-expo-plain-default-config", nil)
+		configOption := models.NewConfigOption(expoDefaultConfigName, nil)
 		buildVariantOption.AddConfig("Release", configOption)
 	}
 
 	return *expoKitOption
 }
 
-// DefaultConfigs ...
-func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+// expoDefaultConfigs implements ScannerInterface.DefaultConfigs function for Expo based React Native projects.
+func (Scanner) expoDefaultConfigs() (models.BitriseConfigMap, error) {
 	configMap := models.BitriseConfigMap{}
 
 	// with Expo Kit
 	{
 		// primary workflow
 		configBuilder := models.NewDefaultConfigBuilder()
+
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{reactnative.WorkDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "install"}))
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{reactnative.WorkDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "test"}))
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{workDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "install"}))
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{workDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "test"}))
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 		// deploy workflow
+		configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(false)...)
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{reactnative.WorkDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "install"}))
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{workDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "install"}))
 
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.ExpoDetachStepListItem(
 			envmanModels.EnvironmentItemModel{"project_path": "$WORKDIR"},
@@ -706,9 +564,8 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		))
 
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
-		configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 
-		bitriseDataModel, err := configBuilder.Generate(Name)
+		bitriseDataModel, err := configBuilder.Generate(scannerName)
 		if err != nil {
 			return models.BitriseConfigMap{}, err
 		}
@@ -718,20 +575,23 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			return models.BitriseConfigMap{}, err
 		}
 
-		configMap["default-react-native-expo-expo-kit-config"] = string(data)
+		configMap[expoWithExpoKitDefaultConfigName] = string(data)
 	}
 
+	// without Expo Kit
 	{
 		// primary workflow
 		configBuilder := models.NewDefaultConfigBuilder()
+
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{reactnative.WorkDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "install"}))
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{reactnative.WorkDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "test"}))
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{workDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "install"}))
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{workDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "test"}))
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
 		// deploy workflow
+		configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(false)...)
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{reactnative.WorkDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "install"}))
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem(envmanModels.EnvironmentItemModel{workDirInputKey: "$WORKDIR"}, envmanModels.EnvironmentItemModel{"command": "install"}))
 
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.ExpoDetachStepListItem(envmanModels.EnvironmentItemModel{"project_path": "$WORKDIR"}))
 
@@ -756,9 +616,8 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		))
 
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
-		configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 
-		bitriseDataModel, err := configBuilder.Generate(Name)
+		bitriseDataModel, err := configBuilder.Generate(scannerName)
 		if err != nil {
 			return models.BitriseConfigMap{}, err
 		}
@@ -768,18 +627,8 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			return models.BitriseConfigMap{}, err
 		}
 
-		configMap["default-react-native-expo-plain-config"] = string(data)
+		configMap[expoDefaultConfigName] = string(data)
 	}
 
 	return configMap, nil
-}
-
-// ExcludedScannerNames ...
-func (Scanner) ExcludedScannerNames() []string {
-	return []string{
-		reactnative.Name,
-		string(ios.XcodeProjectTypeIOS),
-		string(ios.XcodeProjectTypeMacOS),
-		android.ScannerName,
-	}
 }

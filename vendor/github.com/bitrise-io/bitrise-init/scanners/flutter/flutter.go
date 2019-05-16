@@ -86,6 +86,7 @@ func findProjectLocations(searchDir string) ([]string, error) {
 
 	filters := []utility.FilterFunc{
 		utility.BaseFilter("pubspec.yaml", true),
+		utility.ComponentFilter("node_modules", false),
 	}
 
 	paths, err := utility.FilterPaths(fileList, filters...)
