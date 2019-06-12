@@ -8,6 +8,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
+	"unsafe"
+
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 //=======================================
@@ -56,6 +60,46 @@ func AskForStringWithDefault(messageToPrint, defaultValue string) (string, error
 // AskForString ...
 func AskForString(messageToPrint string) (string, error) {
 	return AskForStringFromReader(messageToPrint, os.Stdin)
+}
+
+// WriteToTerminalInputBuffer prints a text to the terminal console which can be used as an input for a question or can be cleared out
+func WriteToTerminalInputBuffer(text string) error {
+	if terminal.IsTerminal(int(os.Stdin.Fd())) {
+		for _, c := range []byte(text) {
+			if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, os.Stdin.Fd(), syscall.TIOCSTI, uintptr(unsafe.Pointer(&c))); errno != 0 {
+				return fmt.Errorf("failed to write to stdin, err no: %d", errno)
+			}
+		}
+	}
+	return nil
+}
+
+func askForOptionalInput(defaultValue string, optional bool, reader io.Reader, writer io.Writer) (string, error) {
+	r := bufio.NewReader(reader)
+
+	if defaultValue != "" {
+		if err := WriteToTerminalInputBuffer(defaultValue); err != nil {
+			return "", err
+		}
+	}
+
+	input, err := r.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+
+	input = strings.TrimSpace(input)
+
+	if !optional && input == "" {
+		return "", fmt.Errorf("value must be specified")
+	}
+
+	return input, nil
+}
+
+// AskForOptionalInput will wait for input, and will print clearable default text in case of interactive shell. Accepts empty input in case if optional.
+func AskForOptionalInput(defaultValue string, optional bool) (string, error) {
+	return askForOptionalInput(defaultValue, optional, os.Stdin, os.Stdout)
 }
 
 //=======================================
