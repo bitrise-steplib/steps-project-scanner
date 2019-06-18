@@ -247,11 +247,11 @@ func (Scanner) ExcludedScannerNames() []string {
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
-	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputEnvKey)
+	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputEnvKey, models.TypeSelector)
 
 	for _, project := range scanner.projects {
 		if project.hasTest {
-			flutterProjectHasTestOption := models.NewOption(testsInputTitle, "")
+			flutterProjectHasTestOption := models.NewOption(testsInputTitle, "", models.TypeSelector)
 			flutterProjectLocationOption.AddOption(project.path, flutterProjectHasTestOption)
 
 			for _, v := range []string{"yes", "no"} {
@@ -262,15 +262,15 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 				if project.hasIosProject || project.hasAndroidProject {
 					if project.hasIosProject {
-						projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey)
+						projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey, models.TypeSelector)
 						flutterProjectHasTestOption.AddOption(v, projectPathOption)
 
 						for xcodeWorkspacePath, schemes := range project.xcodeProjectPaths {
-							schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey)
+							schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey, models.TypeSelector)
 							projectPathOption.AddOption(xcodeWorkspacePath, schemeOption)
 
 							for _, scheme := range schemes {
-								exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
+								exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey, models.TypeSelector)
 								schemeOption.AddOption(scheme, exportMethodOption)
 
 								for _, exportMethod := range ios.IosExportMethods {
@@ -293,15 +293,15 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 			if project.hasIosProject || project.hasAndroidProject {
 				if project.hasIosProject {
-					projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey)
+					projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey, models.TypeSelector)
 					flutterProjectLocationOption.AddOption(project.path, projectPathOption)
 
 					for xcodeWorkspacePath, schemes := range project.xcodeProjectPaths {
-						schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey)
+						schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey, models.TypeSelector)
 						projectPathOption.AddOption(xcodeWorkspacePath, schemeOption)
 
 						for _, scheme := range schemes {
-							exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
+							exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey, models.TypeSelector)
 							schemeOption.AddOption(scheme, exportMethodOption)
 
 							for _, exportMethod := range ios.IosExportMethods {
@@ -337,30 +337,30 @@ func getBuildablePlatform(hasAndroidProject, hasIosProject bool) string {
 
 // DefaultOptions ...
 func (Scanner) DefaultOptions() models.OptionNode {
-	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputEnvKey)
+	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputEnvKey, models.TypeUserInput)
 
-	flutterProjectHasTestOption := models.NewOption(testsInputTitle, "")
-	flutterProjectLocationOption.AddOption("_", flutterProjectHasTestOption)
+	flutterProjectHasTestOption := models.NewOption(testsInputTitle, "", models.TypeSelector)
+	flutterProjectLocationOption.AddOption("", flutterProjectHasTestOption)
 
 	for _, v := range []string{"yes", "no"} {
 		cfg := configName
 		if v == "yes" {
 			cfg += "-test"
 		}
-		flutterPlatformOption := models.NewOption(platformInputTitle, "")
+		flutterPlatformOption := models.NewOption(platformInputTitle, "", models.TypeSelector)
 		flutterProjectHasTestOption.AddOption(v, flutterPlatformOption)
 
 		for _, platform := range platforms {
 			if platform != "none" {
 				if platform != "android" {
-					projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey)
+					projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey, models.TypeUserInput)
 					flutterPlatformOption.AddOption(platform, projectPathOption)
 
-					schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey)
-					projectPathOption.AddOption("_", schemeOption)
+					schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey, models.TypeUserInput)
+					projectPathOption.AddOption("", schemeOption)
 
-					exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
-					schemeOption.AddOption("_", exportMethodOption)
+					exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey, models.TypeSelector)
+					schemeOption.AddOption("", exportMethodOption)
 
 					for _, exportMethod := range ios.IosExportMethods {
 						configOption := models.NewConfigOption(cfg+"-app-"+platform, nil)

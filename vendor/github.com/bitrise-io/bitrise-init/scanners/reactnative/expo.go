@@ -154,8 +154,8 @@ entries.`
 	log.TPrintf("Project name: %v", projectName)
 
 	// ios options
-	projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey)
-	schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey)
+	projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey, models.TypeSelector)
+	schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey, models.TypeSelector)
 
 	if usesExpoKit {
 		projectName = strings.ToLower(regexp.MustCompile(`(?i:[^a-z0-9_\-])`).ReplaceAllString(projectName, "-"))
@@ -164,11 +164,11 @@ entries.`
 		projectPathOption.AddOption(filepath.Join("./", "ios", projectName+".xcodeproj"), schemeOption)
 	}
 
-	developmentTeamOption := models.NewOption("iOS Development team", "BITRISE_IOS_DEVELOPMENT_TEAM")
+	developmentTeamOption := models.NewOption("iOS Development team", "BITRISE_IOS_DEVELOPMENT_TEAM", models.TypeUserInput)
 	schemeOption.AddOption(projectName, developmentTeamOption)
 
-	exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
-	developmentTeamOption.AddOption("_", exportMethodOption)
+	exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey, models.TypeSelector)
+	developmentTeamOption.AddOption("", exportMethodOption)
 
 	// android options
 	packageJSONDir := filepath.Dir(scanner.packageJSONPth)
@@ -183,39 +183,39 @@ entries.`
 
 	var moduleOption *models.OptionNode
 	if relPackageJSONDir == "" {
-		projectLocationOption := models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputEnvKey)
+		projectLocationOption := models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputEnvKey, models.TypeSelector)
 		for _, exportMethod := range ios.IosExportMethods {
 			exportMethodOption.AddOption(exportMethod, projectLocationOption)
 		}
 
-		moduleOption = models.NewOption(android.ModuleInputTitle, android.ModuleInputEnvKey)
+		moduleOption = models.NewOption(android.ModuleInputTitle, android.ModuleInputEnvKey, models.TypeUserInput)
 		projectLocationOption.AddOption("./android", moduleOption)
 	} else {
-		workDirOption := models.NewOption("Project root directory (the directory of the project app.json/package.json file)", "WORKDIR")
+		workDirOption := models.NewOption("Project root directory (the directory of the project app.json/package.json file)", "WORKDIR", models.TypeSelector)
 		for _, exportMethod := range ios.IosExportMethods {
 			exportMethodOption.AddOption(exportMethod, workDirOption)
 		}
 
-		projectLocationOption := models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputEnvKey)
+		projectLocationOption := models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputEnvKey, models.TypeSelector)
 		workDirOption.AddOption(relPackageJSONDir, projectLocationOption)
 
-		moduleOption = models.NewOption(android.ModuleInputTitle, android.ModuleInputEnvKey)
+		moduleOption = models.NewOption(android.ModuleInputTitle, android.ModuleInputEnvKey, models.TypeUserInput)
 		projectLocationOption.AddOption(filepath.Join(relPackageJSONDir, "android"), moduleOption)
 	}
 
-	buildVariantOption := models.NewOption(android.VariantInputTitle, android.VariantInputEnvKey)
+	buildVariantOption := models.NewOption(android.VariantInputTitle, android.VariantInputEnvKey, models.TypeOptionalUserInput)
 	moduleOption.AddOption("app", buildVariantOption)
 
 	// expo options
 	if scanner.usesExpoKit {
-		userNameOption := models.NewOption("Expo username", "EXPO_USERNAME")
+		userNameOption := models.NewOption("Expo username", "EXPO_USERNAME", models.TypeUserInput)
 		buildVariantOption.AddOption("Release", userNameOption)
 
-		passwordOption := models.NewOption("Expo password", "EXPO_PASSWORD")
-		userNameOption.AddOption("_", passwordOption)
+		passwordOption := models.NewOption("Expo password", "EXPO_PASSWORD", models.TypeUserInput)
+		userNameOption.AddOption("", passwordOption)
 
 		configOption := models.NewConfigOption(expoConfigName, nil)
-		passwordOption.AddConfig("_", configOption)
+		passwordOption.AddConfig("", configOption)
 	} else {
 		configOption := models.NewConfigOption(expoConfigName, nil)
 		buildVariantOption.AddConfig("Release", configOption)
@@ -442,71 +442,71 @@ func (scanner *Scanner) expoConfigs() (models.BitriseConfigMap, error) {
 
 // expoDefaultOptions implements ScannerInterface.DefaultOptions function for Expo based React Native projects.
 func (Scanner) expoDefaultOptions() models.OptionNode {
-	expoKitOption := models.NewOption("Project uses Expo Kit (any js file imports expo dependency)?", "USES_EXPO_KIT")
+	expoKitOption := models.NewOption("Project uses Expo Kit (any js file imports expo dependency)?", "USES_EXPO_KIT", models.TypeSelector)
 
 	// with Expo Kit
 	{
 		// ios options
-		workspacePathOption := models.NewOption("The iOS workspace path generated ny the 'expo eject' process", ios.ProjectPathInputEnvKey)
+		workspacePathOption := models.NewOption("The iOS workspace path generated ny the 'expo eject' process", ios.ProjectPathInputEnvKey, models.TypeUserInput)
 		expoKitOption.AddOption("yes", workspacePathOption)
 
-		schemeOption := models.NewOption("The iOS scheme name generated by the 'expo eject' process", ios.SchemeInputEnvKey)
-		workspacePathOption.AddOption("_", schemeOption)
+		schemeOption := models.NewOption("The iOS scheme name generated by the 'expo eject' process", ios.SchemeInputEnvKey, models.TypeUserInput)
+		workspacePathOption.AddOption("", schemeOption)
 
-		exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
-		schemeOption.AddOption("_", exportMethodOption)
+		exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey, models.TypeSelector)
+		schemeOption.AddOption("", exportMethodOption)
 
 		// android options
-		workDirOption := models.NewOption("Project root directory (the directory of the project app.json/package.json file)", "WORKDIR")
+		workDirOption := models.NewOption("Project root directory (the directory of the project app.json/package.json file)", "WORKDIR", models.TypeUserInput)
 		for _, exportMethod := range ios.IosExportMethods {
 			exportMethodOption.AddOption(exportMethod, workDirOption)
 		}
 
-		projectLocationOption := models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputEnvKey)
-		workDirOption.AddOption("_", projectLocationOption)
+		projectLocationOption := models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputEnvKey, models.TypeSelector)
+		workDirOption.AddOption("", projectLocationOption)
 
-		moduleOption := models.NewOption(android.ModuleInputTitle, android.ModuleInputEnvKey)
+		moduleOption := models.NewOption(android.ModuleInputTitle, android.ModuleInputEnvKey, models.TypeUserInput)
 		projectLocationOption.AddOption("./android", moduleOption)
 
-		buildVariantOption := models.NewOption(android.VariantInputTitle, android.VariantInputEnvKey)
+		buildVariantOption := models.NewOption(android.VariantInputTitle, android.VariantInputEnvKey, models.TypeOptionalUserInput)
 		moduleOption.AddOption("app", buildVariantOption)
 
 		// Expo CLI options
-		userNameOption := models.NewOption("Expo username", "EXPO_USERNAME")
+		userNameOption := models.NewOption("Expo username", "EXPO_USERNAME", models.TypeUserInput)
 		buildVariantOption.AddOption("Release", userNameOption)
 
-		passwordOption := models.NewOption("Expo password", "EXPO_PASSWORD")
-		userNameOption.AddOption("_", passwordOption)
+		passwordOption := models.NewOption("Expo password", "EXPO_PASSWORD", models.TypeUserInput)
+		userNameOption.AddOption("", passwordOption)
 
 		configOption := models.NewConfigOption(expoWithExpoKitDefaultConfigName, nil)
-		passwordOption.AddConfig("_", configOption)
+		passwordOption.AddConfig("", configOption)
 	}
 
 	// without Expo Kit
 	{
 		// ios options
-		projectPathOption := models.NewOption("The iOS project path generated ny the 'expo eject' process", ios.ProjectPathInputEnvKey)
+		projectPathOption := models.NewOption("The iOS project path generated ny the 'expo eject' process", ios.ProjectPathInputEnvKey, models.TypeUserInput)
 		expoKitOption.AddOption("no", projectPathOption)
 
-		schemeOption := models.NewOption("The iOS scheme name generated by the 'expo eject' process", ios.SchemeInputEnvKey)
-		projectPathOption.AddOption("_", schemeOption)
+		schemeOption := models.NewOption("The iOS scheme name generated by the 'expo eject' process", ios.SchemeInputEnvKey, models.TypeUserInput)
+		projectPathOption.AddOption("", schemeOption)
 
-		exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey)
-		schemeOption.AddOption("_", exportMethodOption)
+		exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey, models.TypeSelector)
+		schemeOption.AddOption("", exportMethodOption)
 
 		// android options
-		workDirOption := models.NewOption("Project root directory (the directory of the project app.json/package.json file)", "WORKDIR")
+		workDirOption := models.NewOption("Project root directory (the directory of the project app.json/package.json file)", "WORKDIR", models.TypeUserInput)
 		for _, exportMethod := range ios.IosExportMethods {
 			exportMethodOption.AddOption(exportMethod, workDirOption)
 		}
 
-		projectLocationOption := models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputEnvKey)
-		workDirOption.AddOption("_", projectLocationOption)
+		projectLocationOption := models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputEnvKey, models.TypeSelector)
+		workDirOption.AddOption("", projectLocationOption)
 
-		moduleOption := models.NewOption(android.ModuleInputTitle, android.ModuleInputEnvKey)
+		moduleOption := models.NewOption(android.ModuleInputTitle, android.ModuleInputEnvKey, models.TypeUserInput)
 		projectLocationOption.AddOption("./android", moduleOption)
 
-		buildVariantOption := models.NewOption(android.VariantInputTitle, android.VariantInputEnvKey)
+		buildVariantOption := models.NewOption(android.VariantInputTitle, android.VariantInputEnvKey, models.TypeOptionalUserInput)
 		moduleOption.AddOption("app", buildVariantOption)
 
 		configOption := models.NewConfigOption(expoDefaultConfigName, nil)

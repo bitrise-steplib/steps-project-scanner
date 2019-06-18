@@ -112,7 +112,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 	// Inspect Fastfiles
 
-	workDirOption := models.NewOption(workDirInputTitle, workDirInputEnvKey)
+	workDirOption := models.NewOption(workDirInputTitle, workDirInputEnvKey, models.TypeSelector)
 
 	for _, fastfile := range scanner.Fastfiles {
 		log.TInfof("Inspecting Fastfile: %s", fastfile)
@@ -137,7 +137,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 		isValidFastfileFound = true
 
-		laneOption := models.NewOption(laneInputTitle, laneInputEnvKey)
+		laneOption := models.NewOption(laneInputTitle, laneInputEnvKey, models.TypeSelector)
 		workDirOption.AddOption(workDir, laneOption)
 
 		for _, lane := range lanes {
@@ -162,13 +162,13 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 // DefaultOptions ...
 func (*Scanner) DefaultOptions() models.OptionNode {
-	workDirOption := models.NewOption(workDirInputTitle, workDirInputEnvKey)
+	workDirOption := models.NewOption(workDirInputTitle, workDirInputEnvKey, models.TypeUserInput)
 
-	laneOption := models.NewOption(laneInputTitle, laneInputEnvKey)
-	workDirOption.AddOption("_", laneOption)
+	laneOption := models.NewOption(laneInputTitle, laneInputEnvKey, models.TypeUserInput)
+	workDirOption.AddOption("", laneOption)
 
-	projectTypeOption := models.NewOption("Project type", "")
-	laneOption.AddOption("_", projectTypeOption)
+	projectTypeOption := models.NewOption("Project type", "", models.TypeSelector)
+	laneOption.AddOption("", projectTypeOption)
 
 	for _, p := range platforms {
 		configOption := models.NewConfigOption(fmt.Sprintf(defaultConfigNameFormat, p), nil)
