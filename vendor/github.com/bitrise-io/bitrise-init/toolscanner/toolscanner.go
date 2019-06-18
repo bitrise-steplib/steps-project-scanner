@@ -27,7 +27,7 @@ func AddProjectTypeToConfig(configName string, config bitriseModels.BitriseDataM
 
 // AddProjectTypeToOptions adds a project type question to automation tool scanners's option tree
 func AddProjectTypeToOptions(scannerOptionTree models.OptionNode, detectedProjectTypes []string) models.OptionNode {
-	optionsTreeWithProjectTypeRoot := models.NewOption(ProjectTypeUserTitle, ProjectTypeEnvKey)
+	optionsTreeWithProjectTypeRoot := models.NewOption(ProjectTypeUserTitle, ProjectTypeEnvKey, models.TypeSelector)
 	for _, projectType := range detectedProjectTypes {
 		optionsTreeWithProjectTypeRoot.AddOption(projectType,
 			appendProjectTypeToConfig(scannerOptionTree, projectType))

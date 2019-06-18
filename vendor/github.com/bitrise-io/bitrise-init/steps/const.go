@@ -18,7 +18,7 @@ const (
 	// AndroidUnitTestID ...
 	AndroidUnitTestID = "android-unit-test"
 	// AndroidUnitTestVersion ...
-	AndroidUnitTestVersion = "0.11.0"
+	AndroidUnitTestVersion = "0.11.1"
 )
 
 const (
@@ -67,7 +67,7 @@ const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.4.2"
+	DeployToBitriseIoVersion = "1.6.0"
 )
 
 const (
@@ -83,7 +83,7 @@ const (
 	// SignAPKID ...
 	SignAPKID = "sign-apk"
 	// SignAPKVersion ...
-	SignAPKVersion = "1.3.0"
+	SignAPKVersion = "1.3.1"
 )
 
 const (
@@ -111,7 +111,7 @@ const (
 	// CarthageID ...
 	CarthageID = "carthage"
 	// CarthageVersion ...
-	CarthageVersion = "3.2.0"
+	CarthageVersion = "3.2.1"
 )
 
 const (
@@ -132,7 +132,7 @@ const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "2.3.1"
+	XcodeTestVersion = "2.3.2"
 )
 
 const (

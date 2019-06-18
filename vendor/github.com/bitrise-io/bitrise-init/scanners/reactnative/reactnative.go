@@ -183,7 +183,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 // DefaultOptions implements ScannerInterface.DefaultOptions function.
 func (scanner *Scanner) DefaultOptions() models.OptionNode {
-	expoOption := models.NewOption("Project was created using Expo CLI?", "")
+	expoOption := models.NewOption("Project was created using Expo CLI?", "", models.TypeSelector)
 
 	expoDefaultOptions := scanner.expoDefaultOptions()
 	expoOption.AddOption("yes", &expoDefaultOptions)

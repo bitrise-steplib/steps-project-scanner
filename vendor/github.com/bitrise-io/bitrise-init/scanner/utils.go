@@ -3,6 +3,8 @@ package scanner
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	yaml "gopkg.in/yaml.v2"
 
@@ -12,36 +14,92 @@ import (
 	"github.com/bitrise-io/goinp/goinp"
 )
 
+func getDefaultValue(opt models.OptionNode) string {
+	if opt.Type == models.TypeOptionalSelector {
+		return ""
+	}
+
+	for key := range opt.ChildOptionMap {
+		return key
+	}
+	return ""
+}
+
+func getOptions(opts map[string]*models.OptionNode) (options []string) {
+	for key := range opts {
+		options = append(options, key)
+	}
+	return
+}
+
+func selectOption(options []string) (string, error) {
+	for i, option := range options {
+		fmt.Printf("[%d] : %s\n", i+1, option)
+	}
+	fmt.Printf("Type in the option's number, then hit Enter: ")
+
+	answer, err := goinp.AskForOptionalInput("", false)
+	if err != nil {
+		return "", err
+	}
+
+	optionNo, err := strconv.Atoi(strings.TrimSpace(answer))
+	if err != nil {
+		return "", fmt.Errorf("failed to parse option number, pick a number from 1-%d", len(options))
+	}
+
+	if optionNo-1 < 0 || optionNo-1 >= len(options) {
+		return "", fmt.Errorf("invalid option number, pick a number from 1-%d", len(options))
+	}
+
+	return options[optionNo-1], nil
+}
+
 func askForOptionValue(option models.OptionNode) (string, string, error) {
-	optionValues := option.GetValues()
+	const customValueOptionText = "<custom value>"
 
-	selectedValue := ""
-	if len(optionValues) == 1 {
-		if optionValues[0] == "_" {
-			// provide option value
-			question := fmt.Sprintf("Provide: %s", option.Title)
-			answer, err := goinp.AskForString(question)
-			if err != nil {
-				return "", "", err
-			}
+	// this options is a last element in a tree, contains only config name
+	if option.Config != "" {
+		return "", option.Config, nil
+	}
 
-			selectedValue = answer
-		} else {
-			// auto select the only one value
-			selectedValue = optionValues[0]
+	optional := option.Type == models.TypeOptionalUserInput || option.Type == models.TypeOptionalSelector
+
+	switch option.Type {
+	case models.TypeSelector, models.TypeOptionalSelector:
+		fmt.Println("Select \"" + option.Title + "\" from the list:")
+
+		options := getOptions(option.ChildOptionMap)
+		if optional {
+			options = append(options, customValueOptionText)
 		}
-	} else {
-		// select from values
-		question := fmt.Sprintf("Select: %s", option.Title)
-		answer, err := goinp.SelectFromStrings(question, optionValues)
+
+		if len(options) == 1 {
+			return option.EnvKey, options[0], nil
+		}
+
+		selected, err := selectOption(options)
 		if err != nil {
 			return "", "", err
 		}
 
-		selectedValue = answer
+		if option.Type == models.TypeSelector || selected != customValueOptionText {
+			return option.EnvKey, selected, nil
+		}
+
+		fallthrough
+	case models.TypeUserInput, models.TypeOptionalUserInput:
+		suffix := ": "
+		if optional {
+			suffix = " (optional): "
+		}
+		fmt.Print("Enter value for \"" + option.Title + "\"" + suffix)
+
+		answer, err := goinp.AskForOptionalInput(getDefaultValue(option), optional)
+		return option.EnvKey, strings.TrimSpace(answer), err
 	}
 
-	return option.EnvKey, selectedValue, nil
+	return "", "", fmt.Errorf("invalid input type")
 }
 
 // AskForOptions ...
@@ -76,11 +134,18 @@ func AskForOptions(options models.OptionNode) (string, []envmanModels.Environmen
 			}
 		} else {
 			// go to the next option, based on the selected value
-			childOptions, found := opt.ChildOptionMap[selectedValue]
+			childOption, found := opt.ChildOptionMap[selectedValue]
 			if !found {
-				return nil
+				if opt.Type != models.TypeOptionalSelector {
+					return nil
+				}
+				// if user select custom value from the optional list then we need to select any next option
+				for _, option := range opt.ChildOptionMap {
+					childOption = option
+					break
+				}
 			}
-			nestedOptions = childOptions
+			nestedOptions = childOption
 		}
 
 		return walkDepth(*nestedOptions)
@@ -113,8 +178,9 @@ func AskForConfig(scanResult models.ScanResultModel) (bitriseModels.BitriseDataM
 	} else if len(platforms) == 1 {
 		platform = platforms[0]
 	} else {
+		fmt.Println("Select platform:")
 		var err error
-		platform, err = goinp.SelectFromStrings("Select platform", platforms)
+		platform, err = selectOption(platforms)
 		if err != nil {
 			return bitriseModels.BitriseDataModel{}, err
 		}
