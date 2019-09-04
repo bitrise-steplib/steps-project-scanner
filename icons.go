@@ -148,35 +148,27 @@ func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 		}
 	}()
 
-	// If a byte array is passed to http.NewRequest, the Content-lenght header is set to its lenght.
-	// That does not seem apply to a stream (as it has no defined lenght).
-	// The Content-lenght header is signed by S3, so has to match to the filesize sent
-	// in the getUploadURL() function.
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		return fmt.Errorf("can not read file, error: %s", err)
-	}
-	if int64(len(data)) != iconCandidate.FileSize {
-		return fmt.Errorf("array lenght deos not match to file size reported to the API, "+
-			"actual: %d, expected: %d",
-			len(data), iconCandidate.FileSize)
-	}
-
 	if iconCandidate.UploadURL == "" {
 		return fmt.Errorf("target URL is empty, %v+", iconCandidate)
 	}
 
-	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attemp uint) error {
-		if attemp != 0 {
-			log.TWarnf("%d query attemp failed", attemp)
-		}
+	request, err := http.NewRequest(http.MethodPut, iconCandidate.UploadURL, file)
+	if err != nil {
+		return fmt.Errorf("failed to create request, error: %s", err)
+	}
 
-		request, err := http.NewRequest(http.MethodPut, iconCandidate.UploadURL, bytes.NewReader(data))
-		if err != nil {
-			return fmt.Errorf("failed to create request, error: %s", err)
-		}
+	request.Header.Add("Content-Type", "image/png")
 
-		request.Header.Add("Content-Type", "image/png")
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to get file info for %s, error: %s", filePath, err)
+	}
+	request.ContentLength = fileInfo.Size()
+
+	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attempt uint) error {
+		if attempt != 0 {
+			log.TWarnf("%d query attempt failed", attempt)
+		}
 
 		resp, err := http.DefaultClient.Do(request)
 		if err != nil {
