@@ -53,7 +53,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
-	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputEnvKey, models.TypeSelector)
+	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputSummary, ProjectLocationInputEnvKey, models.TypeSelector)
 	warnings := models.Warnings{}
 	appIconsAllProjects := models.Icons{}
 
@@ -78,8 +78,8 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 		}
 
 		configOption := models.NewConfigOption(ConfigName, iconIDs)
-		moduleOption := models.NewOption(ModuleInputTitle, ModuleInputEnvKey, models.TypeUserInput)
-		variantOption := models.NewOption(VariantInputTitle, VariantInputEnvKey, models.TypeOptionalUserInput)
+		moduleOption := models.NewOption(ModuleInputTitle, ModuleInputSummary, ModuleInputEnvKey, models.TypeUserInput)
+		variantOption := models.NewOption(VariantInputTitle, VariantInputSummary, VariantInputEnvKey, models.TypeOptionalUserInput)
 
 		projectLocationOption.AddOption(relProjectRoot, moduleOption)
 		moduleOption.AddOption("app", variantOption)
@@ -91,9 +91,9 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 // DefaultOptions ...
 func (scanner *Scanner) DefaultOptions() models.OptionNode {
-	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputEnvKey, models.TypeUserInput)
-	moduleOption := models.NewOption(ModuleInputTitle, ModuleInputEnvKey, models.TypeUserInput)
-	variantOption := models.NewOption(VariantInputTitle, VariantInputEnvKey, models.TypeOptionalUserInput)
+	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputSummary, ProjectLocationInputEnvKey, models.TypeUserInput)
+	moduleOption := models.NewOption(ModuleInputTitle, ModuleInputSummary, ModuleInputEnvKey, models.TypeUserInput)
+	variantOption := models.NewOption(VariantInputTitle, VariantInputSummary, VariantInputEnvKey, models.TypeOptionalUserInput)
 	configOption := models.NewConfigOption(DefaultConfigName, nil)
 
 	projectLocationOption.AddOption("", moduleOption)

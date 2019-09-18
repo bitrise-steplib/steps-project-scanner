@@ -11,7 +11,8 @@ const (
 	ProjectTypeUserTitle = "Project type"
 	// The key is used in the options decision tree model.
 	// If empty, it will not be inserted into the bitrise.yml
-	ProjectTypeEnvKey = ""
+	ProjectTypeEnvKey      = ""
+	ProjectTypeUserSummary = "The type of your project. This determines what Steps are added to your automatically configured Workflows. You can, however, add any Steps to your Workflows at any time."
 )
 
 // AddProjectTypeToConfig returns the config filled in with every detected project type, that could be selected
@@ -27,7 +28,7 @@ func AddProjectTypeToConfig(configName string, config bitriseModels.BitriseDataM
 
 // AddProjectTypeToOptions adds a project type question to automation tool scanners's option tree
 func AddProjectTypeToOptions(scannerOptionTree models.OptionNode, detectedProjectTypes []string) models.OptionNode {
-	optionsTreeWithProjectTypeRoot := models.NewOption(ProjectTypeUserTitle, ProjectTypeEnvKey, models.TypeSelector)
+	optionsTreeWithProjectTypeRoot := models.NewOption(ProjectTypeUserTitle, ProjectTypeUserSummary, ProjectTypeEnvKey, models.TypeSelector)
 	for _, projectType := range detectedProjectTypes {
 		optionsTreeWithProjectTypeRoot.AddOption(projectType,
 			appendProjectTypeToConfig(scannerOptionTree, projectType))

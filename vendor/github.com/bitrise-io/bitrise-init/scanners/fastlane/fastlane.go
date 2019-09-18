@@ -31,15 +31,21 @@ var platforms = []string{iosPlatform, "android"}
 
 // Step Inputs
 const (
-	laneInputKey    = "lane"
-	laneInputTitle  = "Fastlane lane"
-	laneInputEnvKey = "FASTLANE_LANE"
+	laneInputKey     = "lane"
+	laneInputTitle   = "Fastlane lane"
+	laneInputEnvKey  = "FASTLANE_LANE"
+	laneInputSummary = "The lane that will be used in your builds, stored as an Environment Variable. You can change this at any time."
 )
 
 const (
-	workDirInputKey    = "work_dir"
-	workDirInputTitle  = "Working directory"
-	workDirInputEnvKey = "FASTLANE_WORK_DIR"
+	workDirInputKey     = "work_dir"
+	workDirInputTitle   = "Working directory"
+	workDirInputEnvKey  = "FASTLANE_WORK_DIR"
+	workDirInputSummary = "The directory where your Fastfile is located."
+)
+const (
+	projectTypeInputTitle   = "Project type"
+	projectTypeInputSummary = "The project type of the app you added to Bitrise."
 )
 
 const (
@@ -112,7 +118,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 	// Inspect Fastfiles
 
-	workDirOption := models.NewOption(workDirInputTitle, workDirInputEnvKey, models.TypeSelector)
+	workDirOption := models.NewOption(workDirInputTitle, workDirInputSummary, workDirInputEnvKey, models.TypeSelector)
 
 	for _, fastfile := range scanner.Fastfiles {
 		log.TInfof("Inspecting Fastfile: %s", fastfile)
@@ -137,7 +143,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 		isValidFastfileFound = true
 
-		laneOption := models.NewOption(laneInputTitle, laneInputEnvKey, models.TypeSelector)
+		laneOption := models.NewOption(laneInputTitle, laneInputSummary, laneInputEnvKey, models.TypeSelector)
 		workDirOption.AddOption(workDir, laneOption)
 
 		for _, lane := range lanes {
@@ -162,12 +168,12 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 // DefaultOptions ...
 func (*Scanner) DefaultOptions() models.OptionNode {
-	workDirOption := models.NewOption(workDirInputTitle, workDirInputEnvKey, models.TypeUserInput)
+	workDirOption := models.NewOption(workDirInputTitle, workDirInputSummary, workDirInputEnvKey, models.TypeUserInput)
 
-	laneOption := models.NewOption(laneInputTitle, laneInputEnvKey, models.TypeUserInput)
+	laneOption := models.NewOption(laneInputTitle, laneInputSummary, laneInputEnvKey, models.TypeUserInput)
 	workDirOption.AddOption("", laneOption)
 
-	projectTypeOption := models.NewOption("Project type", "", models.TypeSelector)
+	projectTypeOption := models.NewOption(projectTypeInputTitle, projectTypeInputSummary, "", models.TypeSelector)
 	laneOption.AddOption("", projectTypeOption)
 
 	for _, p := range platforms {

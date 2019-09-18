@@ -20,25 +20,24 @@ import (
 )
 
 const (
-	scannerName                = "flutter"
-	configName                 = "flutter-config"
-	projectLocationInputKey    = "project_location"
-	platformInputKey           = "platform"
-	defaultIOSConfiguration    = "Release"
-	projectLocationInputEnvKey = "BITRISE_FLUTTER_PROJECT_LOCATION"
-	projectLocationInputTitle  = "Project Location"
-	projectTypeInputEnvKey     = "BITRISE_FLUTTER_PROJECT_TYPE"
-	projectTypeInputTitle      = "Project Type"
-	testsInputTitle            = "Run tests found in the project"
-	platformInputTitle         = "Platform"
+	scannerName                 = "flutter"
+	configName                  = "flutter-config"
+	projectLocationInputKey     = "project_location"
+	platformInputKey            = "platform"
+	defaultIOSConfiguration     = "Release"
+	projectLocationInputEnvKey  = "BITRISE_FLUTTER_PROJECT_LOCATION"
+	projectLocationInputTitle   = "Project location"
+	projectTypeInputEnvKey      = "BITRISE_FLUTTER_PROJECT_TYPE"
+	projectTypeInputTitle       = "Project Type"
+	testsInputTitle             = "Run tests found in the project"
+	platformInputTitle          = "Platform"
+	projectLocationInputSummary = "The path to your Flutter project, stored as an Environment Variable. In your Workflows, you can specify paths relative to this path. You can change this at any time."
+	testsInputSummary           = "Our Flutter Test Step can run the tests found in your project's repository."
+	platformInputSummary        = "The target platform for your first build. Your options are iOS, Android, both, or neither. You can change this in your Env Vars at any time."
+	installerUpdateFlutterKey   = "is_update"
 )
 
 var (
-	projectTypes = []string{
-		"app",
-		"plugin",
-		"package",
-	}
 	platforms = []string{
 		"none",
 		"android",
@@ -247,11 +246,11 @@ func (Scanner) ExcludedScannerNames() []string {
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
-	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputEnvKey, models.TypeSelector)
+	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputSummary, projectLocationInputEnvKey, models.TypeSelector)
 
 	for _, project := range scanner.projects {
 		if project.hasTest {
-			flutterProjectHasTestOption := models.NewOption(testsInputTitle, "", models.TypeSelector)
+			flutterProjectHasTestOption := models.NewOption(testsInputTitle, testsInputSummary, "", models.TypeSelector)
 			flutterProjectLocationOption.AddOption(project.path, flutterProjectHasTestOption)
 
 			for _, v := range []string{"yes", "no"} {
@@ -262,15 +261,15 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 				if project.hasIosProject || project.hasAndroidProject {
 					if project.hasIosProject {
-						projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey, models.TypeSelector)
+						projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeSelector)
 						flutterProjectHasTestOption.AddOption(v, projectPathOption)
 
 						for xcodeWorkspacePath, schemes := range project.xcodeProjectPaths {
-							schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey, models.TypeSelector)
+							schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeSelector)
 							projectPathOption.AddOption(xcodeWorkspacePath, schemeOption)
 
 							for _, scheme := range schemes {
-								exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey, models.TypeSelector)
+								exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.IosExportMethodInputSummary, ios.ExportMethodInputEnvKey, models.TypeSelector)
 								schemeOption.AddOption(scheme, exportMethodOption)
 
 								for _, exportMethod := range ios.IosExportMethods {
@@ -293,15 +292,15 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 			if project.hasIosProject || project.hasAndroidProject {
 				if project.hasIosProject {
-					projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey, models.TypeSelector)
+					projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeSelector)
 					flutterProjectLocationOption.AddOption(project.path, projectPathOption)
 
 					for xcodeWorkspacePath, schemes := range project.xcodeProjectPaths {
-						schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey, models.TypeSelector)
+						schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeSelector)
 						projectPathOption.AddOption(xcodeWorkspacePath, schemeOption)
 
 						for _, scheme := range schemes {
-							exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey, models.TypeSelector)
+							exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.IosExportMethodInputSummary, ios.ExportMethodInputEnvKey, models.TypeSelector)
 							schemeOption.AddOption(scheme, exportMethodOption)
 
 							for _, exportMethod := range ios.IosExportMethods {
@@ -337,9 +336,9 @@ func getBuildablePlatform(hasAndroidProject, hasIosProject bool) string {
 
 // DefaultOptions ...
 func (Scanner) DefaultOptions() models.OptionNode {
-	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputEnvKey, models.TypeUserInput)
+	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputSummary, projectLocationInputEnvKey, models.TypeUserInput)
 
-	flutterProjectHasTestOption := models.NewOption(testsInputTitle, "", models.TypeSelector)
+	flutterProjectHasTestOption := models.NewOption(testsInputTitle, testsInputSummary, "", models.TypeSelector)
 	flutterProjectLocationOption.AddOption("", flutterProjectHasTestOption)
 
 	for _, v := range []string{"yes", "no"} {
@@ -347,19 +346,19 @@ func (Scanner) DefaultOptions() models.OptionNode {
 		if v == "yes" {
 			cfg += "-test"
 		}
-		flutterPlatformOption := models.NewOption(platformInputTitle, "", models.TypeSelector)
+		flutterPlatformOption := models.NewOption(platformInputTitle, platformInputSummary, "", models.TypeSelector)
 		flutterProjectHasTestOption.AddOption(v, flutterPlatformOption)
 
 		for _, platform := range platforms {
 			if platform != "none" {
 				if platform != "android" {
-					projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputEnvKey, models.TypeUserInput)
+					projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeUserInput)
 					flutterPlatformOption.AddOption(platform, projectPathOption)
 
-					schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputEnvKey, models.TypeUserInput)
+					schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
 					projectPathOption.AddOption("", schemeOption)
 
-					exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.ExportMethodInputEnvKey, models.TypeSelector)
+					exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.IosExportMethodInputSummary, ios.ExportMethodInputEnvKey, models.TypeSelector)
 					schemeOption.AddOption("", exportMethodOption)
 
 					for _, exportMethod := range ios.IosExportMethods {
@@ -410,7 +409,12 @@ func (scanner Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FlutterInstallStepListItem())
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FlutterInstallStepListItem(
+			envmanModels.EnvironmentItemModel{installerUpdateFlutterKey: "false"},
+		))
+
+		// cache-pull is after flutter-installer, to prevent removal of pub system cache
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CachePullStepListItem())
 
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FlutterAnalyzeStepListItem(
 			envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
@@ -422,7 +426,7 @@ func (scanner Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			))
 		}
 
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(true)...)
 
 		// deploy
 
@@ -433,7 +437,11 @@ func (scanner Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 				configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 			}
 
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterInstallStepListItem())
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterInstallStepListItem(
+				envmanModels.EnvironmentItemModel{installerUpdateFlutterKey: "false"},
+			))
+
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CachePullStepListItem())
 
 			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterAnalyzeStepListItem(
 				envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
@@ -459,7 +467,7 @@ func (scanner Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 				))
 			}
 
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(true)...)
 		}
 
 		config, err := configBuilder.Generate(scannerName)
