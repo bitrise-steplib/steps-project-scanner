@@ -27,15 +27,17 @@ const (
 
 // Step Inputs
 const (
-	workDirInputKey    = "workdir"
-	workDirInputTitle  = "Directory of Cordova Config.xml"
-	workDirInputEnvKey = "CORDOVA_WORK_DIR"
+	workDirInputKey     = "workdir"
+	workDirInputTitle   = "Directory of the Cordova config.xml file"
+	workDirInputEnvKey  = "CORDOVA_WORK_DIR"
+	workDirInputSummary = "The working directory of your Cordova project is where you store your config.xml file. In your Workflows, you can specify paths relative to this path. You can change this at any time."
 )
 
 const (
-	platformInputKey    = "platform"
-	platformInputTitle  = "Platform to use in cordova-cli commands"
-	platformInputEnvKey = "CORDOVA_PLATFORM"
+	platformInputKey     = "platform"
+	platformInputTitle   = "The platform to use in cordova-cli commands"
+	platformInputEnvKey  = "CORDOVA_PLATFORM"
+	platformInputSummary = "The target platform for your build, stored as an Environment Variable. Your options are iOS, Android, or both. You can change this in your Env Vars at any time."
 )
 
 const (
@@ -237,17 +239,17 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	platforms := []string{"ios", "android", "ios,android"}
 
 	if relCordovaConfigDir != "" {
-		rootOption = models.NewOption(workDirInputTitle, workDirInputEnvKey, models.TypeSelector)
+		rootOption = models.NewOption(workDirInputTitle, workDirInputSummary, workDirInputEnvKey, models.TypeSelector)
 
-		projectTypeOption := models.NewOption(platformInputTitle, platformInputEnvKey, models.TypeSelector)
-		rootOption.AddOption(relCordovaConfigDir, projectTypeOption)
+		platformTypeOption := models.NewOption(platformInputTitle, platformInputSummary, platformInputEnvKey, models.TypeSelector)
+		rootOption.AddOption(relCordovaConfigDir, platformTypeOption)
 
 		for _, platform := range platforms {
 			configOption := models.NewConfigOption(configName, nil)
-			projectTypeOption.AddConfig(platform, configOption)
+			platformTypeOption.AddConfig(platform, configOption)
 		}
 	} else {
-		rootOption = models.NewOption(platformInputTitle, platformInputEnvKey, models.TypeSelector)
+		rootOption = models.NewOption(platformInputTitle, platformInputSummary, platformInputEnvKey, models.TypeSelector)
 
 		for _, platform := range platforms {
 			configOption := models.NewConfigOption(configName, nil)
@@ -261,10 +263,10 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 // DefaultOptions ...
 func (*Scanner) DefaultOptions() models.OptionNode {
-	workDirOption := models.NewOption(workDirInputTitle, workDirInputEnvKey, models.TypeUserInput)
+	workDirOption := models.NewOption(workDirInputTitle, workDirInputSummary, workDirInputEnvKey, models.TypeUserInput)
 
-	projectTypeOption := models.NewOption(platformInputTitle, platformInputEnvKey, models.TypeSelector)
-	workDirOption.AddOption("", projectTypeOption)
+	platformTypeOption := models.NewOption(platformInputTitle, platformInputSummary, platformInputEnvKey, models.TypeSelector)
+	workDirOption.AddOption("", platformTypeOption)
 
 	platforms := []string{
 		"ios",
@@ -273,7 +275,7 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 	}
 	for _, platform := range platforms {
 		configOption := models.NewConfigOption(defaultConfigName, nil)
-		projectTypeOption.AddConfig(platform, configOption)
+		platformTypeOption.AddConfig(platform, configOption)
 	}
 
 	return *workDirOption

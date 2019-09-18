@@ -2,18 +2,24 @@
 
 
 [[projects]]
+  digest = "1:bd8bc15ce3a9929e2777651cbc271fca5561c0d5f42187edb4720e638d24662d"
   name = "github.com/beevik/etree"
   packages = ["."]
+  pruneopts = "UT"
   revision = "8aee6516be3b1163bb6450c35c50e4969e3a3aa8"
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:f006631e21e1ebecc5bd025f272197c6d1ee0102bc46006cf2e527b57be5e884"
   name = "github.com/bitrise-io/bitrise"
   packages = ["models"]
+  pruneopts = "UT"
   revision = "f7458dd6a6c5612fd3e92ab021fb7f18a7d0abc4"
   version = "1.31.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:0fd77d4d8e095975b17f728f305490e3b991cd81017b28df311a50de023a4061"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "models",
@@ -31,25 +37,30 @@
     "scanners/xamarin",
     "steps",
     "toolscanner",
-    "utility"
+    "utility",
   ]
-  revision = "897d749bb1bcdfb1c84f53f81462aa9bfcb743e8"
-  version = "2.2.0"
+  pruneopts = "UT"
+  revision = "48e2d53d769f75f092afcb8572648a0e64c6b0bc"
 
 [[projects]]
+  branch = "master"
+  digest = "1:4e1c0cc22c53c5ebda9bd380afd5b56a2f1fc9e6fd2eed59ab8ba0c1522eee19"
   name = "github.com/bitrise-io/envman"
   packages = ["models"]
-  revision = "eb2e53257e527de59351cec1ecdffb50dadd5a07"
-  version = "2.2.4"
+  pruneopts = "UT"
+  revision = "7698fc58b190e022c2a8ca667b539ce48c3ed1c9"
 
 [[projects]]
   branch = "master"
+  digest = "1:a3afea7f3c972b809af1a79472585115af175fbf1bcc5bebccd495f19bb551db"
   name = "github.com/bitrise-io/go-steputils"
   packages = ["stepconf"]
-  revision = "cecc766da84859e37e780d9d1c416f0f3993e6b1"
+  pruneopts = "UT"
+  revision = "f540824d77dfd382ce84fd0ee0a9da2fba1cce0a"
 
 [[projects]]
   branch = "master"
+  digest = "1:5ffb214e36b857cdc92be5e5f20aa9be549fb9678e6795d5fda1accfa2222aaa"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -62,71 +73,90 @@
     "pathutil",
     "pointers",
     "retry",
-    "sliceutil"
+    "sliceutil",
   ]
-  revision = "7a4402b387ebcdf3e2a0aa3b18d4c8636768f9a0"
+  pruneopts = "UT"
+  revision = "ad86bf775472ce1934affb9d3cb7d5ea3dffd16f"
 
 [[projects]]
   branch = "master"
+  digest = "1:3060b1a20d5eccc02b4dcf61127258fb3ca0070b3386d4326907417164a9bcdd"
   name = "github.com/bitrise-io/go-xcode"
   packages = [
     "plistutil",
-    "xcodeproj"
+    "xcodeproj",
   ]
-  revision = "c1544b4453f2869335f71fb53c0360bdb91d01b4"
+  pruneopts = "UT"
+  revision = "07ccf582b6b1afa2c33e133447a3e22c811ffd90"
 
 [[projects]]
   branch = "master"
+  digest = "1:980e760f25b82cb4ffe32b146956029f1f5c8bea3c39f9f973cc023d4ae965b1"
   name = "github.com/bitrise-io/goinp"
   packages = ["goinp"]
+  pruneopts = "UT"
   revision = "bd18a8681e272db4696c50152b288f722d08b914"
 
 [[projects]]
+  branch = "master"
+  digest = "1:a31f5ffeb3ba940633762768571321abb47b57bc48c0551fc0e3d7aff3564770"
   name = "github.com/bitrise-io/stepman"
   packages = ["models"]
-  revision = "af0e468635253eaf3a66dca748af4a5966d161b1"
-  version = "0.11.6"
+  pruneopts = "UT"
+  revision = "8138843b694ce731d58a1754b57ac250a9dec9e6"
 
 [[projects]]
   branch = "master"
+  digest = "1:c2d90e71eab0b89195680d794dd0aafb8fe10efc56543a70f475e171d0c2e669"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
+    "pretty",
     "serialized",
     "xcodebuild",
     "xcodeproj",
     "xcscheme",
-    "xcworkspace"
+    "xcworkspace",
   ]
-  revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
+  pruneopts = "UT"
+  revision = "e74e748ca5af39e2bd2b24ed4e9476bc4abd1a50"
 
 [[projects]]
+  branch = "master"
+  digest = "1:deff41c4160cc5b487a1d1a69a58925f2d3ac11befa0692b50e76940594e20f5"
   name = "github.com/pkg/errors"
   packages = ["."]
-  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
-  version = "v0.8.1"
+  pruneopts = "UT"
+  revision = "27936f6d90f9c8e1145f11ed52ffffbfdb9e0af7"
 
 [[projects]]
+  branch = "master"
+  digest = "1:6baa565fe16f8657cf93469b2b8a6c61a277827734400d27e44d589547297279"
   name = "github.com/ryanuber/go-glob"
   packages = ["."]
+  pruneopts = "UT"
   revision = "51a8f68e6c24dc43f1e371749c89a267de4ebc53"
-  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:bbe51412d9915d64ffaa96b51d409e070665efc5194fcf145c4a27d4133107a4"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "57b3e21c3d5606066a87e63cfe07ec6b9f0db000"
+  pruneopts = "UT"
+  revision = "227b76d455e791cb042b03e633e2f7fbcfdf74a5"
 
 [[projects]]
   branch = "master"
+  digest = "1:019ad1c6ebe331efc7b2770d226015dced1bedc0ec03f9d9d8216e654affe7ba"
   name = "golang.org/x/sys"
   packages = [
     "unix",
-    "windows"
+    "windows",
   ]
-  revision = "15dcb6c0061f497a3f66e3ea034b629c6dd4d99e"
+  pruneopts = "UT"
+  revision = "b4ddaad3f8a36719f2b8bc6486c14cc468ca2bb5"
 
 [[projects]]
+  digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
   name = "golang.org/x/text"
   packages = [
     "internal/gen",
@@ -134,26 +164,39 @@
     "internal/ucd",
     "transform",
     "unicode/cldr",
-    "unicode/norm"
+    "unicode/norm",
   ]
+  pruneopts = "UT"
   revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
   version = "v0.3.2"
 
 [[projects]]
+  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = "UT"
   revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
   version = "v2.2.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:c10265d5a71326618d37e97169eddb3582f78e8ac7dcf87403b4cf619efd519a"
   name = "howett.net/plist"
   packages = ["."]
+  pruneopts = "UT"
   revision = "591f970eefbbeb04d7b37f334a0c4c3256e32876"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7c43ffb8799718164cba88d70edfc3949b999c8afc7f6caaa49415e1d6d5322e"
+  input-imports = [
+    "github.com/bitrise-io/bitrise-init/models",
+    "github.com/bitrise-io/bitrise-init/scanner",
+    "github.com/bitrise-io/go-steputils/stepconf",
+    "github.com/bitrise-io/go-utils/command",
+    "github.com/bitrise-io/go-utils/log",
+    "github.com/bitrise-io/go-utils/pathutil",
+    "github.com/bitrise-io/go-utils/retry",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

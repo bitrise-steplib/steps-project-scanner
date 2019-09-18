@@ -19,14 +19,20 @@ const (
 	workDirInputKey = "workdir"
 )
 
+const (
+	isExpoCLIInputTitle   = "Was the project created using the Expo CLI?"
+	isExpoCLIInputSummary = "If your React Native app was created with the Expo CLI, Bitrise will automatically insert the **Expo Eject** Step to your Workflows."
+)
+
 // Scanner implements the project scanner for plain React Native and Expo based projects.
 type Scanner struct {
 	searchDir      string
 	iosScanner     *ios.Scanner
 	androidScanner *android.Scanner
 
-	hasNPMTest     bool
-	packageJSONPth string
+	hasTest         bool
+	hasYarnLockFile bool
+	packageJSONPth  string
 
 	usesExpo    bool
 	usesExpoKit bool
@@ -160,6 +166,22 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	scanner.usesExpo = usesExpo
 	scanner.packageJSONPth = packageFile
 
+	// determine Js dependency manager
+	if scanner.hasYarnLockFile, err = containsYarnLock(filepath.Dir(scanner.packageJSONPth)); err != nil {
+		return false, err
+	}
+	log.TPrintf("Js dependency manager for %s npm: %t", scanner.packageJSONPth, scanner.hasYarnLockFile)
+
+	packages, err := utility.ParsePackagesJSON(scanner.packageJSONPth)
+	if err != nil {
+		return false, err
+	}
+
+	if _, found := packages.Scripts["test"]; found {
+		scanner.hasTest = true
+	}
+	log.TPrintf("Test script found in package.json: %v", scanner.hasTest)
+
 	return true, nil
 }
 
@@ -183,7 +205,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 // DefaultOptions implements ScannerInterface.DefaultOptions function.
 func (scanner *Scanner) DefaultOptions() models.OptionNode {
-	expoOption := models.NewOption("Project was created using Expo CLI?", "", models.TypeSelector)
+	expoOption := models.NewOption(isExpoCLIInputTitle, isExpoCLIInputSummary, "", models.TypeSelector)
 
 	expoDefaultOptions := scanner.expoDefaultOptions()
 	expoOption.AddOption("yes", &expoDefaultOptions)
