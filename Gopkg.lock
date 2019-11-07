@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0fd77d4d8e095975b17f728f305490e3b991cd81017b28df311a50de023a4061"
+  digest = "1:52aaf6edcac20f63882dabd50c1317a4867713f0b7f0018c22da458ca97d7b83"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "models",
@@ -40,7 +40,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "48e2d53d769f75f092afcb8572648a0e64c6b0bc"
+  revision = "d427aaa58574173a85922dddf5533a0052e1b764"
 
 [[projects]]
   branch = "master"
@@ -48,7 +48,7 @@
   name = "github.com/bitrise-io/envman"
   packages = ["models"]
   pruneopts = "UT"
-  revision = "7698fc58b190e022c2a8ca667b539ce48c3ed1c9"
+  revision = "a82637cf13cc2bd0d61e8660aa269ce43c73a92e"
 
 [[projects]]
   branch = "master"
@@ -60,7 +60,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:5ffb214e36b857cdc92be5e5f20aa9be549fb9678e6795d5fda1accfa2222aaa"
+  digest = "1:998095272878cfcc8abd95a7021dd5c37bd1a750c3b68dcef31e413b32628725"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -76,7 +76,7 @@
     "sliceutil",
   ]
   pruneopts = "UT"
-  revision = "ad86bf775472ce1934affb9d3cb7d5ea3dffd16f"
+  revision = "2c67c48e7086cfd8f9a29bfac2cd420d4dd1d2f9"
 
 [[projects]]
   branch = "master"
@@ -87,7 +87,7 @@
     "xcodeproj",
   ]
   pruneopts = "UT"
-  revision = "07ccf582b6b1afa2c33e133447a3e22c811ffd90"
+  revision = "19cbfe6430acc193d779847a13be0b8585d866c1"
 
 [[projects]]
   branch = "master"
@@ -103,11 +103,11 @@
   name = "github.com/bitrise-io/stepman"
   packages = ["models"]
   pruneopts = "UT"
-  revision = "8138843b694ce731d58a1754b57ac250a9dec9e6"
+  revision = "5243f5feb13656285d1de3dc05bd5f3cd54d38b7"
 
 [[projects]]
   branch = "master"
-  digest = "1:c2d90e71eab0b89195680d794dd0aafb8fe10efc56543a70f475e171d0c2e669"
+  digest = "1:fdda64c0d9b713316970ace745f655595ef63f848d7404d049aea78fcb269b9b"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "pretty",
@@ -118,15 +118,15 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "e74e748ca5af39e2bd2b24ed4e9476bc4abd1a50"
+  revision = "a4e01d69cacc7dd9acbe8fb987dba69c9ce01b1c"
 
 [[projects]]
-  branch = "master"
-  digest = "1:deff41c4160cc5b487a1d1a69a58925f2d3ac11befa0692b50e76940594e20f5"
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
   name = "github.com/pkg/errors"
   packages = ["."]
   pruneopts = "UT"
-  revision = "27936f6d90f9c8e1145f11ed52ffffbfdb9e0af7"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   branch = "master"
@@ -142,18 +142,18 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "227b76d455e791cb042b03e633e2f7fbcfdf74a5"
+  revision = "ed6320f186d4e69b2ba748dd0084746281301a8e"
 
 [[projects]]
   branch = "master"
-  digest = "1:019ad1c6ebe331efc7b2770d226015dced1bedc0ec03f9d9d8216e654affe7ba"
+  digest = "1:1017834f19e0d987e8b1b928f016b0a1186a202ec1867fee7112efd4b4475bd1"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "b4ddaad3f8a36719f2b8bc6486c14cc468ca2bb5"
+  revision = "c1f44814a5cd81a6d1cb589ef1e528bc5d305e07"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -171,12 +171,12 @@
   version = "v0.3.2"
 
 [[projects]]
-  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
+  digest = "1:f26a5d382387e03a40d1471dddfba85dfff9bf05352d7e42d37612677c4d3c5c"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
-  version = "v2.2.2"
+  revision = "f90ceb4f409096b60e2e9076b38b304b8246e5fa"
+  version = "v2.2.5"
 
 [[projects]]
   branch = "master"
