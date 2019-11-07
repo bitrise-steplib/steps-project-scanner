@@ -39,14 +39,14 @@ const (
 	// CachePullID ...
 	CachePullID = "cache-pull"
 	// CachePullVersion ...
-	CachePullVersion = "2.1.0"
+	CachePullVersion = "2.1.1"
 )
 
 const (
 	// CachePushID ...
 	CachePushID = "cache-push"
 	// CachePushVersion ...
-	CachePushVersion = "2.2.0"
+	CachePushVersion = "2.2.1"
 )
 
 const (
@@ -67,7 +67,7 @@ const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1.7.1"
+	DeployToBitriseIoVersion = "1.9.2"
 )
 
 const (
@@ -104,14 +104,14 @@ const (
 	// CocoapodsInstallID ...
 	CocoapodsInstallID = "cocoapods-install"
 	// CocoapodsInstallVersion ...
-	CocoapodsInstallVersion = "1.8.0"
+	CocoapodsInstallVersion = "1.9.1"
 )
 
 const (
 	// CarthageID ...
 	CarthageID = "carthage"
 	// CarthageVersion ...
-	CarthageVersion = "3.2.1"
+	CarthageVersion = "3.2.2"
 )
 
 const (
@@ -125,14 +125,14 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "2.6.0"
+	XcodeArchiveVersion = "2.7.0"
 )
 
 const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "2.3.2"
+	XcodeTestVersion = "2.4.1"
 )
 
 const (
@@ -146,7 +146,7 @@ const (
 	// NugetRestoreID ...
 	NugetRestoreID = "nuget-restore"
 	// NugetRestoreVersion ...
-	NugetRestoreVersion = "1.0.7"
+	NugetRestoreVersion = "1.1.0"
 )
 
 const (
@@ -160,14 +160,14 @@ const (
 	// XamarinArchiveID ...
 	XamarinArchiveID = "xamarin-archive"
 	// XamarinArchiveVersion ...
-	XamarinArchiveVersion = "1.5.0"
+	XamarinArchiveVersion = "1.5.1"
 )
 
 const (
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...
-	XcodeArchiveMacVersion = "1.7.0"
+	XcodeArchiveMacVersion = "1.8.0"
 )
 
 const (
@@ -181,14 +181,14 @@ const (
 	// CordovaArchiveID ...
 	CordovaArchiveID = "cordova-archive"
 	// CordovaArchiveVersion ...
-	CordovaArchiveVersion = "2.0.0"
+	CordovaArchiveVersion = "2.1.0"
 )
 
 const (
 	// IonicArchiveID ...
 	IonicArchiveID = "ionic-archive"
 	// IonicArchiveVersion ...
-	IonicArchiveVersion = "2.0.0"
+	IonicArchiveVersion = "2.1.0"
 )
 
 const (
@@ -230,7 +230,7 @@ const (
 	// YarnID ...
 	YarnID = "yarn"
 	// YarnVersion ...
-	YarnVersion = "0.0.8"
+	YarnVersion = "0.1.0"
 )
 
 const (

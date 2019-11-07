@@ -9,6 +9,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/steps"
 	"github.com/bitrise-io/bitrise-init/toolscanner"
 	"github.com/bitrise-io/bitrise-init/utility"
+	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/log"
 )
@@ -186,29 +187,41 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 
 // Configs ...
 func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	configBuilder := models.NewDefaultConfigBuilder()
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
+	generateConfig := func(isIOS bool) (bitriseModels.BitriseDataModel, error) {
+		configBuilder := models.NewDefaultConfigBuilder()
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+		if isIOS {
+			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+		}
 
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FastlaneStepListItem(
-		envmanModels.EnvironmentItemModel{laneInputKey: "$" + laneInputEnvKey},
-		envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
-	))
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FastlaneStepListItem(
+			envmanModels.EnvironmentItemModel{laneInputKey: "$" + laneInputEnvKey},
+			envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
+		))
 
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 
-	// Fill in project type later, from the list of detected project types
-	config, err := configBuilder.Generate(unknownProjectType,
-		envmanModels.EnvironmentItemModel{
-			fastlaneXcodeListTimeoutEnvKey: fastlaneXcodeListTimeoutEnvValue,
-		})
-	if err != nil {
-		return models.BitriseConfigMap{}, err
+		// Fill in project type later, from the list of detected project types
+		return configBuilder.Generate(unknownProjectType,
+			envmanModels.EnvironmentItemModel{
+				fastlaneXcodeListTimeoutEnvKey: fastlaneXcodeListTimeoutEnvValue,
+			})
 	}
 
 	// Create list of possible configs with project types
-	nameToConfigModel := toolscanner.AddProjectTypeToConfig(configName, config, scanner.projectTypes)
+	nameToConfigModel := map[string]bitriseModels.BitriseDataModel{}
+
+	for _, platform := range scanner.projectTypes {
+		config, err := generateConfig(platform == iosPlatform)
+		if err != nil {
+			return models.BitriseConfigMap{}, err
+		}
+
+		for cfgName, dataModel := range toolscanner.AddProjectTypeToConfig(configName, config, []string{platform}) {
+			nameToConfigModel[cfgName] = dataModel
+		}
+	}
 
 	nameToConfigString := map[string]string{}
 	for configName, config := range nameToConfigModel {
