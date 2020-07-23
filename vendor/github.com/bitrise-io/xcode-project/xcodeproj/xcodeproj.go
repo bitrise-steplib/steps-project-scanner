@@ -425,7 +425,7 @@ func (p *XcodeProj) ForceCodeSign(configuration, targetName, developmentTeam, co
 func foreceCodeSignOnTargetAttributes(targetAttributes serialized.Object, targetID, developmentTeam string) error {
 	targetAttribute, err := targetAttributes.Object(targetID)
 	if err != nil {
-		return fmt.Errorf("failed to get traget's (%s) attributes, error: %s", targetID, err)
+		return fmt.Errorf("failed to get target's (%s) attributes, error: %s", targetID, err)
 	}
 
 	targetAttribute["ProvisioningStyle"] = "Manual"
