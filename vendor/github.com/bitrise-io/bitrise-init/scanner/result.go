@@ -6,6 +6,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/output"
 	"github.com/bitrise-io/go-utils/command"
@@ -22,6 +23,8 @@ func GenerateScanResult(searchDir string) (models.ScanResultModel, bool) {
 	}
 
 	if len(platforms) == 0 {
+		analytics.LogError("no_platform_detected", nil, "No known platform detected")
+
 		scanResult.AddError("general", "No known platform detected")
 		return scanResult, false
 	}
