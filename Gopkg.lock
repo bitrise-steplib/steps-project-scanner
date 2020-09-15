@@ -18,8 +18,8 @@
   version = "1.31.0"
 
 [[projects]]
-  branch = "ACT-513-scanner-log"
-  digest = "1:55114ab670a3448f39b1cddbd1d945e3b70194490cdf56406d0773a56ddc8be5"
+  branch = "master"
+  digest = "1:b84892d800337b032f495cb8babe7c3b86cd19dee6426b15f3f36a40ee626efe"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "analytics",
@@ -41,7 +41,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "2028a8eb2b4532406b61d32bf4538ee3ee8be417"
+  revision = "a8f36859c5f4e2b3e01b32eeaba97bedafce19e2"
 
 [[projects]]
   branch = "master"
