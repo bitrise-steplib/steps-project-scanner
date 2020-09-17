@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9ebadfc8d63fdc8a7287ba49bf62251921462e70a541c5c04e96bfd1a9aa9219"
+  digest = "1:c81ae73cd2899923327623948ab4c794847deb78f26af8485f56c60b675ab3cc"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "analytics",
@@ -41,7 +41,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "fdd3bbec9bc1fa41c26f44bf89d332cb88ca7650"
+  revision = "9da0085bd633200aab43b9ab23513dd43a103ebb"
 
 [[projects]]
   branch = "master"
@@ -147,7 +147,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:42a64b4eb1e263671ea2d7bff70a8b605732b474d1641f67a6548a85bb666393"
+  digest = "1:35cabcb4c436c6c326178660e0f406ac1cead2fa0f41a17cccde823c14083982"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
@@ -155,7 +155,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "dbad9cb7cb7ae8e5e3281f626a0a48c77f739a69"
+  revision = "648f2a039071f6a0cb589f30537d5f6279c6002b"
 
 [[projects]]
   digest = "1:a2c690dfee42801a26a0e88f69206feca8a3c2437fd476d84767468d7d7708e9"
