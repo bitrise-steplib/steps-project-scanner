@@ -57,3 +57,24 @@ inputs:
       value_options:
         - "true"
         - "false"
+  - enable_repo_clone: "yes"
+    opts:
+      title: "Activate SSH key and clone git repo inside the step"
+      value_options:
+        - "yes"
+        - "no"
+  - ssh_rsa_private_key: "$SSH_RSA_PRIVATE_KEY"
+    opts:
+      title: SSH private key in RSA format
+      is_expand: true
+      is_dont_change_value: true
+      is_sensitive: true
+  - repository_url: "$GIT_REPOSITORY_URL"
+    opts:
+      title: "Git repository URL"
+      is_dont_change_value: true
+  - branch: "$BITRISE_GIT_BRANCH"
+    opts:
+      category: Clone Config
+      title: "Git Branch to clone"
+      is_dont_change_value: true

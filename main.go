@@ -18,6 +18,8 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
+	"github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey"
+	"github.com/bitrise-steplib/steps-git-clone/gitclone"
 )
 
 type config struct {
@@ -25,8 +27,17 @@ type config struct {
 	ResultSubmitURL      string          `env:"scan_result_submit_url"`
 	ResultSubmitAPIToken stepconf.Secret `env:"scan_result_submit_api_token"`
 	IconCandidatesURL    string          `env:"icon_candidates_url"`
-	// Debug
-	DebugLog bool `env:"verbose_log,opt[false,true]"`
+	DebugLog             bool            `env:"verbose_log,opt[false,true]"`
+
+	// Enable activate SSH key and git clone
+	EnableRepoClone bool `env:"enable_repo_clone,opt[yes,no]"`
+
+	// Activate SSH Key step
+	SSHRsaPrivateKey stepconf.Secret `env:"ssh_rsa_private_key"`
+
+	// Git clone step
+	RepositoryURL string `env:"repository_url"`
+	Branch        string `env:"branch"`
 }
 
 func failf(format string, args ...interface{}) {
@@ -93,10 +104,57 @@ func main() {
 	}
 	stepconf.Print(cfg)
 
+	if cfg.EnableRepoClone {
+		if strings.TrimSpace(cfg.RepositoryURL) == "" {
+			failf("Repository URL input missing.")
+		}
+		if strings.TrimSpace(cfg.Branch) == "" {
+			failf("Repository branch input missing.")
+		}
+	}
+
 	log.SetEnableDebugLog(cfg.DebugLog)
 
 	if !(runtime.GOOS == "darwin" || runtime.GOOS == "linux") {
 		failf("Unsupported OS: %s", runtime.GOOS)
+	}
+
+	if cfg.EnableRepoClone {
+		// Activate SSH key is optional
+		if cfg.SSHRsaPrivateKey != "" {
+			if err := activatesshkey.Execute(activatesshkey.Config{
+				SSHRsaPrivateKey:        cfg.SSHRsaPrivateKey,
+				SSHKeySavePath:          "$HOME/.ssh/steplib_ssh_step_id_rsa",
+				IsRemoveOtherIdentities: false,
+			}); err != nil {
+				failf("Activate SSH key failed: %v", err)
+			}
+		}
+
+		// Git clone
+		if err := gitclone.Execute(gitclone.Config{
+			RepositoryURL: cfg.RepositoryURL,
+			CloneIntoDir:  cfg.ScanDirectory, // Using same directory later to run scan
+			Commit:        "",
+			Tag:           "",
+			Branch:        cfg.Branch,
+
+			BranchDest:      "",
+			PRID:            0,
+			PRRepositoryURL: "",
+			PRMergeBranch:   "",
+			ResetRepository: false,
+			CloneDepth:      0,
+
+			// BuildURL and BuildAPIToken used for merging only
+			BuildURL:      "",
+			BuildAPIToken: "",
+
+			UpdateSubmodules: true,
+			ManualMerge:      true,
+		}); err != nil {
+			failf("Git clone step failed: %v", err)
+		}
 	}
 
 	searchDir, err := pathutil.AbsPath(cfg.ScanDirectory)
