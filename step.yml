@@ -57,7 +57,7 @@ inputs:
       value_options:
         - "true"
         - "false"
-  - enable_repo_clone: "yes"
+  - enable_repo_clone: "no"
     opts:
       title: "Activate SSH key and clone git repo inside the step"
       value_options:

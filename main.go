@@ -86,14 +86,6 @@ func cloneRepo(cfg repoConfig) error {
 			SSHKeySavePath:          "$HOME/.ssh/steplib_ssh_step_id_rsa",
 			IsRemoveOtherIdentities: false,
 		}); err != nil {
-			if _, ok := err.(*activatesshkey.StepError); !ok {
-				return &stepError{
-					StepID:   "activate-ssh-key",
-					Tag:      "unknown_error",
-					ShortMsg: "Unknown error occured",
-					Err:      err,
-				}
-			}
 			return err
 		}
 	}
@@ -111,14 +103,6 @@ func cloneRepo(cfg repoConfig) error {
 		UpdateSubmodules: true,
 		ManualMerge:      true,
 	}); err != nil {
-		if _, ok := err.(*gitclone.StepError); !ok {
-			return &stepError{
-				StepID:   "git-clone",
-				Tag:      "unknown_error",
-				ShortMsg: "Unknown error occured",
-				Err:      err,
-			}
-		}
 		return err
 	}
 
