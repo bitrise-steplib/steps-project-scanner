@@ -1,11 +1,23 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/bitrise-io/go-utils"
+  name = "github.com/bitrise-io/bitrise-init"
 
 [[constraint]]
   branch = "master"
-  name = "github.com/bitrise-io/bitrise-init"
+  name = "github.com/bitrise-io/go-steputils"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/go-utils"
+
+[[constraint]]
+  branch = "ACT-625-scanner-custom-error"
+  name = "github.com/bitrise-steplib/steps-activate-ssh-key"
+
+[[constraint]]
+  branch = "ACT-625-scanner-custom-error"
+  name = "github.com/bitrise-steplib/steps-git-clone"
 
 [prune]
   go-tests = true
