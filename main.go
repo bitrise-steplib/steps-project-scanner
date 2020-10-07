@@ -151,10 +151,12 @@ func main() {
 
 	if cfg.EnableRepoClone {
 		handleStepError := func(stepID, tag string, err error, shortMsg string) {
-			if resultClient != nil {
-				resultClient.uploadErrorResult(stepID, tag, err, shortMsg)
-			}
 			LogError(stepID, tag, err, shortMsg)
+			if resultClient != nil {
+				if err := resultClient.uploadErrorResult(stepID, tag, err, shortMsg); err != nil {
+					log.TWarnf("Failed to submit result: %s", err)
+				}
+			}
 		}
 
 		if err := cloneRepo(repoConfig{
@@ -189,7 +191,7 @@ func main() {
 	if resultClient != nil {
 		log.TInfof("Submitting results...")
 		if err := resultClient.uploadResults(result); err != nil {
-			failf("Failed to submit results, error: %s", err)
+			failf("Failed to submit result: %s", err)
 		}
 
 		log.TDonef("Submitted.")

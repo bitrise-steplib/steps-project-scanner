@@ -9,5 +9,5 @@ type stepError struct {
 }
 
 func (e *stepError) Error() string {
-	return fmt.Sprintf("Error in step %s: %s, %v", e.ShortMsg, e.Err.Error())
+	return fmt.Sprintf("%s, %v", e.ShortMsg, e.Err.Error())
 }

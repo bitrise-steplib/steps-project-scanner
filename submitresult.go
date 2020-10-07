@@ -35,13 +35,11 @@ func newResultClient(resultSubmitURL string, resultSubmitAPIToken stepconf.Secre
 }
 
 func (c *resultClient) uploadErrorResult(stepID, tag string, err error, shortMsg string) error {
-	result := models.ScanResultModel{
+	return c.uploadResults(models.ScanResultModel{
 		ScannerToErrors: map[string]models.Errors{
-			"general": models.Errors{fmt.Sprintf("Error in step %s: %v", err)},
+			"general": models.Errors{fmt.Sprintf("Error in step %s: %v", stepID, err)},
 		},
-	}
-
-	return c.uploadResults(result)
+	})
 }
 
 func (c *resultClient) uploadResults(result models.ScanResultModel) error {
