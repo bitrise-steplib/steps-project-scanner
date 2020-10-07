@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -62,10 +63,20 @@ type repoConfig struct {
 
 func cloneRepo(cfg repoConfig) error {
 	if strings.TrimSpace(cfg.RepositoryURL) == "" {
-		failf("Repository URL input missing.")
+		return &stepError{
+			StepID:   "project-scanner",
+			Tag:      "input_parse_failed",
+			ShortMsg: "Repository URL unspecified",
+			Err:      errors.New("repository URL input missing"),
+		}
 	}
 	if strings.TrimSpace(cfg.Branch) == "" {
-		failf("Repository branch input missing.")
+		return &stepError{
+			StepID:   "project-scanner",
+			Tag:      "input_parse_failed",
+			ShortMsg: "Repository branch unspecified",
+			Err:      errors.New("repository bracnh input missing"),
+		}
 	}
 
 	// Activate SSH key is optional
@@ -75,7 +86,15 @@ func cloneRepo(cfg repoConfig) error {
 			SSHKeySavePath:          "$HOME/.ssh/steplib_ssh_step_id_rsa",
 			IsRemoveOtherIdentities: false,
 		}); err != nil {
-			return fmt.Errorf("Activate SSH key failed: %v", err)
+			if _, ok := err.(*activatesshkey.StepError); !ok {
+				return &stepError{
+					StepID:   "activate-ssh-key",
+					Tag:      "unknown_error",
+					ShortMsg: "Unknown error occured",
+					Err:      err,
+				}
+			}
+			return err
 		}
 	}
 
@@ -83,16 +102,7 @@ func cloneRepo(cfg repoConfig) error {
 	if err := gitclone.Execute(gitclone.Config{
 		RepositoryURL: cfg.RepositoryURL,
 		CloneIntoDir:  cfg.CloneIntoDir, // Using same directory later to run scan
-		Commit:        "",
-		Tag:           "",
 		Branch:        cfg.Branch,
-
-		BranchDest:      "",
-		PRID:            0,
-		PRRepositoryURL: "",
-		PRMergeBranch:   "",
-		ResetRepository: false,
-		CloneDepth:      0,
 
 		// BuildURL and BuildAPIToken used for merging only
 		BuildURL:      "",
@@ -101,7 +111,15 @@ func cloneRepo(cfg repoConfig) error {
 		UpdateSubmodules: true,
 		ManualMerge:      true,
 	}); err != nil {
-		return fmt.Errorf("Git clone step failed: %v", err)
+		if _, ok := err.(*gitclone.StepError); !ok {
+			return &stepError{
+				StepID:   "git-clone",
+				Tag:      "unknown_error",
+				ShortMsg: "Unknown error occured",
+				Err:      err,
+			}
+		}
+		return err
 	}
 
 	return nil
@@ -132,6 +150,13 @@ func main() {
 	}
 
 	if cfg.EnableRepoClone {
+		handleStepError := func(stepID, tag string, err error, shortMsg string) {
+			if resultClient != nil {
+				resultClient.uploadErrorResult(stepID, tag, err, shortMsg)
+			}
+			LogError(stepID, tag, err, shortMsg)
+		}
+
 		if err := cloneRepo(repoConfig{
 			CloneIntoDir:     cfg.ScanDirectory,
 			RepositoryURL:    cfg.RepositoryURL,
@@ -140,26 +165,13 @@ func main() {
 		}); err != nil {
 			switch stepErr := err.(type) {
 			case *activatesshkey.StepError:
-				stepID := "activate-ssh-key"
-				if resultClient != nil {
-					resultClient.uploadErrorResult(stepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
-				}
-				LogError(stepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
-				break
+				handleStepError(stepErr.StepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
 			case *gitclone.StepError:
-				stepID := "git-clone"
-				if resultClient != nil {
-					resultClient.uploadErrorResult(stepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
-				}
-				LogError(stepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
-				break
+				handleStepError(stepErr.StepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
+			case *stepError:
+				handleStepError(stepErr.StepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
 			default:
-				stepID := "project-scanner"
-				if resultClient != nil {
-					resultClient.uploadErrorResult(stepID, "unknown_error", err, "Unknown error occured")
-				}
-				LogError(stepID, "unknown_error", err, "Unknown error occured")
-				break
+				handleStepError("project-scanner", "unknown_error", err, "Unknown error occured")
 			}
 
 			failf("%v", err)
