@@ -24,7 +24,7 @@ type config struct {
 	DebugLog             bool            `env:"verbose_log,opt[false,true]"`
 
 	// Enable activate SSH key and git clone
-	EnableRepoClone bool `env:"enable_repo_clone,opt[yes,no]"`
+	EnableRepoClone bool `env:"enable_repo_clone"`
 
 	// Activate SSH Key step
 	SSHRsaPrivateKey stepconf.Secret `env:"ssh_rsa_private_key"`
@@ -124,7 +124,7 @@ func main() {
 		}
 
 		var err error
-		if resultClient, err = newResultClient(cfg.RepositoryURL, cfg.ResultSubmitAPIToken); err != nil {
+		if resultClient, err = newResultClient(cfg.ResultSubmitURL, cfg.ResultSubmitAPIToken); err != nil {
 			failf(fmt.Sprintf("%v", err))
 		}
 	}
@@ -175,7 +175,7 @@ func main() {
 	if resultClient != nil {
 		log.TInfof("Submitting results...")
 		if err := resultClient.uploadResults(result); err != nil {
-			failf("Failed to submit result: %s", err)
+			failf("Could not send back results: %s", err)
 		}
 
 		log.TDonef("Submitted.")
