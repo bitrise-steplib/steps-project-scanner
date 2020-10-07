@@ -1,23 +1,16 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"runtime"
 	"strings"
-	"time"
 
-	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/scanner"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/go-utils/retry"
 	"github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey"
 	"github.com/bitrise-steplib/steps-git-clone/gitclone"
 )
@@ -45,43 +38,6 @@ func failf(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func uploadResults(submitURL *url.URL, result models.ScanResultModel) error {
-	bytes, err := json.MarshalIndent(result, "", "\t")
-	if err != nil {
-		return fmt.Errorf("failed to marshal results, error: %s", err)
-	}
-
-	if err := retry.Times(1).Wait(5 * time.Second).Try(func(attempt uint) error {
-		if attempt != 0 {
-			log.TWarnf("%d query attempt failed", attempt)
-		}
-
-		resp, err := http.Post(submitURL.String(), "application/json", strings.NewReader(string(bytes)))
-		if err != nil {
-			return fmt.Errorf("failed to submit results, error: %s", err)
-		}
-
-		defer func() {
-			if err := resp.Body.Close(); err != nil {
-				log.TErrorf("failed to close response body, error: %s", err)
-			}
-		}()
-
-		if resp.StatusCode != http.StatusOK {
-			log.TErrorf("Submit failed, status code: %d, headers: %s", resp.StatusCode, resp.Header)
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return fmt.Errorf("failed to read response body, error: %s", err)
-			}
-			return fmt.Errorf("failed to submit results, body: %s", body)
-		}
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to submit, error: %s", err)
-	}
-	return nil
-}
-
 func printDirTree() {
 	cmd := command.New("which", "tree")
 	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
@@ -103,6 +59,7 @@ func main() {
 		failf("Invalid configuration: %s", err)
 	}
 	stepconf.Print(cfg)
+	log.SetEnableDebugLog(cfg.DebugLog)
 
 	if cfg.EnableRepoClone {
 		if strings.TrimSpace(cfg.RepositoryURL) == "" {
@@ -113,7 +70,17 @@ func main() {
 		}
 	}
 
-	log.SetEnableDebugLog(cfg.DebugLog)
+	var resultClient *resultClient
+	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
+		if strings.TrimSpace(string(cfg.ResultSubmitAPIToken)) == "" {
+			log.TWarnf("Build trigger token is empty.")
+		}
+
+		var err error
+		if resultClient, err = newResultClient(cfg.RepositoryURL, cfg.ResultSubmitAPIToken); err != nil {
+			failf(fmt.Sprintf("%v", err))
+		}
+	}
 
 	if !(runtime.GOOS == "darwin" || runtime.GOOS == "linux") {
 		failf("Unsupported OS: %s", runtime.GOOS)
@@ -165,21 +132,10 @@ func main() {
 	result, platformsDetected := scanner.GenerateScanResult(searchDir)
 
 	// Upload results
-	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
+	if resultClient != nil {
 		log.TInfof("Submitting results...")
 
-		if strings.TrimSpace(string(cfg.ResultSubmitAPIToken)) == "" {
-			log.TWarnf("Build trigger token is empty.")
-		}
-		submitURL, err := url.Parse(cfg.ResultSubmitURL)
-		if err != nil {
-			failf("could not parse submit URL, error: %s", err)
-		}
-		q := submitURL.Query()
-		q.Add("api_token", url.QueryEscape(string(cfg.ResultSubmitAPIToken)))
-		submitURL.RawQuery = q.Encode()
-
-		if err := uploadResults(submitURL, result); err != nil {
+		if err := resultClient.uploadResults(result); err != nil {
 			failf("Failed to submit results, error: %s", err)
 		}
 		log.TDonef("Submitted.")
