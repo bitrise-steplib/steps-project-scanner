@@ -53,6 +53,60 @@ func printDirTree() {
 	}
 }
 
+type repoConfig struct {
+	CloneIntoDir     string
+	RepositoryURL    string
+	SSHRsaPrivateKey stepconf.Secret
+	Branch           string
+}
+
+func cloneRepo(cfg repoConfig) error {
+	if strings.TrimSpace(cfg.RepositoryURL) == "" {
+		failf("Repository URL input missing.")
+	}
+	if strings.TrimSpace(cfg.Branch) == "" {
+		failf("Repository branch input missing.")
+	}
+
+	// Activate SSH key is optional
+	if cfg.SSHRsaPrivateKey != "" {
+		if err := activatesshkey.Execute(activatesshkey.Config{
+			SSHRsaPrivateKey:        cfg.SSHRsaPrivateKey,
+			SSHKeySavePath:          "$HOME/.ssh/steplib_ssh_step_id_rsa",
+			IsRemoveOtherIdentities: false,
+		}); err != nil {
+			return fmt.Errorf("Activate SSH key failed: %v", err)
+		}
+	}
+
+	// Git clone
+	if err := gitclone.Execute(gitclone.Config{
+		RepositoryURL: cfg.RepositoryURL,
+		CloneIntoDir:  cfg.CloneIntoDir, // Using same directory later to run scan
+		Commit:        "",
+		Tag:           "",
+		Branch:        cfg.Branch,
+
+		BranchDest:      "",
+		PRID:            0,
+		PRRepositoryURL: "",
+		PRMergeBranch:   "",
+		ResetRepository: false,
+		CloneDepth:      0,
+
+		// BuildURL and BuildAPIToken used for merging only
+		BuildURL:      "",
+		BuildAPIToken: "",
+
+		UpdateSubmodules: true,
+		ManualMerge:      true,
+	}); err != nil {
+		return fmt.Errorf("Git clone step failed: %v", err)
+	}
+
+	return nil
+}
+
 func main() {
 	var cfg config
 	if err := stepconf.Parse(&cfg); err != nil {
@@ -60,15 +114,6 @@ func main() {
 	}
 	stepconf.Print(cfg)
 	log.SetEnableDebugLog(cfg.DebugLog)
-
-	if cfg.EnableRepoClone {
-		if strings.TrimSpace(cfg.RepositoryURL) == "" {
-			failf("Repository URL input missing.")
-		}
-		if strings.TrimSpace(cfg.Branch) == "" {
-			failf("Repository branch input missing.")
-		}
-	}
 
 	var resultClient *resultClient
 	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
@@ -87,40 +132,37 @@ func main() {
 	}
 
 	if cfg.EnableRepoClone {
-		// Activate SSH key is optional
-		if cfg.SSHRsaPrivateKey != "" {
-			if err := activatesshkey.Execute(activatesshkey.Config{
-				SSHRsaPrivateKey:        cfg.SSHRsaPrivateKey,
-				SSHKeySavePath:          "$HOME/.ssh/steplib_ssh_step_id_rsa",
-				IsRemoveOtherIdentities: false,
-			}); err != nil {
-				failf("Activate SSH key failed: %v", err)
-			}
-		}
-
-		// Git clone
-		if err := gitclone.Execute(gitclone.Config{
-			RepositoryURL: cfg.RepositoryURL,
-			CloneIntoDir:  cfg.ScanDirectory, // Using same directory later to run scan
-			Commit:        "",
-			Tag:           "",
-			Branch:        cfg.Branch,
-
-			BranchDest:      "",
-			PRID:            0,
-			PRRepositoryURL: "",
-			PRMergeBranch:   "",
-			ResetRepository: false,
-			CloneDepth:      0,
-
-			// BuildURL and BuildAPIToken used for merging only
-			BuildURL:      "",
-			BuildAPIToken: "",
-
-			UpdateSubmodules: true,
-			ManualMerge:      true,
+		if err := cloneRepo(repoConfig{
+			CloneIntoDir:     cfg.ScanDirectory,
+			RepositoryURL:    cfg.RepositoryURL,
+			SSHRsaPrivateKey: cfg.SSHRsaPrivateKey,
+			Branch:           cfg.Branch,
 		}); err != nil {
-			failf("Git clone step failed: %v", err)
+			switch stepErr := err.(type) {
+			case *activatesshkey.StepError:
+				stepID := "activate-ssh-key"
+				if resultClient != nil {
+					resultClient.uploadErrorResult(stepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
+				}
+				LogError(stepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
+				break
+			case *gitclone.StepError:
+				stepID := "git-clone"
+				if resultClient != nil {
+					resultClient.uploadErrorResult(stepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
+				}
+				LogError(stepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
+				break
+			default:
+				stepID := "project-scanner"
+				if resultClient != nil {
+					resultClient.uploadErrorResult(stepID, "unknown_error", err, "Unknown error occured")
+				}
+				LogError(stepID, "unknown_error", err, "Unknown error occured")
+				break
+			}
+
+			failf("%v", err)
 		}
 	}
 
@@ -134,10 +176,10 @@ func main() {
 	// Upload results
 	if resultClient != nil {
 		log.TInfof("Submitting results...")
-
 		if err := resultClient.uploadResults(result); err != nil {
 			failf("Failed to submit results, error: %s", err)
 		}
+
 		log.TDonef("Submitted.")
 	}
 
