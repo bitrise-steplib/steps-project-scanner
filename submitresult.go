@@ -78,6 +78,7 @@ func (c *resultClient) uploadResults(result models.ScanResultModel) error {
 			}
 		}()
 
+		resp.Header.Del("Set-Cookie") // Removing sensitive info
 		respDump, err := httputil.DumpResponse(resp, true)
 		if err != nil {
 			log.TWarnf("failed to dump response: %s", err)
@@ -86,7 +87,6 @@ func (c *resultClient) uploadResults(result models.ScanResultModel) error {
 				log.TWarnf("failed to dump response: %s", err)
 			}
 		}
-		log.Debugf("Response: %s", respDump)
 
 		if resp.StatusCode != http.StatusOK {
 			log.TErrorf("Submit failed, url: %s request: %s, response: %s", c.URL.String(), reqDump, respDump)
