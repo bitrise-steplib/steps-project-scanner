@@ -130,19 +130,19 @@
 
 [[projects]]
   branch = "ACT-625-scanner-custom-error"
-  digest = "1:848d4cfc43315b9f7d9287facb878829ea11856396f238b33d5d051c3290d5e3"
+  digest = "1:b4ad1b49591a2ba009cb38f95a785d0afff707fbf45dbe49455c550d8be0031d"
   name = "github.com/bitrise-steplib/steps-activate-ssh-key"
   packages = ["activatesshkey"]
   pruneopts = "UT"
-  revision = "76ffc7921a97dfccc0da3f1b12b39c9aeadd16cf"
+  revision = "1146478887a7f821b2ad4745492e83c3c2de3d37"
 
 [[projects]]
   branch = "ACT-625-scanner-custom-error"
-  digest = "1:76f5aaa65afb7a1a144198e5b058c51e4f053fa9ca3418ffc9cf6863f0c91ce5"
+  digest = "1:a6056927685194e0994d1fdb8803ffec2c8f8db1257127ae4e0891fac7a18a14"
   name = "github.com/bitrise-steplib/steps-git-clone"
   packages = ["gitclone"]
   pruneopts = "UT"
-  revision = "ef072f24e9f5d437313b715769ba2d6414052e13"
+  revision = "c94acb0fa6da9b5b1bebc36135e9c0af0bfb47ed"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -170,7 +170,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f262bf39b4a2c91c06d628dfe9717179d8e41b78b48e5ea2f4b19c84445ac424"
+  digest = "1:be8ebb6df92260db45d0fcfb81d3aedcdbc557f6858e0d051d881d12bb3c0393"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
@@ -178,7 +178,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "8445cc04cbdfe9efda9c41b54675f931275b37bc"
+  revision = "c1f3e3309c71a23ccb90cb6427b13ee385c1c186"
 
 [[projects]]
   digest = "1:a2c690dfee42801a26a0e88f69206feca8a3c2437fd476d84767468d7d7708e9"

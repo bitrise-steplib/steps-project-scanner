@@ -22,7 +22,7 @@ func Execute(cfg Config) *StepError {
 	// Remove SSHRsaPrivateKey from envs
 	if err := unsetEnvsBy(string(cfg.SSHRsaPrivateKey)); err != nil {
 		return NewStepError(
-			"remove-private-key-data",
+			"removing_private_key_data_failed",
 			fmt.Errorf("failed to remove private key data from envs: %v", err),
 			"Failed to remove private key data from envs",
 		)
@@ -30,7 +30,7 @@ func Execute(cfg Config) *StepError {
 
 	if err := ensureSavePath(cfg.SSHKeySavePath); err != nil {
 		return NewStepError(
-			"create-ssh-save-path",
+			"creating_ssh_save_path_failed",
 			fmt.Errorf("failed to create the provided path: %v", err),
 			"Failed to create the provided path",
 		)
@@ -38,7 +38,7 @@ func Execute(cfg Config) *StepError {
 
 	if err := fileutil.WriteStringToFile(cfg.SSHKeySavePath, string(cfg.SSHRsaPrivateKey)); err != nil {
 		return NewStepError(
-			"write-ssh-key",
+			"writing_ssh_key_failed",
 			fmt.Errorf("failed to write the SSH key to the provided path: %v", err),
 			"Failed to write the SSH key to the provided path",
 		)
@@ -46,7 +46,7 @@ func Execute(cfg Config) *StepError {
 
 	if err := os.Chmod(cfg.SSHKeySavePath, 0600); err != nil {
 		return NewStepError(
-			"change-ssh-key-permission",
+			"changing_ssh_key_permission_failed",
 			fmt.Errorf("failed to change file's access permission: %v", err),
 			"Failed to change file's access permission",
 		)
@@ -54,7 +54,7 @@ func Execute(cfg Config) *StepError {
 
 	if err := restartAgent(cfg.IsRemoveOtherIdentities); err != nil {
 		return NewStepError(
-			"restart-ssh-agent",
+			"restarting_ssh_agent_failed",
 			fmt.Errorf("failed to restart SSH Agent: %v", err),
 			"Failed to restart SSH Agent",
 		)
@@ -62,7 +62,7 @@ func Execute(cfg Config) *StepError {
 
 	if err := checkPassphrase(cfg.SSHKeySavePath); err != nil {
 		return NewStepError(
-			"check-passphrase",
+			"ssh_key_requries_passphrase",
 			fmt.Errorf("SSH key requires passphrase: %v", err),
 			"SSH key requires passphrase",
 		)
