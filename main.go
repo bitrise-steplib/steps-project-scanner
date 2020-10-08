@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"runtime"
 	"strings"
 
@@ -83,7 +84,7 @@ func cloneRepo(cfg repoConfig) error {
 	if cfg.SSHRsaPrivateKey != "" {
 		if err := activatesshkey.Execute(activatesshkey.Config{
 			SSHRsaPrivateKey:        cfg.SSHRsaPrivateKey,
-			SSHKeySavePath:          "$HOME/.ssh/steplib_ssh_step_id_rsa",
+			SSHKeySavePath:          path.Join(pathutil.UserHomeDir(), ".ssh", "steplib_ssh_step_id_rsa"),
 			IsRemoveOtherIdentities: false,
 		}); err != nil {
 			return err
