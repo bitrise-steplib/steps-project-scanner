@@ -64,14 +64,16 @@ type repoConfig struct {
 }
 
 func cloneRepo(cfg repoConfig) *step.Error {
-	if strings.TrimSpace(cfg.RepositoryURL) == "" {
+	cfg.RepositoryURL = strings.TrimSpace(cfg.RepositoryURL)
+	cfg.Branch = strings.TrimSpace(cfg.Branch)
+	if cfg.RepositoryURL == "" {
 		return newStepError(
 			"input_parse_failed",
 			errors.New("repository URL input missing"),
 			"Repository URL unspecified",
 		)
 	}
-	if strings.TrimSpace(cfg.Branch) == "" {
+	if cfg.Branch == "" {
 		return newStepError(
 			"input_parse_failed",
 			errors.New("repository bracnh input missing"),
