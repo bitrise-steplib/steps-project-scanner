@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c81ae73cd2899923327623948ab4c794847deb78f26af8485f56c60b675ab3cc"
+  digest = "1:36097b4a020dc67da1fea9feabf09de52041ec07b84a62753b8e6017eabf913c"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "analytics",
@@ -36,12 +36,13 @@
     "scanners/macos",
     "scanners/reactnative",
     "scanners/xamarin",
+    "step",
     "steps",
     "toolscanner",
     "utility",
   ]
   pruneopts = "UT"
-  revision = "9da0085bd633200aab43b9ab23513dd43a103ebb"
+  revision = "82537a6f1161d7c70e28c592c63b8cde99cf3f72"
 
 [[projects]]
   branch = "master"
@@ -130,19 +131,19 @@
 
 [[projects]]
   branch = "ACT-625-scanner-custom-error"
-  digest = "1:b4ad1b49591a2ba009cb38f95a785d0afff707fbf45dbe49455c550d8be0031d"
+  digest = "1:276e426f140a76710927362733ac7db6a0f54ccfa61cc7a576bd99d57e20ea6a"
   name = "github.com/bitrise-steplib/steps-activate-ssh-key"
   packages = ["activatesshkey"]
   pruneopts = "UT"
-  revision = "1146478887a7f821b2ad4745492e83c3c2de3d37"
+  revision = "3c71621aaa285cf8a7a70fc55b62ad9f5c769291"
 
 [[projects]]
   branch = "ACT-625-scanner-custom-error"
-  digest = "1:a6056927685194e0994d1fdb8803ffec2c8f8db1257127ae4e0891fac7a18a14"
+  digest = "1:edffe05aca350915485adc331ca526bd450dc60bbc30542a2e74da7a61805405"
   name = "github.com/bitrise-steplib/steps-git-clone"
   packages = ["gitclone"]
   pruneopts = "UT"
-  revision = "c94acb0fa6da9b5b1bebc36135e9c0af0bfb47ed"
+  revision = "5d682c109abcad032c3dabed740e9a1e497c90bf"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -170,7 +171,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:be8ebb6df92260db45d0fcfb81d3aedcdbc557f6858e0d051d881d12bb3c0393"
+  digest = "1:af008e4fa3887740da150c37e8eb6fd97de3ae8f4c2dff2a6768fbba64e11e01"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
@@ -178,7 +179,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "c1f3e3309c71a23ccb90cb6427b13ee385c1c186"
+  revision = "dfb3f7c4e6342ab64fe0e22bde473c74a5699721"
 
 [[projects]]
   digest = "1:a2c690dfee42801a26a0e88f69206feca8a3c2437fd476d84767468d7d7708e9"
@@ -217,6 +218,7 @@
   input-imports = [
     "github.com/bitrise-io/bitrise-init/models",
     "github.com/bitrise-io/bitrise-init/scanner",
+    "github.com/bitrise-io/bitrise-init/step",
     "github.com/bitrise-io/go-steputils/stepconf",
     "github.com/bitrise-io/go-utils/command",
     "github.com/bitrise-io/go-utils/log",

@@ -1,21 +1,9 @@
 package activatesshkey
 
-// StepError is an error occuring top level in a step
-type StepError struct {
-	StepID, Tag, ShortMsg string
-	Err                   error
-}
+import (
+	"github.com/bitrise-io/bitrise-init/step"
+)
 
-// NewStepError constructs a git-clone step error
-func NewStepError(tag string, err error, shortMsg string) *StepError {
-	return &StepError{
-		StepID:   "activate-ssh-key",
-		Tag:      tag,
-		Err:      err,
-		ShortMsg: shortMsg,
-	}
-}
-
-func (e *StepError) Error() string {
-	return e.Err.Error()
+func newStepError(tag string, err error, shortMsg string) *step.Error {
+	return step.NewError("activate-ssh-key", tag, err, shortMsg)
 }

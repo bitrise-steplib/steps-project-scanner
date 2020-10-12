@@ -2,10 +2,10 @@ package gitclone
 
 import (
 	"fmt"
-	"strings"
 
+	"github.com/bitrise-io/bitrise-init/step"
 	"github.com/bitrise-io/envman/envman"
-	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/command/git"
 	"github.com/bitrise-io/go-utils/log"
 )
@@ -48,16 +48,10 @@ func printLogAndExportEnv(gitCmd git.Git, format, env string, maxEnvLength int) 
 	}
 
 	log.Printf("=> %s\n   value: %s\n", env, l)
-	if err := exportEnvironmentWithEnvman(env, l); err != nil {
+	if err := tools.ExportEnvironmentWithEnvman(env, l); err != nil {
 		return fmt.Errorf("envman export, error: %v", err)
 	}
 	return nil
-}
-
-func exportEnvironmentWithEnvman(keyStr, valueStr string) error {
-	cmd := command.New("envman", "add", "--key", keyStr)
-	cmd.SetStdin(strings.NewReader(valueStr))
-	return cmd.Run()
 }
 
 func getMaxEnvLength() (int, error) {
@@ -70,10 +64,10 @@ func getMaxEnvLength() (int, error) {
 }
 
 // Execute is the entry point of the git clone process
-func Execute(cfg Config) *StepError {
+func Execute(cfg Config) *step.Error {
 	maxEnvLength, err := getMaxEnvLength()
 	if err != nil {
-		return NewStepError(
+		return newStepError(
 			"get_max_commit_msg_length_failed",
 			fmt.Errorf("failed to set commit message length: %s", err),
 			"Getting allowed commit message length failed",
@@ -82,7 +76,7 @@ func Execute(cfg Config) *StepError {
 
 	gitCmd, err := git.New(cfg.CloneIntoDir)
 	if err != nil {
-		return NewStepError(
+		return newStepError(
 			"git_new",
 			fmt.Errorf("failed to create git project directory: %v", err),
 			"Creating new git project directory failed",
@@ -92,7 +86,7 @@ func Execute(cfg Config) *StepError {
 
 	originPresent, err := isOriginPresent(gitCmd, cfg.CloneIntoDir, cfg.RepositoryURL)
 	if err != nil {
-		return NewStepError(
+		return newStepError(
 			"check_origin_present_failed",
 			fmt.Errorf("checking if origin is present failed: %v", err),
 			"Checking wether origin is present failed",
@@ -101,7 +95,7 @@ func Execute(cfg Config) *StepError {
 
 	if originPresent && cfg.ResetRepository {
 		if err := resetRepo(gitCmd); err != nil {
-			return NewStepError(
+			return newStepError(
 				"reset_repository_failed",
 				fmt.Errorf("reset repository failed: %v", err),
 				"Resetting repository failed",
@@ -109,7 +103,7 @@ func Execute(cfg Config) *StepError {
 		}
 	}
 	if err := run(gitCmd.Init()); err != nil {
-		return NewStepError(
+		return newStepError(
 			"init_git_failed",
 			fmt.Errorf("initializing repository failed: %v", err),
 			"Initializing git has failed",
@@ -117,7 +111,7 @@ func Execute(cfg Config) *StepError {
 	}
 	if !originPresent {
 		if err := run(gitCmd.RemoteAdd("origin", cfg.RepositoryURL)); err != nil {
-			return NewStepError(
+			return newStepError(
 				"add_remote_failed",
 				fmt.Errorf("adding remote repository failed (%s): %v", cfg.RepositoryURL, err),
 				"Adding remote repository failed",
@@ -130,7 +124,7 @@ func Execute(cfg Config) *StepError {
 		if !cfg.ManualMerge || isPrivate(cfg.PRRepositoryURL) && isFork(cfg.RepositoryURL, cfg.PRRepositoryURL) {
 			if err := autoMerge(gitCmd, cfg.PRMergeBranch, cfg.BranchDest, cfg.BuildURL,
 				cfg.BuildAPIToken, cfg.CloneDepth, cfg.PRID); err != nil {
-				return NewStepError(
+				return newStepError(
 					"auto_merge_failed",
 					fmt.Errorf("merging PR (automatic) failed: %v", err),
 					"Merging pull request failed",
@@ -139,7 +133,7 @@ func Execute(cfg Config) *StepError {
 		} else {
 			if err := manualMerge(gitCmd, cfg.RepositoryURL, cfg.PRRepositoryURL, cfg.Branch,
 				cfg.Commit, cfg.BranchDest); err != nil {
-				return NewStepError(
+				return newStepError(
 					"manual_merge_failed",
 					fmt.Errorf("merging PR (manual) failed: %v", err),
 					"Merging pull request failed",
@@ -153,7 +147,7 @@ func Execute(cfg Config) *StepError {
 		// Update branch: 'git fetch' followed by a 'git merge' is the same as 'git pull'.
 		if checkoutArg == cfg.Branch {
 			if err := run(gitCmd.Merge("origin/" + cfg.Branch)); err != nil {
-				return NewStepError(
+				return newStepError(
 					"update_branch_failed",
 					fmt.Errorf("updating branch (merge) failed %q: %v", cfg.Branch, err),
 					"Updating branch failed",
@@ -164,7 +158,7 @@ func Execute(cfg Config) *StepError {
 
 	if cfg.UpdateSubmodules {
 		if err := run(gitCmd.SubmoduleUpdate()); err != nil {
-			return NewStepError(
+			return newStepError(
 				"update_submodule_failed",
 				fmt.Errorf("submodule update: %v", err),
 				"Updating submodules has failed",
@@ -174,7 +168,7 @@ func Execute(cfg Config) *StepError {
 
 	if isPR {
 		if err := run(gitCmd.Checkout("--detach")); err != nil {
-			return NewStepError(
+			return newStepError(
 				"detach_head_failed",
 				fmt.Errorf("detach head failed: %v", err),
 				"Detaching head failed",
@@ -195,7 +189,7 @@ func Execute(cfg Config) *StepError {
 			`%ce`: "GIT_CLONE_COMMIT_COMMITER_EMAIL",
 		} {
 			if err := printLogAndExportEnv(gitCmd, format, env, maxEnvLength); err != nil {
-				return NewStepError(
+				return newStepError(
 					"export_envs_failed",
 					fmt.Errorf("gitCmd log failed: %v", err),
 					"Exporting envs failed",
@@ -205,7 +199,7 @@ func Execute(cfg Config) *StepError {
 
 		count, err := output(gitCmd.RevList("HEAD", "--count"))
 		if err != nil {
-			return NewStepError(
+			return newStepError(
 				"count_commits_failed",
 				fmt.Errorf("get rev-list failed: %v", err),
 				"Counting commits failed",
@@ -213,8 +207,8 @@ func Execute(cfg Config) *StepError {
 		}
 
 		log.Printf("=> %s\n   value: %s\n", "GIT_CLONE_COMMIT_COUNT", count)
-		if err := exportEnvironmentWithEnvman("GIT_CLONE_COMMIT_COUNT", count); err != nil {
-			return NewStepError(
+		if err := tools.ExportEnvironmentWithEnvman("GIT_CLONE_COMMIT_COUNT", count); err != nil {
+			return newStepError(
 				"export_envs_commit_count_failed",
 				fmt.Errorf("envman export failed: %v", err),
 				"Exporting commit count env failed",
