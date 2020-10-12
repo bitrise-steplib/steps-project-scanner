@@ -139,7 +139,7 @@ func main() {
 		handleStepError := func(stepID, tag string, err error, shortMsg string) {
 			LogError(stepID, tag, err, shortMsg)
 			if resultClient != nil {
-				if err := resultClient.uploadErrorResult(stepID, tag, err, shortMsg); err != nil {
+				if err := resultClient.uploadErrorResult(stepID, err); err != nil {
 					log.TWarnf("Failed to submit result: %s", err)
 				}
 			}
@@ -151,7 +151,7 @@ func main() {
 			SSHRsaPrivateKey: cfg.SSHRsaPrivateKey,
 			Branch:           cfg.Branch,
 		}); err != nil {
-			handleStepError("project-scanner", "unknown_error", err, "Unknown error occured")
+			handleStepError(err.StepID, err.Tag, err, err.ShortMsg)
 
 			failf("%v", err)
 		}
