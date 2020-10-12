@@ -1,23 +1,21 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
+	"path"
 	"runtime"
 	"strings"
-	"time"
 
-	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/scanner"
+	"github.com/bitrise-io/bitrise-init/step"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/go-utils/retry"
+	"github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey"
+	"github.com/bitrise-steplib/steps-git-clone/gitclone"
 )
 
 type config struct {
@@ -25,50 +23,22 @@ type config struct {
 	ResultSubmitURL      string          `env:"scan_result_submit_url"`
 	ResultSubmitAPIToken stepconf.Secret `env:"scan_result_submit_api_token"`
 	IconCandidatesURL    string          `env:"icon_candidates_url"`
-	// Debug
-	DebugLog bool `env:"verbose_log,opt[false,true]"`
+	DebugLog             bool            `env:"verbose_log,opt[false,true]"`
+
+	// Enable activate SSH key and git clone
+	EnableRepoClone bool `env:"enable_repo_clone"`
+
+	// Activate SSH Key step
+	SSHRsaPrivateKey stepconf.Secret `env:"ssh_rsa_private_key"`
+
+	// Git clone step
+	RepositoryURL string `env:"repository_url"`
+	Branch        string `env:"branch"`
 }
 
 func failf(format string, args ...interface{}) {
 	log.TErrorf(format, args...)
 	os.Exit(1)
-}
-
-func uploadResults(submitURL *url.URL, result models.ScanResultModel) error {
-	bytes, err := json.MarshalIndent(result, "", "\t")
-	if err != nil {
-		return fmt.Errorf("failed to marshal results, error: %s", err)
-	}
-
-	if err := retry.Times(1).Wait(5 * time.Second).Try(func(attempt uint) error {
-		if attempt != 0 {
-			log.TWarnf("%d query attempt failed", attempt)
-		}
-
-		resp, err := http.Post(submitURL.String(), "application/json", strings.NewReader(string(bytes)))
-		if err != nil {
-			return fmt.Errorf("failed to submit results, error: %s", err)
-		}
-
-		defer func() {
-			if err := resp.Body.Close(); err != nil {
-				log.TErrorf("failed to close response body, error: %s", err)
-			}
-		}()
-
-		if resp.StatusCode != http.StatusOK {
-			log.TErrorf("Submit failed, status code: %d, headers: %s", resp.StatusCode, resp.Header)
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return fmt.Errorf("failed to read response body, error: %s", err)
-			}
-			return fmt.Errorf("failed to submit results, body: %s", body)
-		}
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to submit, error: %s", err)
-	}
-	return nil
 }
 
 func printDirTree() {
@@ -86,17 +56,105 @@ func printDirTree() {
 	}
 }
 
+type repoConfig struct {
+	CloneIntoDir     string
+	RepositoryURL    string
+	SSHRsaPrivateKey stepconf.Secret
+	Branch           string
+}
+
+func cloneRepo(cfg repoConfig) *step.Error {
+	cfg.RepositoryURL = strings.TrimSpace(cfg.RepositoryURL)
+	cfg.Branch = strings.TrimSpace(cfg.Branch)
+	if cfg.RepositoryURL == "" {
+		return newStepError(
+			"input_parse_failed",
+			errors.New("repository URL input missing"),
+			"Repository URL unspecified",
+		)
+	}
+	if cfg.Branch == "" {
+		return newStepError(
+			"input_parse_failed",
+			errors.New("repository bracnh input missing"),
+			"Repository branch unspecified",
+		)
+	}
+
+	// Activate SSH key is optional
+	if cfg.SSHRsaPrivateKey != "" {
+		if err := activatesshkey.Execute(activatesshkey.Config{
+			SSHRsaPrivateKey:        cfg.SSHRsaPrivateKey,
+			SSHKeySavePath:          path.Join(pathutil.UserHomeDir(), ".ssh", "steplib_ssh_step_id_rsa"),
+			IsRemoveOtherIdentities: false,
+		}); err != nil {
+			return err
+		}
+	}
+
+	// Git clone
+	if err := gitclone.Execute(gitclone.Config{
+		RepositoryURL: cfg.RepositoryURL,
+		CloneIntoDir:  cfg.CloneIntoDir, // Using same directory later to run scan
+		Branch:        cfg.Branch,
+
+		// BuildURL and BuildAPIToken used for merging only
+		BuildURL:      "",
+		BuildAPIToken: "",
+
+		UpdateSubmodules: true,
+		ManualMerge:      true,
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	var cfg config
 	if err := stepconf.Parse(&cfg); err != nil {
 		failf("Invalid configuration: %s", err)
 	}
 	stepconf.Print(cfg)
-
 	log.SetEnableDebugLog(cfg.DebugLog)
+
+	var resultClient *resultClient
+	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
+		if strings.TrimSpace(string(cfg.ResultSubmitAPIToken)) == "" {
+			log.TWarnf("Build trigger token is empty.")
+		}
+
+		var err error
+		if resultClient, err = newResultClient(cfg.ResultSubmitURL, cfg.ResultSubmitAPIToken); err != nil {
+			failf(fmt.Sprintf("%v", err))
+		}
+	}
 
 	if !(runtime.GOOS == "darwin" || runtime.GOOS == "linux") {
 		failf("Unsupported OS: %s", runtime.GOOS)
+	}
+
+	if cfg.EnableRepoClone {
+		handleStepError := func(stepID, tag string, err error, shortMsg string) {
+			LogError(stepID, tag, err, shortMsg)
+			if resultClient != nil {
+				if err := resultClient.uploadErrorResult(stepID, err); err != nil {
+					log.TWarnf("Failed to submit result: %s", err)
+				}
+			}
+		}
+
+		if err := cloneRepo(repoConfig{
+			CloneIntoDir:     cfg.ScanDirectory,
+			RepositoryURL:    cfg.RepositoryURL,
+			SSHRsaPrivateKey: cfg.SSHRsaPrivateKey,
+			Branch:           cfg.Branch,
+		}); err != nil {
+			handleStepError(err.StepID, err.Tag, err, err.ShortMsg)
+
+			failf("%v", err)
+		}
 	}
 
 	searchDir, err := pathutil.AbsPath(cfg.ScanDirectory)
@@ -107,23 +165,12 @@ func main() {
 	result, platformsDetected := scanner.GenerateScanResult(searchDir)
 
 	// Upload results
-	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
+	if resultClient != nil {
 		log.TInfof("Submitting results...")
+		if err := resultClient.uploadResults(result); err != nil {
+			failf("Could not send back results: %s", err)
+		}
 
-		if strings.TrimSpace(string(cfg.ResultSubmitAPIToken)) == "" {
-			log.TWarnf("Build trigger token is empty.")
-		}
-		submitURL, err := url.Parse(cfg.ResultSubmitURL)
-		if err != nil {
-			failf("could not parse submit URL, error: %s", err)
-		}
-		q := submitURL.Query()
-		q.Add("api_token", url.QueryEscape(string(cfg.ResultSubmitAPIToken)))
-		submitURL.RawQuery = q.Encode()
-
-		if err := uploadResults(submitURL, result); err != nil {
-			failf("Failed to submit results, error: %s", err)
-		}
 		log.TDonef("Submitted.")
 	}
 

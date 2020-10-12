@@ -176,6 +176,36 @@ workflows:
         - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
+    before_run:
+    - test_repo_clone
+
+  
+  test_repo_clone:
+    envs:
+        - CLONE_INTO_DIR: _tmp
+        - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
+    steps:
+    - script:
+        title: "Scan test built in repo clone"
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -x
+
+            rm -rf $CLONE_INTO_DIR
+            mkdir $CLONE_INTO_DIR
+            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
+            envman add --key SAMPLE_APP_REPOSITORY_URL --value $SAMPLE_APP_REPOSITORY_URL
+    - path::./:
+        title: Step Test
+        inputs:
+        - scan_dir: $CLONE_INTO_DIR
+        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
+        - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
+        - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
+        - enable_repo_clone: "yes"
+        - repository_url: $SAMPLE_APP_REPOSITORY_URL
+        - branch: master
 
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
