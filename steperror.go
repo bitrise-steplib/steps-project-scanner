@@ -1,13 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/bitrise-io/bitrise-init/step"
 
-// stepError is an error occuring top level in a step
-type stepError struct {
-	StepID, Tag, ShortMsg string
-	Err                   error
-}
-
-func (e *stepError) Error() string {
-	return fmt.Sprintf("%s, %v", e.ShortMsg, e.Err.Error())
+func newStepError(tag string, err error, shortMsg string) *step.Error {
+	return step.NewError("project-scanner", tag, err, shortMsg)
 }

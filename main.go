@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/bitrise-io/bitrise-init/scanner"
+	"github.com/bitrise-io/bitrise-init/step"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
@@ -62,22 +63,20 @@ type repoConfig struct {
 	Branch           string
 }
 
-func cloneRepo(cfg repoConfig) error {
+func cloneRepo(cfg repoConfig) *step.Error {
 	if strings.TrimSpace(cfg.RepositoryURL) == "" {
-		return &stepError{
-			StepID:   "project-scanner",
-			Tag:      "input_parse_failed",
-			ShortMsg: "Repository URL unspecified",
-			Err:      errors.New("repository URL input missing"),
-		}
+		return newStepError(
+			"input_parse_failed",
+			errors.New("repository URL input missing"),
+			"Repository URL unspecified",
+		)
 	}
 	if strings.TrimSpace(cfg.Branch) == "" {
-		return &stepError{
-			StepID:   "project-scanner",
-			Tag:      "input_parse_failed",
-			ShortMsg: "Repository branch unspecified",
-			Err:      errors.New("repository bracnh input missing"),
-		}
+		return newStepError(
+			"input_parse_failed",
+			errors.New("repository bracnh input missing"),
+			"Repository branch unspecified",
+		)
 	}
 
 	// Activate SSH key is optional
@@ -150,16 +149,7 @@ func main() {
 			SSHRsaPrivateKey: cfg.SSHRsaPrivateKey,
 			Branch:           cfg.Branch,
 		}); err != nil {
-			switch stepErr := err.(type) {
-			case *activatesshkey.StepError:
-				handleStepError(stepErr.StepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
-			case *gitclone.StepError:
-				handleStepError(stepErr.StepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
-			case *stepError:
-				handleStepError(stepErr.StepID, stepErr.Tag, stepErr.Err, stepErr.ShortMsg)
-			default:
-				handleStepError("project-scanner", "unknown_error", err, "Unknown error occured")
-			}
+			handleStepError("project-scanner", "unknown_error", err, "Unknown error occured")
 
 			failf("%v", err)
 		}
