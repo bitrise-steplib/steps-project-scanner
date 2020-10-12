@@ -130,20 +130,20 @@
   revision = "9481b30b489b9eaf073c818fcf4817b5b3224285"
 
 [[projects]]
-  branch = "ACT-625-scanner-custom-error"
+  branch = "master"
   digest = "1:276e426f140a76710927362733ac7db6a0f54ccfa61cc7a576bd99d57e20ea6a"
   name = "github.com/bitrise-steplib/steps-activate-ssh-key"
   packages = ["activatesshkey"]
   pruneopts = "UT"
-  revision = "3c71621aaa285cf8a7a70fc55b62ad9f5c769291"
+  revision = "e0112276ec1d58d9e0ec59ed0bb43f12c945af07"
 
 [[projects]]
-  branch = "ACT-625-scanner-custom-error"
+  branch = "master"
   digest = "1:edffe05aca350915485adc331ca526bd450dc60bbc30542a2e74da7a61805405"
   name = "github.com/bitrise-steplib/steps-git-clone"
   packages = ["gitclone"]
   pruneopts = "UT"
-  revision = "5d682c109abcad032c3dabed740e9a1e497c90bf"
+  revision = "3bc9729f262016e3a4dd0e10d931f7fae368e967"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
