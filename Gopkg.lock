@@ -139,11 +139,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:91504b9f45c3c0682b6a61291ceeb0dfd562a56c86961798edda62ffff5b57a0"
+  digest = "1:03ec4c07233919b979b5e1e756ebbe309e1771f9b65f0fcca90536132a51d8cc"
   name = "github.com/bitrise-steplib/steps-git-clone"
   packages = ["gitclone"]
   pruneopts = "UT"
-  revision = "a15dd4274b1ed8fb6706bc1cdc06e885d7f48f56"
+  revision = "9876195f23b91d003dc8940242916272e46a5468"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -171,7 +171,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:16da094ce218b90ace8c775d3b163060f1cc912f37fa2e3bc6380b5eb0da69fc"
+  digest = "1:42c394662e2c373dc2894bd10e46df4d6b15adffef51fc71aa4ded4b1887aadb"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
@@ -179,7 +179,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "eeed37f84f13f52d35e095e8023ba65671ff86a1"
+  revision = "6e5568b54d1aaee5899c0083c5776f88b8c5b907"
 
 [[projects]]
   digest = "1:a2c690dfee42801a26a0e88f69206feca8a3c2437fd476d84767468d7d7708e9"

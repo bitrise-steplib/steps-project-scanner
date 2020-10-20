@@ -1,7 +1,10 @@
 package gitclone
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -13,6 +16,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/step"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/command/git"
+	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
@@ -106,12 +110,30 @@ func getDiffFile(buildURL, apiToken string, prID int) (string, error) {
 }
 
 func run(c *command.Model) error {
-	log.Infof(c.PrintableCommandArgs())
-	return c.SetStdout(os.Stdout).SetStderr(os.Stderr).Run()
+	fmt.Println()
+	log.Infof("$ %s", c.PrintableCommandArgs())
+	var buffer bytes.Buffer
+
+	err := c.SetStdout(os.Stdout).SetStderr(io.MultiWriter(os.Stderr, &buffer)).Run()
+	if err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return errors.New(strings.TrimSpace(buffer.String()))
+		}
+		return err
+	}
+
+	return nil
 }
 
 func output(c *command.Model) (string, error) {
-	return c.RunAndReturnTrimmedCombinedOutput()
+	log.Infof("$ %s &> out", c.PrintableCommandArgs())
+
+	out, err := c.RunAndReturnTrimmedCombinedOutput()
+	if err != nil && errorutil.IsExitStatusError(err) {
+		return out, errors.New(out)
+	}
+
+	return out, err
 }
 
 func runWithRetry(f func() *command.Model) error {
@@ -186,7 +208,7 @@ func autoMerge(gitCmd git.Git, mergeBranch, branchDest, buildURL, apiToken strin
 		if depth != 0 {
 			opts = append(opts, "--depth="+strconv.Itoa(depth))
 		}
-		opts = append(opts, "origin", "refs/heads/"+branchDest)
+		opts = append(opts, defaultRemoteName, "refs/heads/"+branchDest)
 		return gitCmd.Fetch(opts...)
 	}); err != nil {
 		return fmt.Errorf("Fetch failed, error: %v", err)
@@ -194,7 +216,7 @@ func autoMerge(gitCmd git.Git, mergeBranch, branchDest, buildURL, apiToken strin
 
 	if mergeBranch != "" {
 		if err := runWithRetry(func() *command.Model {
-			return gitCmd.Fetch("origin", fetchArg(mergeBranch))
+			return gitCmd.Fetch(defaultRemoteName, fetchArg(mergeBranch))
 		}); err != nil {
 			return fmt.Errorf("fetch Pull Request branch failed (%s), error: %v",
 				mergeBranch, err)
@@ -233,7 +255,7 @@ func autoMerge(gitCmd git.Git, mergeBranch, branchDest, buildURL, apiToken strin
 }
 
 func manualMerge(gitCmd git.Git, repoURL, prRepoURL, branch, commit, branchDest string) error {
-	if err := runWithRetry(func() *command.Model { return gitCmd.Fetch("origin", "refs/heads/"+branchDest) }); err != nil {
+	if err := runWithRetry(func() *command.Model { return gitCmd.Fetch(defaultRemoteName, "refs/heads/"+branchDest) }); err != nil {
 		return fmt.Errorf("fetch failed, error: %v", err)
 	}
 	if err := pull(gitCmd, branchDest); err != nil {
@@ -256,7 +278,7 @@ func manualMerge(gitCmd git.Git, repoURL, prRepoURL, branch, commit, branchDest 
 			return fmt.Errorf("merge failed (fork/%s), error: %v", branch, err)
 		}
 	} else {
-		if err := run(gitCmd.Fetch("origin", "refs/heads/"+branch)); err != nil {
+		if err := run(gitCmd.Fetch(defaultRemoteName, "refs/heads/"+branch)); err != nil {
 			return fmt.Errorf("fetch failed, error: %v", err)
 		}
 		if err := run(gitCmd.Merge(commit)); err != nil {
@@ -267,21 +289,30 @@ func manualMerge(gitCmd git.Git, repoURL, prRepoURL, branch, commit, branchDest 
 	return nil
 }
 
-func parseListBranchesOutput(output string) []string {
-	split := strings.Split(output, "\n")
-	var branches []string
-	for _, branch := range split {
-		branch = strings.Trim(branch, " ")
-		branches = append(branches, branch)
+func parseListBranchesOutput(output string) map[string][]string {
+	lines := strings.Split(output, "\n")
+	branchesByRemote := map[string][]string {}
+	for _, line := range lines {
+		line = strings.Trim(line, " ")
+		split := strings.Split(line, "/")
+
+		remote := split[0]
+		branch := ""
+		if (len(split) > 1) {
+			branch = strings.Join(split[1:], "/")
+			branches := branchesByRemote[remote]
+			branches = append(branches, branch)
+			branchesByRemote[remote] = branches
+		}
 	}
-	return branches
+	return branchesByRemote
 }
 
-func listBranches(gitCmd git.Git) ([]string, error) {
+func listBranches(gitCmd git.Git) (map[string][]string, error) {
 	if err := run(gitCmd.Fetch()); err != nil {
 		return nil, err
 	}
-	out, err := gitCmd.Branch("-r").RunAndReturnTrimmedCombinedOutput()
+	out, err := output(gitCmd.Branch("-r"))
 	if err != nil {
 		return nil, err
 	}
@@ -299,12 +330,13 @@ func checkout(gitCmd git.Git, arg, branch string, depth int, isTag bool) *step.E
 			opts = append(opts, "--tags")
 		}
 		if branch != "" {
-			opts = append(opts, "origin", "refs/heads/"+branch)
+			opts = append(opts, defaultRemoteName, "refs/heads/"+branch)
 		}
 		return gitCmd.Fetch(opts...)
 	}); err != nil {
 		if branch != "" {
-			branches, branchesErr := listBranches(gitCmd)
+			branchesByRemote, branchesErr := listBranches(gitCmd)
+			branches := branchesByRemote[defaultRemoteName]
 			if branchesErr == nil && !sliceutil.IsStringInSlice(branch, branches) {
 				return newStepErrorWithRecommendations(
 					"fetch_failed",
