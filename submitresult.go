@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bitrise-io/bitrise-init/models"
+	"github.com/bitrise-io/bitrise-init/step"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/retry"
@@ -35,6 +36,18 @@ func newResultClient(resultSubmitURL string, resultSubmitAPIToken stepconf.Secre
 }
 
 func (c *resultClient) uploadErrorResult(stepID string, err error) error {
+	if stepError, ok := err.(*step.Error); ok && len(stepError.Recommendations) > 0 {
+		return c.uploadResults(models.ScanResultModel{
+			ScannerToErrorsWithRecomendations: map[string]models.ErrorsWithRecommendations{
+				"general": {
+					models.ErrorWithRecommendations{
+						Error:           fmt.Sprintf("Error in step %s: %v", stepID, stepError.Err),
+						Recommendations: stepError.Recommendations,
+					},
+				},
+			},
+		})
+	}
 	return c.uploadResults(models.ScanResultModel{
 		ScannerToErrors: map[string]models.Errors{
 			"general": {fmt.Sprintf("Error in step %s: %v", stepID, err)},
