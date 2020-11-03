@@ -35,24 +35,56 @@ func newResultClient(resultSubmitURL string, resultSubmitAPIToken stepconf.Secre
 	}, nil
 }
 
-func (c *resultClient) uploadErrorResult(stepID string, err error) error {
-	if stepError, ok := err.(*step.Error); ok && len(stepError.Recommendations) > 0 {
-		return c.uploadResults(models.ScanResultModel{
-			ScannerToErrorsWithRecomendations: map[string]models.ErrorsWithRecommendations{
-				"general": {
-					models.ErrorWithRecommendations{
-						Error:           fmt.Sprintf("Error in step %s: %v", stepID, stepError.Err),
-						Recommendations: stepError.Recommendations,
-					},
-				},
-			},
-		})
+func (c *resultClient) buildErrorScanResultModel(stepID string, err error) models.ScanResultModel {
+	createGenericDetailedError := func(errorMsg string) map[string]string {
+		return map[string]string{
+			"Title":       errorMsg,
+			"Description": "For more information, please see the log.",
+		}
 	}
-	return c.uploadResults(models.ScanResultModel{
-		ScannerToErrors: map[string]models.Errors{
-			"general": {fmt.Sprintf("Error in step %s: %v", stepID, err)},
+
+	var errWithRec models.ErrorWithRecommendations
+	// It's a stepError
+	if stepError, ok := err.(*step.Error); ok {
+		rec := stepError.Recommendations
+
+		// If it doesn't have recommendations, create one
+		if rec == nil {
+			rec = step.Recommendation{}
+		}
+
+		// Check for DetailedError field, if not present, fill it with generic DetailedError
+		if rec["DetailedError"] == nil {
+			rec["DetailedError"] = createGenericDetailedError(stepError.Err.Error())
+		}
+
+		// Create the error with recommendation model
+		errWithRec = models.ErrorWithRecommendations{
+			Error:           fmt.Sprintf("Error in step %s: %v", stepID, stepError.Err),
+			Recommendations: rec,
+		}
+	} else {
+		// It's a standard error, fallback to the generic DetailedError
+		errWithRec = models.ErrorWithRecommendations{
+			Error: fmt.Sprintf("Error in step %s: %v", stepID, err),
+			Recommendations: step.Recommendation{
+				"DetailedError": createGenericDetailedError(err.Error()),
+			},
+		}
+	}
+
+	return models.ScanResultModel{
+		ScannerToErrorsWithRecomendations: map[string]models.ErrorsWithRecommendations{
+			"general": {
+				errWithRec,
+			},
 		},
-	})
+	}
+}
+
+func (c *resultClient) uploadErrorResult(stepID string, err error) error {
+	result := c.buildErrorScanResultModel(stepID, err)
+	return c.uploadResults(result)
 }
 
 func (c *resultClient) uploadResults(result models.ScanResultModel) error {
