@@ -38,7 +38,7 @@ func newResultClient(resultSubmitURL string, resultSubmitAPIToken stepconf.Secre
 func (c *resultClient) uploadErrorResult(stepID string, err error) error {
 	if stepError, ok := err.(*step.Error); ok && len(stepError.Recommendations) > 0 {
 		return c.uploadResults(models.ScanResultModel{
-			ScannerToErrorsWithRecomendations: map[string]models.ErrorsWithRecommendations{
+			ScannerToErrorsWithRecommendations: map[string]models.ErrorsWithRecommendations{
 				"general": {
 					models.ErrorWithRecommendations{
 						Error:           fmt.Sprintf("Error in step %s: %v", stepID, stepError.Err),
