@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bitrise-io/bitrise-init/errormapper"
 	"github.com/bitrise-io/bitrise-init/step"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/command/git"
@@ -21,6 +22,12 @@ import (
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
 	"github.com/bitrise-io/go-utils/sliceutil"
+)
+
+const (
+	checkoutFailedTag = "checkout_failed"
+	fetchFailedTag    = "fetch_failed"
+	branchRecKey      = "BranchRecommendation"
 )
 
 func isOriginPresent(gitCmd git.Git, dir, repoURL string) (bool, error) {
@@ -291,14 +298,14 @@ func manualMerge(gitCmd git.Git, repoURL, prRepoURL, branch, commit, branchDest 
 
 func parseListBranchesOutput(output string) map[string][]string {
 	lines := strings.Split(output, "\n")
-	branchesByRemote := map[string][]string {}
+	branchesByRemote := map[string][]string{}
 	for _, line := range lines {
 		line = strings.Trim(line, " ")
 		split := strings.Split(line, "/")
 
 		remote := split[0]
 		branch := ""
-		if (len(split) > 1) {
+		if len(split) > 1 {
 			branch = strings.Join(split[1:], "/")
 			branches := branchesByRemote[remote]
 			branches = append(branches, branch)
@@ -339,17 +346,18 @@ func checkout(gitCmd git.Git, arg, branch string, depth int, isTag bool) *step.E
 			branches := branchesByRemote[defaultRemoteName]
 			if branchesErr == nil && !sliceutil.IsStringInSlice(branch, branches) {
 				return newStepErrorWithRecommendations(
-					"fetch_failed",
+					fetchFailedTag,
 					fmt.Errorf("fetch failed: invalid branch selected: %s, available branches: %s: %v", branch, strings.Join(branches, ", "), err),
 					"Fetching repository has failed",
 					step.Recommendation{
-						"BranchRecommendation": branches,
+						branchRecKey:                    branches,
+						errormapper.DetailedErrorRecKey: newFetchFailedInvalidBranchDetailedError(branch),
 					},
 				)
 			}
 		}
 		return newStepError(
-			"fetch_failed",
+			fetchFailedTag,
 			fmt.Errorf("fetch failed, error: %v", err),
 			"Fetching repository has failed",
 		)
@@ -358,7 +366,7 @@ func checkout(gitCmd git.Git, arg, branch string, depth int, isTag bool) *step.E
 	if err := run(gitCmd.Checkout(arg)); err != nil {
 		if depth == 0 {
 			return newStepError(
-				"checkout_failed",
+				checkoutFailedTag,
 				fmt.Errorf("checkout failed (%s), error: %v", arg, err),
 				"Checkout has failed",
 			)

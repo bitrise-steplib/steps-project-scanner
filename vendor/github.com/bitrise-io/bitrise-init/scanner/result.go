@@ -2,6 +2,8 @@ package scanner
 
 import (
 	"fmt"
+	"github.com/bitrise-io/bitrise-init/errormapper"
+	"github.com/bitrise-io/bitrise-init/step"
 	"os"
 	"path"
 	"path/filepath"
@@ -17,15 +19,21 @@ import (
 func GenerateScanResult(searchDir string) (models.ScanResultModel, bool) {
 	scanResult := Config(searchDir)
 
-	platforms := []string{}
+	var platforms []string
 	for platform := range scanResult.ScannerToOptionRoot {
 		platforms = append(platforms, platform)
 	}
 
 	if len(platforms) == 0 {
-		analytics.LogError("no_platform_detected", nil, "No known platform detected")
+		errorMessage := "No known platform detected"
+		analytics.LogError(noPlatformDetectedTag, nil, errorMessage)
 
-		scanResult.AddError("general", "No known platform detected")
+		scanResult.AddErrorWithRecommendation("general", models.ErrorWithRecommendations{
+			Error: errorMessage,
+			Recommendations: step.Recommendation{
+				errormapper.DetailedErrorRecKey: newNoPlatformDetectedGenericDetail(),
+			},
+		})
 		return scanResult, false
 	}
 	return scanResult, true
