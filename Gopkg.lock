@@ -19,10 +19,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c2683afede690009ef2017fb56d83de07743e66221a08f6b44510eeec9c235cd"
+  digest = "1:09b2fd69b53eee1b178c2865b5e71e6d5dca2a3fc94f6d92dab02cb988297d47"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "analytics",
+    "errormapper",
     "models",
     "output",
     "scanner",
@@ -42,7 +43,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "f6de811405dbad793749fa61d70ad2637e2252e7"
+  revision = "31fd00edb66aeab944734b9806357b81961f1288"
 
 [[projects]]
   branch = "master"
@@ -139,11 +140,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:03ec4c07233919b979b5e1e756ebbe309e1771f9b65f0fcca90536132a51d8cc"
+  digest = "1:201e52e84796d1e58c2b8f44de3809e568359b2c721550a855319b312c905fd4"
   name = "github.com/bitrise-steplib/steps-git-clone"
   packages = ["gitclone"]
   pruneopts = "UT"
-  revision = "9876195f23b91d003dc8940242916272e46a5468"
+  revision = "af8aa6f991df679244ffc27e69dc585eda53c351"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -171,7 +172,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:42c394662e2c373dc2894bd10e46df4d6b15adffef51fc71aa4ded4b1887aadb"
+  digest = "1:a58998d4571616af8042d76efc5e640411a14bbc9fcd53ff35ffeafa9f81aebf"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
@@ -179,10 +180,10 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "6e5568b54d1aaee5899c0083c5776f88b8c5b907"
+  revision = "4d91cf3a1aaf3c60795ad95ff47583eed427d778"
 
 [[projects]]
-  digest = "1:a2c690dfee42801a26a0e88f69206feca8a3c2437fd476d84767468d7d7708e9"
+  digest = "1:666e3df74f0c4788cc92426b18e33d93b7b62a3d4e8253f7c4b2226132a0f8de"
   name = "golang.org/x/text"
   packages = [
     "internal/gen",
@@ -193,8 +194,8 @@
     "unicode/norm",
   ]
   pruneopts = "UT"
-  revision = "23ae387dee1f90d29a23c0e87ee0b46038fbed0e"
-  version = "v0.3.3"
+  revision = "22f1617af38ed4cd65b3b96e02bab267e560155c"
+  version = "v0.3.4"
 
 [[projects]]
   digest = "1:d7f1bd887dc650737a421b872ca883059580e9f8314d601f88025df4f4802dce"
@@ -206,11 +207,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b5ead2120cd278858a83be14ef551f54295da350033dbc3f227fe0298b880256"
+  digest = "1:92b6e14d99fc9684a56c91055b66882eed40e5f601a1316b8da860d0538d7da3"
   name = "howett.net/plist"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3b63eb3a43b59c776909681ed1fcb412b47d3c9a"
+  revision = "117a925f21509a9550f452433c190139e480a726"
 
 [solve-meta]
   analyzer-name = "dep"
