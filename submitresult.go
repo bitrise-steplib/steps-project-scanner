@@ -14,6 +14,7 @@ import (
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/retry"
+	"github.com/bitrise-steplib/steps-git-clone/errormapper"
 )
 
 type resultClient struct {
@@ -35,14 +36,7 @@ func newResultClient(resultSubmitURL string, resultSubmitAPIToken stepconf.Secre
 	}, nil
 }
 
-func (c *resultClient) buildErrorScanResultModel(stepID string, err error) models.ScanResultModel {
-	createGenericDetailedError := func(errorMsg string) map[string]string {
-		return map[string]string{
-			"Title":       errorMsg,
-			"Description": "For more information, please see the log.",
-		}
-	}
-
+func buildErrorScanResultModel(stepID string, err error) models.ScanResultModel {
 	var errWithRec models.ErrorWithRecommendations
 	// It's a stepError
 	if stepError, ok := err.(*step.Error); ok {
@@ -54,8 +48,11 @@ func (c *resultClient) buildErrorScanResultModel(stepID string, err error) model
 		}
 
 		// Check for DetailedError field, if not present, fill it with generic DetailedError
-		if rec["DetailedError"] == nil {
-			rec["DetailedError"] = createGenericDetailedError(stepError.Err.Error())
+		if rec[errormapper.DetailedErrorRecKey] == nil {
+			rec[errormapper.DetailedErrorRecKey] = errormapper.DetailedError{
+				Title:       stepError.Err.Error(),
+				Description: "For more information, please see the log.",
+			}
 		}
 
 		// Create the error with recommendation model
@@ -68,7 +65,10 @@ func (c *resultClient) buildErrorScanResultModel(stepID string, err error) model
 		errWithRec = models.ErrorWithRecommendations{
 			Error: fmt.Sprintf("Error in step %s: %v", stepID, err),
 			Recommendations: step.Recommendation{
-				"DetailedError": createGenericDetailedError(err.Error()),
+				errormapper.DetailedErrorRecKey: errormapper.DetailedError{
+					Title:       err.Error(),
+					Description: "For more information, please see the log.",
+				},
 			},
 		}
 	}
@@ -83,7 +83,7 @@ func (c *resultClient) buildErrorScanResultModel(stepID string, err error) model
 }
 
 func (c *resultClient) uploadErrorResult(stepID string, err error) error {
-	result := c.buildErrorScanResultModel(stepID, err)
+	result := buildErrorScanResultModel(stepID, err)
 	return c.uploadResults(result)
 }
 
