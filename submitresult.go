@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bitrise-io/bitrise-init/errormapper"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/step"
 	"github.com/bitrise-io/go-steputils/stepconf"
@@ -35,24 +36,55 @@ func newResultClient(resultSubmitURL string, resultSubmitAPIToken stepconf.Secre
 	}, nil
 }
 
-func (c *resultClient) uploadErrorResult(stepID string, err error) error {
-	if stepError, ok := err.(*step.Error); ok && len(stepError.Recommendations) > 0 {
-		return c.uploadResults(models.ScanResultModel{
-			ScannerToErrorsWithRecomendations: map[string]models.ErrorsWithRecommendations{
-				"general": {
-					models.ErrorWithRecommendations{
-						Error:           fmt.Sprintf("Error in step %s: %v", stepID, stepError.Err),
-						Recommendations: stepError.Recommendations,
-					},
+func buildErrorScanResultModel(stepID string, err error) models.ScanResultModel {
+	var errWithRec models.ErrorWithRecommendations
+	// It's a stepError
+	if stepError, ok := err.(*step.Error); ok {
+		rec := stepError.Recommendations
+
+		// If it doesn't have recommendations, create one
+		if rec == nil {
+			rec = step.Recommendation{}
+		}
+
+		// Check for DetailedError field, if not present, fill it with generic DetailedError
+		if rec[errormapper.DetailedErrorRecKey] == nil {
+			rec[errormapper.DetailedErrorRecKey] = errormapper.DetailedError{
+				Title:       stepError.Err.Error(),
+				Description: "For more information, please see the log.",
+			}
+		}
+
+		// Create the error with recommendation model
+		errWithRec = models.ErrorWithRecommendations{
+			Error:           fmt.Sprintf("Error in step %s: %v", stepID, stepError.Err),
+			Recommendations: rec,
+		}
+	} else {
+		// It's a standard error, fallback to the generic DetailedError
+		errWithRec = models.ErrorWithRecommendations{
+			Error: fmt.Sprintf("Error in step %s: %v", stepID, err),
+			Recommendations: step.Recommendation{
+				errormapper.DetailedErrorRecKey: errormapper.DetailedError{
+					Title:       err.Error(),
+					Description: "For more information, please see the log.",
 				},
 			},
-		})
+		}
 	}
-	return c.uploadResults(models.ScanResultModel{
-		ScannerToErrors: map[string]models.Errors{
-			"general": {fmt.Sprintf("Error in step %s: %v", stepID, err)},
+
+	return models.ScanResultModel{
+		ScannerToErrorsWithRecommendations: map[string]models.ErrorsWithRecommendations{
+			"general": {
+				errWithRec,
+			},
 		},
-	})
+	}
+}
+
+func (c *resultClient) uploadErrorResult(stepID string, err error) error {
+	result := buildErrorScanResultModel(stepID, err)
+	return c.uploadResults(result)
 }
 
 func (c *resultClient) uploadResults(result models.ScanResultModel) error {
