@@ -217,6 +217,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/bitrise-io/bitrise-init/errormapper",
     "github.com/bitrise-io/bitrise-init/models",
     "github.com/bitrise-io/bitrise-init/scanner",
     "github.com/bitrise-io/bitrise-init/step",

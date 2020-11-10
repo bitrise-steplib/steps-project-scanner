@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/bitrise-io/bitrise-init/errormapper"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/step"
-	"github.com/bitrise-steplib/steps-git-clone/errormapper"
 )
 
 func Test_resultClient_buildErrorScanResultModel(t *testing.T) {
