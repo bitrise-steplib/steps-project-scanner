@@ -34,7 +34,7 @@ func Test_resultClient_buildErrorScanResultModel(t *testing.T) {
 				err:    errors.New("standar error"),
 			},
 			want: models.ScanResultModel{
-				ScannerToErrorsWithRecomendations: map[string]models.ErrorsWithRecommendations{
+				ScannerToErrorsWithRecommendations: map[string]models.ErrorsWithRecommendations{
 					"general": {
 						models.ErrorWithRecommendations{
 							Error: "Error in step git-clone: standar error",
@@ -63,7 +63,7 @@ func Test_resultClient_buildErrorScanResultModel(t *testing.T) {
 					"shortMsg: step error without recommendations"),
 			},
 			want: models.ScanResultModel{
-				ScannerToErrorsWithRecomendations: map[string]models.ErrorsWithRecommendations{
+				ScannerToErrorsWithRecommendations: map[string]models.ErrorsWithRecommendations{
 					"general": {
 						models.ErrorWithRecommendations{
 							Error: "Error in step git-clone: step error without recommendations",
@@ -95,7 +95,7 @@ func Test_resultClient_buildErrorScanResultModel(t *testing.T) {
 					}),
 			},
 			want: models.ScanResultModel{
-				ScannerToErrorsWithRecomendations: map[string]models.ErrorsWithRecommendations{
+				ScannerToErrorsWithRecommendations: map[string]models.ErrorsWithRecommendations{
 					"general": {
 						models.ErrorWithRecommendations{
 							Error: "Error in step git-clone: with step.Error with recommendations without DetailedError",
@@ -132,7 +132,7 @@ func Test_resultClient_buildErrorScanResultModel(t *testing.T) {
 					}),
 			},
 			want: models.ScanResultModel{
-				ScannerToErrorsWithRecomendations: map[string]models.ErrorsWithRecommendations{
+				ScannerToErrorsWithRecommendations: map[string]models.ErrorsWithRecommendations{
 					"general": {
 						models.ErrorWithRecommendations{
 							Error: "Error in step git-clone: with step.Error with recommendations with DetailedError",

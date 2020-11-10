@@ -74,7 +74,7 @@ func (c *resultClient) buildErrorScanResultModel(stepID string, err error) model
 	}
 
 	return models.ScanResultModel{
-		ScannerToErrorsWithRecomendations: map[string]models.ErrorsWithRecommendations{
+		ScannerToErrorsWithRecommendations: map[string]models.ErrorsWithRecommendations{
 			"general": {
 				errWithRec,
 			},
