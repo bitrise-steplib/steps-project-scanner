@@ -140,11 +140,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:201e52e84796d1e58c2b8f44de3809e568359b2c721550a855319b312c905fd4"
+  digest = "1:fd08ce919c9084cc29f7796a3b5297b2f866bc614e80247ab2c8d770df85dcaa"
   name = "github.com/bitrise-steplib/steps-git-clone"
   packages = ["gitclone"]
   pruneopts = "UT"
-  revision = "af8aa6f991df679244ffc27e69dc585eda53c351"
+  revision = "d15bd8e09adc4714b5cd98bb3cf42dabc6674ca9"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -164,11 +164,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c381e2867d447cca3e74dbfb0c8ed371a4583c694b35838c5c642a2b79480fc6"
+  digest = "1:46f1ac16fda9d3832eea5a9bf4222aebe4d1ac629ec6773d6767c70275097fa3"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "9e8e0b390897c84cad53ebe9ed2d1d331a5394d9"
+  revision = "0c6587e931a935f573efb6988c8470cd8c0a58de"
 
 [[projects]]
   branch = "master"
