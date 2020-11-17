@@ -6,6 +6,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
 )
 
@@ -69,7 +70,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 
 		icons, err := LookupIcons(projectRoot, scanner.SearchDir)
 		if err != nil {
-			return models.OptionNode{}, warnings, nil, err
+			analytics.LogInfo("android-icon-lookup", analytics.DetectorErrorData("android", err), "Failed to lookup android icon")
 		}
 		appIconsAllProjects = append(appIconsAllProjects, icons...)
 		iconIDs := make([]string, len(icons))

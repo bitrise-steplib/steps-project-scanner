@@ -43,17 +43,6 @@ type ScanResultModel struct {
 	Icons                                []Icon                               `json:"-" yaml:"-"`
 }
 
-// AddError ...
-func (result *ScanResultModel) AddError(platform string, errorMessage string) {
-	if result.ScannerToErrors == nil {
-		result.ScannerToErrors = map[string]Errors{}
-	}
-	if result.ScannerToErrors[platform] == nil {
-		result.ScannerToErrors[platform] = []string{}
-	}
-	result.ScannerToErrors[platform] = append(result.ScannerToErrors[platform], errorMessage)
-}
-
 // AddErrorWithRecommendation ...
 func (result *ScanResultModel) AddErrorWithRecommendation(platform string, recommendation ErrorWithRecommendations) {
 	if result.ScannerToErrorsWithRecommendations == nil {

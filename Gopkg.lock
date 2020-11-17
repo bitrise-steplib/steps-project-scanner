@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d5250ce2f04280c00ae98600bcdbefc50f20c90fc951d487e65f682c68e31156"
+  digest = "1:6e28a5c62bc1938d21cd2b3e2a931645d2d3d83672692a375d11a6dd7e9812ff"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "analytics",
@@ -43,7 +43,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "e06545394316a9bfef45f0d774ab957e982ed24e"
+  revision = "64c3b7d2650366a56ea43b279d4027d64df935f2"
 
 [[projects]]
   branch = "master"
@@ -140,11 +140,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:fd08ce919c9084cc29f7796a3b5297b2f866bc614e80247ab2c8d770df85dcaa"
+  digest = "1:f6e9dabc99346f8fea8baa6a02225f8d39c3b3e543a9294571d74abf4b8ea9f3"
   name = "github.com/bitrise-steplib/steps-git-clone"
   packages = ["gitclone"]
   pruneopts = "UT"
-  revision = "d15bd8e09adc4714b5cd98bb3cf42dabc6674ca9"
+  revision = "b1cbe45b5704863c4c930111edeb7aa67d38f5c1"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -164,23 +164,32 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:46f1ac16fda9d3832eea5a9bf4222aebe4d1ac629ec6773d6767c70275097fa3"
+  digest = "1:c9d0c7346c55bc13efdb3dbf13938e909d22a7a7bf115af69a79e25553513bd0"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "0c6587e931a935f573efb6988c8470cd8c0a58de"
+  revision = "c1f2f97bffc9c53fc40a1a28a5b460094c0050d9"
 
 [[projects]]
   branch = "master"
-  digest = "1:1996e1fa20f2d3f6a14b6fc30b6224708f2ecfae3f99a64b17500de3f9ba3e7a"
+  digest = "1:c441ac9641a8534a4e99ebc49b39267dd0bef9ea64ff62f6e91ac29e5749a230"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
+    "plan9",
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "5cba982894dd4e8879e3ef0a0c308ceff39f6154"
+  revision = "cc9327a14d48c2941d21731354f4e1eabfd239f7"
+
+[[projects]]
+  branch = "master"
+  digest = "1:8cce50851cd6cf36b96ca973911f024f99525021626c78630bfece57ce34d0c7"
+  name = "golang.org/x/term"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f5c789dd3221ff39d752ac54467d762de7cfbec6"
 
 [[projects]]
   digest = "1:666e3df74f0c4788cc92426b18e33d93b7b62a3d4e8253f7c4b2226132a0f8de"
