@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c28d6bca22c3d2a3c4e563a4683dc194facb4a5d4fcaad6c32aa6ba75de02757"
+  digest = "1:64eceeaea8879e6a10f0b058bfe5dd4ba9c03315368514ccafd43a3584cbfa35"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "analytics",
@@ -43,7 +43,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "350bac371eb76b265d2f18a726f4162128c9b5ba"
+  revision = "ff2334b5e258f84783392da93d0183e459730061"
 
 [[projects]]
   branch = "master"
