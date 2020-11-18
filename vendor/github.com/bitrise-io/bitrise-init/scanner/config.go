@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -256,6 +257,10 @@ func runScanner(detector scanners.ScannerInterface, searchDir string) scannerOut
 
 	options, projectWarnings, icons, err := detector.Options()
 	output.AddWarnings(optionsFailedTag, []string(projectWarnings)...)
+	for _, warning := range projectWarnings {
+		data := detectorErrorData(detector.Name(), errors.New(warning))
+		analytics.LogWarn(optionsFailedTag, data, "%s detector Options warning", detector.Name())
+	}
 
 	if err != nil {
 		data := detectorErrorData(detector.Name(), err)
