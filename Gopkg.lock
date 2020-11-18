@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6e28a5c62bc1938d21cd2b3e2a931645d2d3d83672692a375d11a6dd7e9812ff"
+  digest = "1:c28d6bca22c3d2a3c4e563a4683dc194facb4a5d4fcaad6c32aa6ba75de02757"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "analytics",
@@ -43,7 +43,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "64c3b7d2650366a56ea43b279d4027d64df935f2"
+  revision = "350bac371eb76b265d2f18a726f4162128c9b5ba"
 
 [[projects]]
   branch = "master"
@@ -117,7 +117,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:01732c12528e227614ef4e22adecbcd88718ee64f113d59f14e1314b031c153e"
+  digest = "1:d597c33e4f4624052e96361f33378af8600e4a1e2997c498b0ef54e3777c7b1e"
   name = "github.com/bitrise-io/xcode-project"
   packages = [
     "pretty",
@@ -128,7 +128,7 @@
     "xcworkspace",
   ]
   pruneopts = "UT"
-  revision = "9481b30b489b9eaf073c818fcf4817b5b3224285"
+  revision = "0a01ee11f77d50c301381743fe6efeb49b9ebb28"
 
 [[projects]]
   branch = "master"
@@ -172,7 +172,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c441ac9641a8534a4e99ebc49b39267dd0bef9ea64ff62f6e91ac29e5749a230"
+  digest = "1:ed3757fac6b00d3ddb6a7f4812c1568358055f77b612f6ac2a4eb7a211de3dba"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
@@ -181,7 +181,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "cc9327a14d48c2941d21731354f4e1eabfd239f7"
+  revision = "ba5294a509c715d7fea0f9022a3d0ca21f64942a"
 
 [[projects]]
   branch = "master"

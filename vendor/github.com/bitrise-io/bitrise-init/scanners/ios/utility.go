@@ -6,6 +6,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"github.com/bitrise-io/bitrise-init/utility"
@@ -18,6 +19,7 @@ import (
 const (
 	defaultConfigNameFormat = "default-%s-config"
 	configNameFormat        = "%s%s-config"
+	iconFailureTag          = "icon_lookup"
 )
 
 const (
@@ -373,9 +375,8 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string, excludeAppI
 				if !excludeAppIcon {
 					icons, err := lookupIconByTargetName(projectPath, target.Name, searchDir)
 					if err != nil {
-						warningMsg := fmt.Sprintf("could not get icons for app: %s, error: %s", projectPath, err)
-						log.Warnf(warningMsg)
-						warnings = append(warnings, warningMsg)
+						log.Warnf("could not get icons for app: %s, error: %s", projectPath, err)
+						analytics.LogInfo(iconFailureTag, analytics.DetectorErrorData(string(XcodeProjectTypeIOS), err), "Failed to lookup ios icons")
 					}
 					iconsForAllProjects = append(iconsForAllProjects, icons...)
 					for _, icon := range icons {
@@ -402,9 +403,8 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string, excludeAppI
 				if !excludeAppIcon {
 					icons, err := lookupIconBySchemeName(projectPath, scheme.Name, searchDir)
 					if err != nil {
-						warningMsg := fmt.Sprintf("could not get icons for app: %s, error: %s", projectPath, err)
-						log.Warnf(warningMsg)
-						warnings = append(warnings, warningMsg)
+						log.Warnf("could not get icons for app: %s, error: %s", projectPath, err)
+						analytics.LogInfo(iconFailureTag, analytics.DetectorErrorData(string(XcodeProjectTypeIOS), err), "Failed to lookup ios icons")
 					}
 					iconsForAllProjects = append(iconsForAllProjects, icons...)
 					for _, icon := range icons {
@@ -456,9 +456,8 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string, excludeAppI
 					if !excludeAppIcon {
 						icons, err := lookupIconByTargetName(project.Pth, target.Name, searchDir)
 						if err != nil {
-							warningMsg := fmt.Sprintf("could not get icons for app: %s, error: %s", project.Pth, err)
-							log.Warnf(warningMsg)
-							warnings = append(warnings, warningMsg)
+							log.Warnf("could not get icons for app: %s, error: %s", project.Pth, err)
+							analytics.LogInfo(iconFailureTag, analytics.DetectorErrorData(string(XcodeProjectTypeIOS), err), "Failed to lookup ios icons")
 						}
 						iconsForAllProjects = append(iconsForAllProjects, icons...)
 						for _, icon := range icons {
@@ -503,9 +502,8 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string, excludeAppI
 
 					icons, err := lookupIconBySchemeName(projectPath, scheme.Name, searchDir)
 					if err != nil {
-						warningMsg := fmt.Sprintf("could not get icons for app: %s, error: %s", projectPath, err)
-						log.Warnf(warningMsg)
-						warnings = append(warnings, warningMsg)
+						log.Warnf("could not get icons for app: %s, error: %s", projectPath, err)
+						analytics.LogInfo(iconFailureTag, analytics.DetectorErrorData(string(XcodeProjectTypeIOS), err), "Failed to lookup ios icons")
 					}
 					iconsForAllProjects = append(iconsForAllProjects, icons...)
 					for _, icon := range icons {
