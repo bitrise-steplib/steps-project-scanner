@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:64eceeaea8879e6a10f0b058bfe5dd4ba9c03315368514ccafd43a3584cbfa35"
+  digest = "1:68525d4802042f37c545f7c50517d9dfa6014486b71c92fa0bc387f285714ac2"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "analytics",
@@ -43,7 +43,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "ff2334b5e258f84783392da93d0183e459730061"
+  revision = "4e770640d9629bb79d9b4f5b566ab2fed97ed164"
 
 [[projects]]
   branch = "master"
@@ -168,11 +168,11 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "c1f2f97bffc9c53fc40a1a28a5b460094c0050d9"
+  revision = "c8d3bf9c5392d5f66747f112cd55055d7a530b19"
 
 [[projects]]
   branch = "master"
-  digest = "1:ed3757fac6b00d3ddb6a7f4812c1568358055f77b612f6ac2a4eb7a211de3dba"
+  digest = "1:abe27444c89128d1dc7ec2eaee9dcd85374a41cb64664d6d08363f6a4e43152b"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
@@ -181,7 +181,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "ba5294a509c715d7fea0f9022a3d0ca21f64942a"
+  revision = "f84b799fce68db3cb46a8f6f819c1e56377181df"
 
 [[projects]]
   branch = "master"
@@ -207,12 +207,12 @@
   version = "v0.3.4"
 
 [[projects]]
-  digest = "1:d7f1bd887dc650737a421b872ca883059580e9f8314d601f88025df4f4802dce"
+  digest = "1:5054a1f394226de9e6ddc47b0ba77e35092a4112f4a1cd9cb94aba1f5bdc3ec6"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "0b1645d91e851e735d3e23330303ce81f70adbe3"
-  version = "v2.3.0"
+  revision = "7649d4548cb53a614db133b2a8ac1f31859dda8c"
+  version = "v2.4.0"
 
 [[projects]]
   branch = "master"

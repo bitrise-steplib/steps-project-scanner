@@ -186,12 +186,12 @@ func Config(searchDir string) models.ScanResultModel {
 	for scanner, scannerOutput := range scannerToOutput {
 		// Currently the tests except an empty warning list if no warnings
 		// are created in the not detect case.
-		if scannerOutput.status == notDetected && len(scannerOutput.warnings) > 0 ||
+		if scannerOutput.status == notDetected && (len(scannerOutput.warnings) > 0 || len(scannerOutput.warningsWithRecommendation) > 0) ||
 			scannerOutput.status != notDetected {
 			scannerToWarnings[scanner] = scannerOutput.warnings
 			scannerToWarningsWithRecommendation[scanner] = scannerOutput.warningsWithRecommendation
 		}
-		if len(scannerOutput.errors) > 0 &&
+		if (len(scannerOutput.errors) > 0 || len(scannerOutput.errorsWithRecommendation) > 0) &&
 			(scannerOutput.status == detected || scannerOutput.status == detectedWithErrors) {
 			scannerToErrors[scanner] = scannerOutput.errors
 			scannerToErrorsWithRecommendations[scanner] = scannerOutput.errorsWithRecommendation
