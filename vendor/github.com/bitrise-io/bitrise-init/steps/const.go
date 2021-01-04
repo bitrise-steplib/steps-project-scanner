@@ -171,6 +171,14 @@ const (
 )
 
 const (
+	// ExportXCArchiveID ...
+	ExportXCArchiveID = "export-xcarchive"
+
+	// ExportXCArchiveVersion ...
+	ExportXCArchiveVersion = "3"
+)
+
+const (
 	// XcodeTestMacID ...
 	XcodeTestMacID = "xcode-test-mac"
 	// XcodeTestMacVersion ...

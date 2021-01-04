@@ -19,7 +19,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c35326c3d6835f6fc112679611723839b61caf5f5d796a3135a59ff14f21148c"
+  digest = "1:7422e4fd13b7dbde65198040fb32b021b4117540ea9651b1cf05a31c6291c422"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "analytics",
@@ -43,7 +43,7 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "6325a4661a68e0007ac18fb0507335e267665856"
+  revision = "422939b865adac9dd675d64ade70712f3c0b9109"
 
 [[projects]]
   branch = "master"
@@ -90,14 +90,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3060b1a20d5eccc02b4dcf61127258fb3ca0070b3386d4326907417164a9bcdd"
+  digest = "1:47dc0de590d47f16a8c7d1c2bab1f620157ea2e2895e6c359f78befe09ecc9a9"
   name = "github.com/bitrise-io/go-xcode"
   packages = [
     "plistutil",
     "xcodeproj",
   ]
   pruneopts = "UT"
-  revision = "7d05f87f6e9c9004759304ae8c3f3c90ea9c3bd4"
+  revision = "81c1cd57e28a647e2b6e323791b62e620b333cd9"
 
 [[projects]]
   branch = "master"
@@ -168,11 +168,11 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "5f87f3452ae96c4850ab9af7783f2517b643061b"
+  revision = "eec23a3978adcfd26c29f4153eaa3e3d9b2cc53a"
 
 [[projects]]
   branch = "master"
-  digest = "1:a4912069ef24deee6bd42bff4eb4d702db6e9aecd15d1fc6add65fead8406bf2"
+  digest = "1:730cf99fbfecc6f41803e89c402a2e00beb7b85497e501fcab47dd07b9b6c083"
   name = "golang.org/x/sys"
   packages = [
     "internal/unsafeheader",
@@ -181,7 +181,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "8ad439b19e0fb2ded35375e495090c1334011eb9"
+  revision = "2d18734c6014bdfc4d7fd7cfc8e0608c9684967b"
 
 [[projects]]
   branch = "master"
