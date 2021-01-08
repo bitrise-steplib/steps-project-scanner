@@ -59,6 +59,16 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	foundOptions := false
 	var lastErr error = nil
 	for _, projectRoot := range scanner.ProjectRoots {
+		exists, err := containsLocalProperties(projectRoot)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		if exists {
+			containsLocalPropertiesWarning := fmt.Sprintf("the local.properties file should NOT be checked into Version Control Systems, as it contains information specific to your local configuration, the location of the file is: %s", filepath.Join(projectRoot, "local.properties"))
+			warnings = append(warnings, containsLocalPropertiesWarning)
+		}
+
 		if err := checkGradlew(projectRoot); err != nil {
 			lastErr = err
 			continue
