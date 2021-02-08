@@ -104,7 +104,7 @@ const (
 	// CocoapodsInstallID ...
 	CocoapodsInstallID = "cocoapods-install"
 	// CocoapodsInstallVersion ...
-	CocoapodsInstallVersion = "1"
+	CocoapodsInstallVersion = "2"
 )
 
 const (
