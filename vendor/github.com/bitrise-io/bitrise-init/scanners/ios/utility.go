@@ -259,7 +259,7 @@ func projectPathByScheme(projects []xcodeproj.ProjectModel, targetScheme string)
 }
 
 // GenerateOptions ...
-func GenerateOptions(projectType XcodeProjectType, searchDir string, excludeAppIcon bool) (models.OptionNode, []ConfigDescriptor, models.Icons, models.Warnings, error) {
+func GenerateOptions(projectType XcodeProjectType, searchDir string, excludeAppIcon, suppressPodFileParseError bool) (models.OptionNode, []ConfigDescriptor, models.Icons, models.Warnings, error) {
 	warnings := models.Warnings{}
 
 	fileList, err := utility.ListPathInDirSortedByComponents(searchDir, true)
@@ -309,7 +309,12 @@ func GenerateOptions(projectType XcodeProjectType, searchDir string, excludeAppI
 	for _, podfile := range podfiles {
 		log.TPrintf("- %s", podfile)
 
-		workspaceProjectMap, err := GetWorkspaceProjectMap(podfile, projectFiles)
+		podfileParser := podfileParser{
+			podfilePth:                podfile,
+			suppressPodFileParseError: suppressPodFileParseError,
+		}
+
+		workspaceProjectMap, err := podfileParser.GetWorkspaceProjectMap(projectFiles)
 		if err != nil {
 			warning := fmt.Sprintf("Failed to determine cocoapods project-workspace mapping, error: %s", err)
 			warnings = append(warnings, warning)
