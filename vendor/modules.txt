@@ -1,0 +1,99 @@
+# github.com/beevik/etree v1.1.0
+## explicit
+github.com/beevik/etree
+# github.com/bitrise-io/bitrise v0.0.0-20190611131411-f7458dd6a6c5
+## explicit
+github.com/bitrise-io/bitrise/models
+# github.com/bitrise-io/bitrise-init v0.0.0-20210208131021-c11d38b7aef3
+## explicit
+github.com/bitrise-io/bitrise-init/analytics
+github.com/bitrise-io/bitrise-init/errormapper
+github.com/bitrise-io/bitrise-init/models
+github.com/bitrise-io/bitrise-init/output
+github.com/bitrise-io/bitrise-init/scanner
+github.com/bitrise-io/bitrise-init/scanners
+github.com/bitrise-io/bitrise-init/scanners/android
+github.com/bitrise-io/bitrise-init/scanners/cordova
+github.com/bitrise-io/bitrise-init/scanners/fastlane
+github.com/bitrise-io/bitrise-init/scanners/flutter
+github.com/bitrise-io/bitrise-init/scanners/ionic
+github.com/bitrise-io/bitrise-init/scanners/ios
+github.com/bitrise-io/bitrise-init/scanners/macos
+github.com/bitrise-io/bitrise-init/scanners/reactnative
+github.com/bitrise-io/bitrise-init/scanners/xamarin
+github.com/bitrise-io/bitrise-init/step
+github.com/bitrise-io/bitrise-init/steps
+github.com/bitrise-io/bitrise-init/toolscanner
+github.com/bitrise-io/bitrise-init/utility
+# github.com/bitrise-io/envman v0.0.0-20200512105748-919e33f391ee
+## explicit
+github.com/bitrise-io/envman/envman
+github.com/bitrise-io/envman/models
+# github.com/bitrise-io/go-steputils v0.0.0-20201016102104-03ae3a6ded35
+## explicit
+github.com/bitrise-io/go-steputils/stepconf
+github.com/bitrise-io/go-steputils/tools
+# github.com/bitrise-io/go-utils v0.0.0-20201211082830-859032e9adf0
+## explicit
+github.com/bitrise-io/go-utils/colorstring
+github.com/bitrise-io/go-utils/command
+github.com/bitrise-io/go-utils/command/git
+github.com/bitrise-io/go-utils/command/rubyscript
+github.com/bitrise-io/go-utils/errorutil
+github.com/bitrise-io/go-utils/fileutil
+github.com/bitrise-io/go-utils/log
+github.com/bitrise-io/go-utils/parseutil
+github.com/bitrise-io/go-utils/pathutil
+github.com/bitrise-io/go-utils/pointers
+github.com/bitrise-io/go-utils/retry
+github.com/bitrise-io/go-utils/sliceutil
+# github.com/bitrise-io/go-xcode v0.0.0-20210107102606-2ec2fc2778b6
+## explicit
+github.com/bitrise-io/go-xcode/plistutil
+github.com/bitrise-io/go-xcode/xcodeproj
+# github.com/bitrise-io/goinp v0.0.0-20190611131639-bd18a8681e27
+## explicit
+github.com/bitrise-io/goinp/goinp
+# github.com/bitrise-io/stepman v0.0.0-20200928102004-4d242ab03ef9
+## explicit
+github.com/bitrise-io/stepman/models
+# github.com/bitrise-io/xcode-project v0.0.0-20201203153351-7ad13a1dd021
+## explicit
+github.com/bitrise-io/xcode-project/pretty
+github.com/bitrise-io/xcode-project/serialized
+github.com/bitrise-io/xcode-project/xcodebuild
+github.com/bitrise-io/xcode-project/xcodeproj
+github.com/bitrise-io/xcode-project/xcscheme
+github.com/bitrise-io/xcode-project/xcworkspace
+# github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20201012093212-e0112276ec1d
+## explicit
+github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey
+# github.com/bitrise-steplib/steps-git-clone v0.0.0-20201209102052-187367357bf8
+## explicit
+github.com/bitrise-steplib/steps-git-clone/gitclone
+# github.com/pkg/errors v0.8.1
+## explicit
+github.com/pkg/errors
+# github.com/ryanuber/go-glob v1.0.0
+## explicit
+github.com/ryanuber/go-glob
+# golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+## explicit
+golang.org/x/crypto/ssh/terminal
+# golang.org/x/sys v0.0.0-20210105210732-16f7687f5001
+## explicit
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/plan9
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
+## explicit
+golang.org/x/term
+# golang.org/x/text v0.3.4
+golang.org/x/text/transform
+golang.org/x/text/unicode/norm
+# gopkg.in/yaml.v2 v2.4.0
+## explicit
+gopkg.in/yaml.v2
+# howett.net/plist v0.0.0-20201203080718-1454fab16a06
+howett.net/plist
