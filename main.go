@@ -88,7 +88,11 @@ func cloneRepo(cfg repoConfig) *step.Error {
 			SSHKeySavePath:          path.Join(pathutil.UserHomeDir(), ".ssh", "steplib_ssh_step_id_rsa"),
 			IsRemoveOtherIdentities: false,
 		}); err != nil {
-			return newStepError("", err, "")
+			return newStepError(
+				"ssh_key_activation_failed",
+				err,
+				"Failed to activate the SSH key",
+			)
 		}
 	}
 
@@ -105,7 +109,11 @@ func cloneRepo(cfg repoConfig) *step.Error {
 		UpdateSubmodules: true,
 		ManualMerge:      true,
 	}); err != nil {
-		return newStepError("", err, "")
+		return newStepError(
+			"git_clone_failed",
+			err,
+			"Failed to clone the repository",
+		)
 	}
 
 	return nil
