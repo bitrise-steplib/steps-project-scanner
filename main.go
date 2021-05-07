@@ -63,7 +63,7 @@ type repoConfig struct {
 	Branch           string
 }
 
-func cloneRepo(cfg repoConfig) *step.Error {
+func cloneRepo(cfg repoConfig) error {
 	cfg.RepositoryURL = strings.TrimSpace(cfg.RepositoryURL)
 	cfg.Branch = strings.TrimSpace(cfg.Branch)
 	if cfg.RepositoryURL == "" {
@@ -88,11 +88,7 @@ func cloneRepo(cfg repoConfig) *step.Error {
 			SSHKeySavePath:          path.Join(pathutil.UserHomeDir(), ".ssh", "steplib_ssh_step_id_rsa"),
 			IsRemoveOtherIdentities: false,
 		}); err != nil {
-			return newStepError(
-				"ssh_key_activation_failed",
-				err,
-				"Failed to activate the SSH key",
-			)
+			return err
 		}
 	}
 
@@ -109,11 +105,7 @@ func cloneRepo(cfg repoConfig) *step.Error {
 		UpdateSubmodules: true,
 		ManualMerge:      true,
 	}); err != nil {
-		return newStepError(
-			"git_clone_failed",
-			err,
-			"Failed to clone the repository",
-		)
+		return err
 	}
 
 	return nil
@@ -159,7 +151,12 @@ func main() {
 			SSHRsaPrivateKey: cfg.SSHRsaPrivateKey,
 			Branch:           cfg.Branch,
 		}); err != nil {
-			handleStepError(err.StepID, err.Tag, err, err.ShortMsg)
+			if stepError, ok := err.(*step.Error); ok {
+				handleStepError(stepError.StepID, stepError.Tag, stepError, stepError.ShortMsg)
+			} else {
+				wrappedStepError := newStepError("error_cast_failed", err, "Failed to cast error")
+				handleStepError(wrappedStepError.StepID, wrappedStepError.Tag, wrappedStepError.Err, wrappedStepError.ShortMsg)
+			}
 
 			failf("%v", err)
 		}
