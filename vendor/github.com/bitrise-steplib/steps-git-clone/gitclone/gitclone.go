@@ -3,7 +3,6 @@ package gitclone
 import (
 	"fmt"
 
-	"github.com/bitrise-io/bitrise-init/step"
 	"github.com/bitrise-io/envman/envman"
 	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/command/git"
@@ -18,12 +17,18 @@ type Config struct {
 	Tag           string `env:"tag"`
 	Branch        string `env:"branch"`
 
-	BranchDest      string `env:"branch_dest"`
-	PRID            int    `env:"pull_request_id"`
-	PRRepositoryURL string `env:"pull_request_repository_url"`
-	PRMergeBranch   string `env:"pull_request_merge_branch"`
-	ResetRepository bool   `env:"reset_repository,opt[Yes,No]"`
-	CloneDepth      int    `env:"clone_depth"`
+	PRDestBranch          string `env:"branch_dest"`
+	PRID                  int    `env:"pull_request_id"`
+	PRSourceRepositoryURL string `env:"pull_request_repository_url"`
+	PRMergeBranch         string `env:"pull_request_merge_branch"`
+	PRHeadBranch          string `env:"pull_request_head_branch"`
+
+	ResetRepository           bool     `env:"reset_repository,opt[Yes,No]"`
+	CloneDepth                int      `env:"clone_depth"`
+	FetchTags                 bool     `env:"fetch_tags,opt[yes,no]"`
+	LimitSubmoduleUpdateDepth bool     `env:"limit_submodule_update_depth,opt[yes,no]"`
+	ShouldMergePR             bool     `env:"merge_pr,opt[yes,no]"`
+	SparseDirectories         []string `env:"sparse_directories,multiline"`
 
 	BuildURL         string `env:"build_url"`
 	BuildAPIToken    string `env:"build_api_token"`
@@ -33,12 +38,14 @@ type Config struct {
 
 const (
 	trimEnding              = "..."
-	defaultRemoteName       = "origin"
+	originRemoteName        = "origin"
+	forkRemoteName          = "fork"
 	updateSubmodelFailedTag = "update_submodule_failed"
+	sparseCheckoutFailedTag = "sparse_checkout_failed"
 )
 
 func printLogAndExportEnv(gitCmd git.Git, format, env string, maxEnvLength int) error {
-	l, err := output(gitCmd.Log(format))
+	l, err := runner.RunForOutput(gitCmd.Log(format))
 	if err != nil {
 		return err
 	}
@@ -65,8 +72,76 @@ func getMaxEnvLength() (int, error) {
 	return configs.EnvBytesLimitInKB * 1024, nil
 }
 
+func checkoutState(gitCmd git.Git, cfg Config, patch patchSource) error {
+	checkoutMethod, diffFile := selectCheckoutMethod(cfg, patch)
+	fetchOpts := selectFetchOptions(checkoutMethod, cfg.CloneDepth, cfg.FetchTags, cfg.UpdateSubmodules, len(cfg.SparseDirectories) != 0)
+
+	checkoutStrategy, err := createCheckoutStrategy(checkoutMethod, cfg, diffFile)
+	if err != nil {
+		return err
+	}
+	if checkoutStrategy == nil {
+		return fmt.Errorf("failed to select a checkout stategy")
+	}
+
+	if err := checkoutStrategy.do(gitCmd, fetchOpts, selectFallbacks(checkoutMethod, fetchOpts)); err != nil {
+		log.Infof("Checkout strategy used: %T", checkoutStrategy)
+		return err
+	}
+
+	return nil
+}
+
+func updateSubmodules(gitCmd git.Git, cfg Config) error {
+	if err := runner.Run(gitCmd.SubmoduleUpdate(cfg.LimitSubmoduleUpdateDepth, jobsFlag)); err != nil {
+		return newStepError(
+			updateSubmodelFailedTag,
+			fmt.Errorf("submodule update: %v", err),
+			"Updating submodules has failed",
+		)
+	}
+
+	return nil
+}
+
+func setupSparseCheckout(gitCmd git.Git, sparseDirectories []string) error {
+	if len(sparseDirectories) == 0 {
+		return nil
+	}
+
+	initCommand := gitCmd.SparseCheckoutInit(true)
+	if err := runner.Run(initCommand); err != nil {
+		return newStepError(
+			sparseCheckoutFailedTag,
+			fmt.Errorf("initializing sparse-checkout config failed: %v", err),
+			"Initializing sparse-checkout config has failed",
+		)
+	}
+
+	sparseSetCommand := gitCmd.SparseCheckoutSet(sparseDirectories...)
+	if err := runner.Run(sparseSetCommand); err != nil {
+		return newStepError(
+			sparseCheckoutFailedTag,
+			fmt.Errorf("updating sparse-checkout config failed: %v", err),
+			"Updating sparse-checkout config has failed",
+		)
+	}
+
+	// Enable partial clone support for the remote
+	sparseConfigCmd := gitCmd.Config("extensions.partialClone", originRemoteName, "--local")
+	if err := runner.Run(sparseConfigCmd); err != nil {
+		return newStepError(
+			sparseCheckoutFailedTag,
+			fmt.Errorf("enable partial clone support for the remote has failed: %v", err),
+			"Enable partial clone support for the remote has failed",
+		)
+	}
+
+	return nil
+}
+
 // Execute is the entry point of the git clone process
-func Execute(cfg Config) *step.Error {
+func Execute(cfg Config) error {
 	maxEnvLength, err := getMaxEnvLength()
 	if err != nil {
 		return newStepError(
@@ -84,7 +159,6 @@ func Execute(cfg Config) *step.Error {
 			"Creating new git project directory failed",
 		)
 	}
-	checkoutArg := getCheckoutArg(cfg.Commit, cfg.Tag, cfg.Branch)
 
 	originPresent, err := isOriginPresent(gitCmd, cfg.CloneIntoDir, cfg.RepositoryURL)
 	if err != nil {
@@ -104,7 +178,7 @@ func Execute(cfg Config) *step.Error {
 			)
 		}
 	}
-	if err := run(gitCmd.Init()); err != nil {
+	if err := runner.Run(gitCmd.Init()); err != nil {
 		return newStepError(
 			"init_git_failed",
 			fmt.Errorf("initializing repository failed: %v", err),
@@ -112,7 +186,7 @@ func Execute(cfg Config) *step.Error {
 		)
 	}
 	if !originPresent {
-		if err := run(gitCmd.RemoteAdd(defaultRemoteName, cfg.RepositoryURL)); err != nil {
+		if err := runner.Run(gitCmd.RemoteAdd(originRemoteName, cfg.RepositoryURL)); err != nil {
 			return newStepError(
 				"add_remote_failed",
 				fmt.Errorf("adding remote repository failed (%s): %v", cfg.RepositoryURL, err),
@@ -121,63 +195,21 @@ func Execute(cfg Config) *step.Error {
 		}
 	}
 
-	isPR := cfg.PRRepositoryURL != "" || cfg.PRMergeBranch != "" || cfg.PRID != 0
-	if isPR {
-		if !cfg.ManualMerge || isPrivate(cfg.PRRepositoryURL) && isFork(cfg.RepositoryURL, cfg.PRRepositoryURL) {
-			if err := autoMerge(gitCmd, cfg.PRMergeBranch, cfg.BranchDest, cfg.BuildURL,
-				cfg.BuildAPIToken, cfg.CloneDepth, cfg.PRID); err != nil {
-				return newStepError(
-					"auto_merge_failed",
-					fmt.Errorf("merging PR (automatic) failed: %v", err),
-					"Merging pull request failed",
-				)
-			}
-		} else {
-			if err := manualMerge(gitCmd, cfg.RepositoryURL, cfg.PRRepositoryURL, cfg.Branch,
-				cfg.Commit, cfg.BranchDest); err != nil {
-				return newStepError(
-					"manual_merge_failed",
-					fmt.Errorf("merging PR (manual) failed: %v", err),
-					"Merging pull request failed",
-				)
-			}
-		}
-	} else if checkoutArg != "" {
-		if err := checkout(gitCmd, checkoutArg, cfg.Branch, cfg.CloneDepth, cfg.Tag != ""); err != nil {
-			return err
-		}
-		// Update branch: 'git fetch' followed by a 'git merge' is the same as 'git pull'.
-		if checkoutArg == cfg.Branch && cfg.Tag == "" && cfg.Commit == "" {
-			if err := run(gitCmd.Merge("origin/" + cfg.Branch)); err != nil {
-				return newStepError(
-					"update_branch_failed",
-					fmt.Errorf("updating branch (merge) failed %q: %v", cfg.Branch, err),
-					"Updating branch failed",
-				)
-			}
-		}
+	if err := setupSparseCheckout(gitCmd, cfg.SparseDirectories); err != nil {
+		return err
+	}
+
+	if err := checkoutState(gitCmd, cfg, defaultPatchSource{}); err != nil {
+		return err
 	}
 
 	if cfg.UpdateSubmodules {
-		if err := run(gitCmd.SubmoduleUpdate()); err != nil {
-			return newStepError(
-				updateSubmodelFailedTag,
-				fmt.Errorf("submodule update: %v", err),
-				"Updating submodules has failed",
-			)
+		if err := updateSubmodules(gitCmd, cfg); err != nil {
+			return err
 		}
 	}
 
-	if isPR {
-		if err := run(gitCmd.Checkout("--detach")); err != nil {
-			return newStepError(
-				"detach_head_failed",
-				fmt.Errorf("detach head failed: %v", err),
-				"Detaching head failed",
-			)
-		}
-	}
-
+	checkoutArg := getCheckoutArg(cfg.Commit, cfg.Tag, cfg.Branch)
 	if checkoutArg != "" {
 		log.Infof("\nExporting git logs\n")
 
@@ -199,7 +231,7 @@ func Execute(cfg Config) *step.Error {
 			}
 		}
 
-		count, err := output(gitCmd.RevList("HEAD", "--count"))
+		count, err := runner.RunForOutput(gitCmd.RevList("HEAD", "--count"))
 		if err != nil {
 			return newStepError(
 				"count_commits_failed",

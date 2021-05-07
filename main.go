@@ -63,7 +63,7 @@ type repoConfig struct {
 	Branch           string
 }
 
-func cloneRepo(cfg repoConfig) *step.Error {
+func cloneRepo(cfg repoConfig) error {
 	cfg.RepositoryURL = strings.TrimSpace(cfg.RepositoryURL)
 	cfg.Branch = strings.TrimSpace(cfg.Branch)
 	if cfg.RepositoryURL == "" {
@@ -151,7 +151,12 @@ func main() {
 			SSHRsaPrivateKey: cfg.SSHRsaPrivateKey,
 			Branch:           cfg.Branch,
 		}); err != nil {
-			handleStepError(err.StepID, err.Tag, err, err.ShortMsg)
+			if stepError, ok := err.(*step.Error); ok {
+				handleStepError(stepError.StepID, stepError.Tag, stepError, stepError.ShortMsg)
+			} else {
+				wrappedStepError := newStepError("error_cast_failed", err, "Failed to cast error")
+				handleStepError(wrappedStepError.StepID, wrappedStepError.Tag, wrappedStepError.Err, wrappedStepError.ShortMsg)
+			}
 
 			failf("%v", err)
 		}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bitrise-io/bitrise-init/step"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
@@ -19,7 +18,7 @@ type Config struct {
 }
 
 // Execute activates a given SSH key
-func Execute(cfg Config) *step.Error {
+func Execute(cfg Config) error {
 	// Remove SSHRsaPrivateKey from envs
 	if err := unsetEnvsBy(string(cfg.SSHRsaPrivateKey)); err != nil {
 		return newStepError(
@@ -37,7 +36,10 @@ func Execute(cfg Config) *step.Error {
 		)
 	}
 
-	if err := fileutil.WriteStringToFile(cfg.SSHKeySavePath, string(cfg.SSHRsaPrivateKey)); err != nil {
+	// OpenSSH_8.1p1 on macOS requires a newline at at the end of
+	// private key using the new format (starting with -----BEGIN OPENSSH PRIVATE KEY-----).
+	// See https://www.openssh.com/txt/release-7.8 for new format description.
+	if err := fileutil.WriteStringToFile(cfg.SSHKeySavePath, string(cfg.SSHRsaPrivateKey)+"\n"); err != nil {
 		return newStepError(
 			"writing_ssh_key_failed",
 			fmt.Errorf("failed to write the SSH key to the provided path: %v", err),
