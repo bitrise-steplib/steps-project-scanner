@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/bitrise-io/bitrise-init/scanner"
-	"github.com/bitrise-io/bitrise-init/step"
+	"github.com/bitrise-io/go-steputils/step"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
