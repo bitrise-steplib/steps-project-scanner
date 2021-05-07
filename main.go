@@ -88,7 +88,7 @@ func cloneRepo(cfg repoConfig) *step.Error {
 			SSHKeySavePath:          path.Join(pathutil.UserHomeDir(), ".ssh", "steplib_ssh_step_id_rsa"),
 			IsRemoveOtherIdentities: false,
 		}); err != nil {
-			return err
+			return newStepError("", err, "")
 		}
 	}
 
@@ -105,7 +105,7 @@ func cloneRepo(cfg repoConfig) *step.Error {
 		UpdateSubmodules: true,
 		ManualMerge:      true,
 	}); err != nil {
-		return err
+		return newStepError("", err, "")
 	}
 
 	return nil
