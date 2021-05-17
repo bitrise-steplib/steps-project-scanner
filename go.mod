@@ -1,4 +1,4 @@
-module bitrise-steplib/steps-project-scanner
+module github.com/bitrise-steplib/steps-project-scanner
 
 go 1.15
 
