@@ -2,13 +2,13 @@ package fastlane
 
 import (
 	"fmt"
+	"github.com/bitrise-io/go-utils/pathutil"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"github.com/bitrise-io/bitrise-init/toolscanner"
-	"github.com/bitrise-io/bitrise-init/utility"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/log"
@@ -76,7 +76,7 @@ func (Scanner) Name() string {
 
 // DetectPlatform ...
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
-	fileList, err := utility.ListPathInDirSortedByComponents(searchDir, true)
+	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
 	}

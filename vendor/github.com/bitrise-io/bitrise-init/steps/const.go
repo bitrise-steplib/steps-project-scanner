@@ -32,7 +32,7 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "4"
+	GitCloneVersion = "6"
 )
 
 const (
@@ -97,7 +97,7 @@ const (
 	// FastlaneID ...
 	FastlaneID = "fastlane"
 	// FastlaneVersion ...
-	FastlaneVersion = "2"
+	FastlaneVersion = "3"
 )
 
 const (
@@ -173,7 +173,6 @@ const (
 const (
 	// ExportXCArchiveID ...
 	ExportXCArchiveID = "export-xcarchive"
-
 	// ExportXCArchiveVersion ...
 	ExportXCArchiveVersion = "3"
 )
@@ -252,7 +251,7 @@ const (
 	// FlutterTestID ...
 	FlutterTestID = "flutter-test"
 	// FlutterTestVersion ...
-	FlutterTestVersion = "0"
+	FlutterTestVersion = "1"
 )
 
 const (

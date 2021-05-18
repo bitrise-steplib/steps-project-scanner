@@ -10,16 +10,16 @@ import (
 
 // CollectPackageJSONFiles collects package.json files, with react-native dependency.
 func CollectPackageJSONFiles(searchDir string) ([]string, error) {
-	fileList, err := utility.ListPathInDirSortedByComponents(searchDir, true)
+	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
 		return nil, err
 	}
 
-	filters := []utility.FilterFunc{
-		utility.BaseFilter("package.json", true),
-		utility.ComponentFilter("node_modules", false),
+	filters := []pathutil.FilterFunc{
+		pathutil.BaseFilter("package.json", true),
+		pathutil.ComponentFilter("node_modules", false),
 	}
-	packageFileList, err := utility.FilterPaths(fileList, filters...)
+	packageFileList, err := pathutil.FilterPaths(fileList, filters...)
 	if err != nil {
 		return nil, err
 	}
