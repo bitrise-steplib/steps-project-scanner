@@ -3,14 +3,15 @@ package ios
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/steps"
-	"github.com/bitrise-io/bitrise-init/utility"
 	envmanModels "github.com/bitrise-io/envman/models"
+	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-xcode/xcodeproj"
@@ -87,7 +88,7 @@ const cartfileBase = "Cartfile"
 const cartfileResolvedBase = "Cartfile.resolved"
 
 // AllowCartfileBaseFilter ...
-var AllowCartfileBaseFilter = utility.BaseFilter(cartfileBase, true)
+var AllowCartfileBaseFilter = pathutil.BaseFilter(cartfileBase, true)
 
 // ConfigDescriptor ...
 type ConfigDescriptor struct {
@@ -156,7 +157,7 @@ func HasCartfileResolvedInDirectoryOf(pth string) bool {
 
 // Detect ...
 func Detect(projectType XcodeProjectType, searchDir string) (bool, error) {
-	fileList, err := utility.ListPathInDirSortedByComponents(searchDir, true)
+	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
 		return false, err
 	}
@@ -183,12 +184,21 @@ func Detect(projectType XcodeProjectType, searchDir string) (bool, error) {
 	return true, nil
 }
 
+func fileContains(pth, str string) (bool, error) {
+	content, err := fileutil.ReadStringFromFile(pth)
+	if err != nil {
+		return false, err
+	}
+
+	return strings.Contains(content, str), nil
+}
+
 func printMissingSharedSchemesAndGenerateWarning(projectPth, defaultGitignorePth string, targets []xcodeproj.TargetModel) string {
 	isXcshareddataGitignored := false
 	if exist, err := pathutil.IsPathExists(defaultGitignorePth); err != nil {
 		log.TWarnf("Failed to check if .gitignore file exists at: %s, error: %s", defaultGitignorePth, err)
 	} else if exist {
-		isGitignored, err := utility.FileContains(defaultGitignorePth, "xcshareddata")
+		isGitignored, err := fileContains(defaultGitignorePth, "xcshareddata")
 		if err != nil {
 			log.TWarnf("Failed to check if xcshareddata gitignored, error: %s", err)
 		} else {
@@ -262,7 +272,7 @@ func projectPathByScheme(projects []xcodeproj.ProjectModel, targetScheme string)
 func GenerateOptions(projectType XcodeProjectType, searchDir string, excludeAppIcon, suppressPodFileParseError bool) (models.OptionNode, []ConfigDescriptor, models.Icons, models.Warnings, error) {
 	warnings := models.Warnings{}
 
-	fileList, err := utility.ListPathInDirSortedByComponents(searchDir, true)
+	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
 		return models.OptionNode{}, []ConfigDescriptor{}, nil, models.Warnings{}, err
 	}

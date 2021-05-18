@@ -3,8 +3,8 @@ package cordova
 import (
 	"encoding/xml"
 
-	"github.com/bitrise-io/bitrise-init/utility"
 	"github.com/bitrise-io/go-utils/fileutil"
+	"github.com/bitrise-io/go-utils/pathutil"
 )
 
 const configXMLBasePath = "config.xml"
@@ -33,8 +33,8 @@ func ParseConfigXML(pth string) (WidgetModel, error) {
 
 // FilterRootConfigXMLFile ...
 func FilterRootConfigXMLFile(fileList []string) (string, error) {
-	allowConfigXMLBaseFilter := utility.BaseFilter(configXMLBasePath, true)
-	configXMLs, err := utility.FilterPaths(fileList, allowConfigXMLBaseFilter)
+	allowConfigXMLBaseFilter := pathutil.BaseFilter(configXMLBasePath, true)
+	configXMLs, err := pathutil.FilterPaths(fileList, allowConfigXMLBaseFilter)
 	if err != nil {
 		return "", err
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/bitrise-io/bitrise-init/errormapper"
 	"github.com/bitrise-io/bitrise-init/scanners"
-	"github.com/bitrise-io/bitrise-init/step"
+	"github.com/bitrise-io/go-steputils/step"
 )
 
 func newPatternErrorMatcher(defaultBuilder errormapper.DefaultDetailedErrorBuilder, patternToBuilder map[string]errormapper.DetailedErrorBuilder) *errormapper.PatternErrorMatcher {

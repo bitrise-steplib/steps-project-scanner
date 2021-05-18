@@ -8,7 +8,6 @@ import (
 
 	"encoding/json"
 
-	"github.com/bitrise-io/bitrise-init/utility"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
@@ -18,7 +17,7 @@ import (
 const podfileBase = "Podfile"
 
 // AllowPodfileBaseFilter ...
-var AllowPodfileBaseFilter = utility.BaseFilter(podfileBase, true)
+var AllowPodfileBaseFilter = pathutil.BaseFilter(podfileBase, true)
 
 type podfileParser struct {
 	podfilePth                string
@@ -218,7 +217,7 @@ func (podfileParser podfileParser) GetWorkspaceProjectMap(projects []string) (ma
 	}
 
 	if projectRelPth == "" {
-		projects, err := utility.FilterPaths(projects, utility.InDirectoryFilter(podfileDir, true))
+		projects, err := pathutil.FilterPaths(projects, pathutil.InDirectoryFilter(podfileDir, true))
 		if err != nil {
 			return map[string]string{}, fmt.Errorf("failed to filter projects, error: %s", err)
 		}

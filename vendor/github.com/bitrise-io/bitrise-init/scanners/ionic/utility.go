@@ -1,13 +1,11 @@
 package ionic
 
-import (
-	"github.com/bitrise-io/bitrise-init/utility"
-)
+import "github.com/bitrise-io/go-utils/pathutil"
 
 // FilterRootFile ...
 func FilterRootFile(fileList []string, fileName string) (string, error) {
-	allowBaseFilter := utility.BaseFilter(fileName, true)
-	files, err := utility.FilterPaths(fileList, allowBaseFilter)
+	allowBaseFilter := pathutil.BaseFilter(fileName, true)
+	files, err := pathutil.FilterPaths(fileList, allowBaseFilter)
 	if err != nil {
 		return "", err
 	}
