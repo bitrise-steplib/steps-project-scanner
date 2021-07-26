@@ -1,8 +1,9 @@
 # github.com/beevik/etree v1.1.0
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise v0.0.0-20210513161711-09b1442cf3e0
+# github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248
+## explicit
 github.com/bitrise-io/bitrise/models
-# github.com/bitrise-io/bitrise-init v0.0.0-20210518124036-0b2b7f91bdb1
+# github.com/bitrise-io/bitrise-init v0.0.0-20210726124629-228da329b98c
 ## explicit
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/errormapper
@@ -22,19 +23,20 @@ github.com/bitrise-io/bitrise-init/scanners/xamarin
 github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/toolscanner
 github.com/bitrise-io/bitrise-init/utility
-# github.com/bitrise-io/envman v0.0.0-20210517135508-b2b4fe89eac5
+# github.com/bitrise-io/envman v0.0.0-20210630102032-df85af51bd1a
+## explicit
 github.com/bitrise-io/envman/envman
 github.com/bitrise-io/envman/models
 # github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10
 github.com/bitrise-io/go-plist
-# github.com/bitrise-io/go-steputils v0.0.0-20210514150206-5b6261447e77
+# github.com/bitrise-io/go-steputils v0.0.0-20210527075147-910ce7a105a1
 ## explicit
 github.com/bitrise-io/go-steputils/command/rubyscript
 github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-utils v0.0.0-20210517140706-aa64fd88ca49
+# github.com/bitrise-io/go-utils v0.0.0-20210713111255-08be784d45d0
 ## explicit
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
@@ -45,29 +47,30 @@ github.com/bitrise-io/go-utils/log
 github.com/bitrise-io/go-utils/parseutil
 github.com/bitrise-io/go-utils/pathutil
 github.com/bitrise-io/go-utils/pointers
+github.com/bitrise-io/go-utils/pretty
 github.com/bitrise-io/go-utils/retry
 github.com/bitrise-io/go-utils/sliceutil
-# github.com/bitrise-io/go-xcode v0.0.0-20210517092111-792daa927657
+# github.com/bitrise-io/go-xcode v0.0.0-20210714144817-465637d28b74
+## explicit
 github.com/bitrise-io/go-xcode/pathfilters
 github.com/bitrise-io/go-xcode/plistutil
 github.com/bitrise-io/go-xcode/xcodeproj
+github.com/bitrise-io/go-xcode/xcodeproject/serialized
+github.com/bitrise-io/go-xcode/xcodeproject/xcodebuild
+github.com/bitrise-io/go-xcode/xcodeproject/xcodeproj
+github.com/bitrise-io/go-xcode/xcodeproject/xcscheme
+github.com/bitrise-io/go-xcode/xcodeproject/xcworkspace
 # github.com/bitrise-io/goinp v0.0.0-20210504152833-8559b0680ab1
 github.com/bitrise-io/goinp/goinp
 # github.com/bitrise-io/stepman v0.0.0-20210517135458-203f7a48d37a
 github.com/bitrise-io/stepman/models
-# github.com/bitrise-io/xcode-project v0.0.0-20210302080829-f3e0bfbcd5cb
-github.com/bitrise-io/xcode-project/pretty
-github.com/bitrise-io/xcode-project/serialized
-github.com/bitrise-io/xcode-project/xcodebuild
-github.com/bitrise-io/xcode-project/xcodeproj
-github.com/bitrise-io/xcode-project/xcscheme
-github.com/bitrise-io/xcode-project/xcworkspace
-# github.com/bitrise-steplib/bitrise-step-export-universal-apk v0.0.0-20210505160226-751d4bb4627c
+# github.com/bitrise-steplib/bitrise-step-export-universal-apk v0.0.0-20210519124631-6b5b2290ef97
+## explicit
 github.com/bitrise-steplib/bitrise-step-export-universal-apk/filedownloader
 # github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203
 ## explicit
 github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey
-# github.com/bitrise-steplib/steps-git-clone v0.0.0-20210518135323-0d922dba8b1a
+# github.com/bitrise-steplib/steps-git-clone v0.0.0-20210715081304-d10e4259c5d6
 ## explicit
 github.com/bitrise-steplib/steps-git-clone/gitclone
 # github.com/hashicorp/go-cleanhttp v0.5.2
@@ -78,14 +81,16 @@ github.com/hashicorp/go-retryablehttp
 github.com/pkg/errors
 # github.com/ryanuber/go-glob v1.0.0
 github.com/ryanuber/go-glob
-# golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
+# golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
+## explicit
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/sys v0.0.0-20210514084401-e8d321eab015
+# golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
+## explicit
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.0.0-20210503060354-a79de5458b56
+# golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 golang.org/x/term
 # golang.org/x/text v0.3.6
 golang.org/x/text/transform

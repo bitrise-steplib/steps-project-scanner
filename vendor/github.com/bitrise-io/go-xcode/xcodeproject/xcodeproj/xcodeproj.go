@@ -11,15 +11,20 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bitrise-io/go-plist"
+	plist "github.com/bitrise-io/go-plist"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/xcode-project/pretty"
-	"github.com/bitrise-io/xcode-project/serialized"
-	"github.com/bitrise-io/xcode-project/xcodebuild"
-	"github.com/bitrise-io/xcode-project/xcscheme"
+	"github.com/bitrise-io/go-utils/pretty"
+	"github.com/bitrise-io/go-xcode/xcodeproject/serialized"
+	"github.com/bitrise-io/go-xcode/xcodeproject/xcodebuild"
+	"github.com/bitrise-io/go-xcode/xcodeproject/xcscheme"
 	"golang.org/x/text/unicode/norm"
+)
+
+const (
+	// XcodeProjExtension ...
+	XcodeProjExtension = ".xcodeproj"
 )
 
 // XcodeProj ...
@@ -96,29 +101,45 @@ func (p XcodeProj) TargetCodeSignEntitlements(target, configuration string) (ser
 	return codeSignEntitlements, nil
 }
 
-// TargetInformationPropertyListPath ...
-func (p XcodeProj) TargetInformationPropertyListPath(target, configuration string) (string, error) {
+// TargetInfoplistPath ...
+func (p XcodeProj) TargetInfoplistPath(target, configuration string) (string, error) {
 	return p.buildSettingsFilePath(target, configuration, "INFOPLIST_FILE")
 }
 
-// TargetInformationPropertyList ...
-func (p XcodeProj) TargetInformationPropertyList(target, configuration string) (serialized.Object, error) {
-	informationPropertyListPth, err := p.TargetInformationPropertyListPath(target, configuration)
+// ReadTargetInfoplist ...
+func (p XcodeProj) ReadTargetInfoplist(target, configuration string) (serialized.Object, int, error) {
+	informationPropertyListPth, err := p.TargetInfoplistPath(target, configuration)
 	if err != nil {
-		return nil, err
+		return nil, plist.InvalidFormat, err
 	}
 
 	informationPropertyListContent, err := fileutil.ReadBytesFromFile(informationPropertyListPth)
 	if err != nil {
-		return nil, err
+		return nil, plist.InvalidFormat, err
 	}
 
 	var informationPropertyList serialized.Object
-	if _, err := plist.Unmarshal([]byte(informationPropertyListContent), &informationPropertyList); err != nil {
-		return nil, err
+	format, err := plist.Unmarshal([]byte(informationPropertyListContent), &informationPropertyList)
+	if err != nil {
+		return nil, plist.InvalidFormat, err
 	}
 
-	return informationPropertyList, nil
+	return informationPropertyList, format, nil
+}
+
+// WriteTargetInfoplist ...
+func (p XcodeProj) WriteTargetInfoplist(infoplist serialized.Object, format int, target, configuration string) error {
+	b, err := plist.MarshalIndent(infoplist, format, "\t")
+	if err != nil {
+		return err
+	}
+
+	pth, err := p.TargetInfoplistPath(target, configuration)
+	if err != nil {
+		return err
+	}
+
+	return fileutil.WriteBytesToFile(pth, b)
 }
 
 // ForceTargetBundleID updates the projects bundle ID for the specified target
@@ -164,7 +185,7 @@ func (p XcodeProj) TargetBundleID(target, configuration string) (string, error) 
 		return Resolve(bundleID, buildSettings)
 	}
 
-	informationPropertyList, err := p.TargetInformationPropertyList(target, configuration)
+	informationPropertyList, _, err := p.ReadTargetInfoplist(target, configuration)
 	if err != nil {
 		return "", err
 	}
@@ -385,7 +406,7 @@ func parsePBXProjContent(content []byte) (*XcodeProj, error) {
 
 // IsXcodeProj ...
 func IsXcodeProj(pth string) bool {
-	return filepath.Ext(pth) == ".xcodeproj"
+	return filepath.Ext(pth) == XcodeProjExtension
 }
 
 // ForceCodeSign modifies the project's code signing settings to use manual code signing.

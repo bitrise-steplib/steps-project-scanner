@@ -12,7 +12,7 @@ import (
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/xcode-project/serialized"
+	"github.com/bitrise-io/go-xcode/xcodeproject/serialized"
 )
 
 const scannerName = "react-native"

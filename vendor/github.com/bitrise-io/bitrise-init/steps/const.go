@@ -132,7 +132,7 @@ const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "2"
+	XcodeTestVersion = "3"
 )
 
 const (
