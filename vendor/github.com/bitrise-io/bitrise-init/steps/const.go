@@ -25,7 +25,7 @@ const (
 	// AndroidBuildID ...
 	AndroidBuildID = "android-build"
 	// AndroidBuildVersion ...
-	AndroidBuildVersion = "0"
+	AndroidBuildVersion = "1"
 )
 
 const (
