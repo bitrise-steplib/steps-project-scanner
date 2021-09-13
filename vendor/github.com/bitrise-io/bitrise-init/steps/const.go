@@ -67,7 +67,7 @@ const (
 	// DeployToBitriseIoID ...
 	DeployToBitriseIoID = "deploy-to-bitrise-io"
 	// DeployToBitriseIoVersion ...
-	DeployToBitriseIoVersion = "1"
+	DeployToBitriseIoVersion = "2"
 )
 
 const (
