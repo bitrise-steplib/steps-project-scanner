@@ -39,9 +39,7 @@ const (
 	ModuleInputTitle   = "Module"
 	ModuleInputSummary = "Modules provide a container for your Android project's source code, resource files, and app level settings, such as the module-level build file and Android manifest file. Each module can be independently built, tested, and debugged. You can add new modules to your Bitrise builds at any time."
 
-	GradlewPathInputKey    = "gradlew_path"
-	GradlewPathInputEnvKey = "GRADLEW_PATH"
-	GradlewPathInputTitle  = "Gradlew file path"
+	GradlewPathInputKey = "gradlew_path"
 )
 
 func walk(src string, fn func(path string, info os.FileInfo) error) error {
@@ -148,18 +146,12 @@ func (scanner *Scanner) generateConfigBuilder() models.ConfigBuilderModel {
 			ProjectLocationInputKey: projectLocationEnv,
 		},
 		envmanModels.EnvironmentItemModel{
-			ModuleInputKey: moduleEnv,
-		},
-		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
 		},
 	))
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.AndroidUnitTestStepListItem(
 		envmanModels.EnvironmentItemModel{
 			ProjectLocationInputKey: projectLocationEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			ModuleInputKey: moduleEnv,
 		},
 		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
@@ -182,18 +174,12 @@ func (scanner *Scanner) generateConfigBuilder() models.ConfigBuilderModel {
 			ProjectLocationInputKey: projectLocationEnv,
 		},
 		envmanModels.EnvironmentItemModel{
-			ModuleInputKey: moduleEnv,
-		},
-		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
 		},
 	))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.AndroidUnitTestStepListItem(
 		envmanModels.EnvironmentItemModel{
 			ProjectLocationInputKey: projectLocationEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			ModuleInputKey: moduleEnv,
 		},
 		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
