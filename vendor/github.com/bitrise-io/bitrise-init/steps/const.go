@@ -125,14 +125,14 @@ const (
 	// XcodeArchiveID ...
 	XcodeArchiveID = "xcode-archive"
 	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "3"
+	XcodeArchiveVersion = "4"
 )
 
 const (
 	// XcodeTestID ...
 	XcodeTestID = "xcode-test"
 	// XcodeTestVersion ...
-	XcodeTestVersion = "3"
+	XcodeTestVersion = "4"
 )
 
 const (
@@ -174,7 +174,7 @@ const (
 	// ExportXCArchiveID ...
 	ExportXCArchiveID = "export-xcarchive"
 	// ExportXCArchiveVersion ...
-	ExportXCArchiveVersion = "3"
+	ExportXCArchiveVersion = "4"
 )
 
 const (

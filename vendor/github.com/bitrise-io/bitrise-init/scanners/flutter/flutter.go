@@ -269,12 +269,12 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 							projectPathOption.AddOption(xcodeWorkspacePath, schemeOption)
 
 							for _, scheme := range schemes {
-								exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.IosExportMethodInputSummary, ios.ExportMethodInputEnvKey, models.TypeSelector)
-								schemeOption.AddOption(scheme, exportMethodOption)
+								distributionMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
+								schemeOption.AddOption(scheme, distributionMethodOption)
 
 								for _, exportMethod := range ios.IosExportMethods {
 									configOption := models.NewConfigOption(cfg+"-app-"+getBuildablePlatform(project.hasAndroidProject, project.hasIosProject), nil)
-									exportMethodOption.AddConfig(exportMethod, configOption)
+									distributionMethodOption.AddConfig(exportMethod, configOption)
 								}
 							}
 						}
@@ -300,12 +300,12 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 						projectPathOption.AddOption(xcodeWorkspacePath, schemeOption)
 
 						for _, scheme := range schemes {
-							exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.IosExportMethodInputSummary, ios.ExportMethodInputEnvKey, models.TypeSelector)
-							schemeOption.AddOption(scheme, exportMethodOption)
+							distributionMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
+							schemeOption.AddOption(scheme, distributionMethodOption)
 
 							for _, exportMethod := range ios.IosExportMethods {
 								configOption := models.NewConfigOption(cfg+"-app-"+getBuildablePlatform(project.hasAndroidProject, project.hasIosProject), nil)
-								exportMethodOption.AddConfig(exportMethod, configOption)
+								distributionMethodOption.AddConfig(exportMethod, configOption)
 							}
 						}
 					}
@@ -358,12 +358,12 @@ func (Scanner) DefaultOptions() models.OptionNode {
 					schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
 					projectPathOption.AddOption("", schemeOption)
 
-					exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.IosExportMethodInputSummary, ios.ExportMethodInputEnvKey, models.TypeSelector)
-					schemeOption.AddOption("", exportMethodOption)
+					distributionMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
+					schemeOption.AddOption("", distributionMethodOption)
 
 					for _, exportMethod := range ios.IosExportMethods {
 						configOption := models.NewConfigOption(cfg+"-app-"+platform, nil)
-						exportMethodOption.AddConfig(exportMethod, configOption)
+						distributionMethodOption.AddConfig(exportMethod, configOption)
 					}
 				} else {
 					configOption := models.NewConfigOption(cfg+"-app-"+platform, nil)
@@ -462,7 +462,7 @@ func (scanner Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 				configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveStepListItem(
 					envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
 					envmanModels.EnvironmentItemModel{ios.SchemeInputKey: "$" + ios.SchemeInputEnvKey},
-					envmanModels.EnvironmentItemModel{ios.ExportMethodInputKey: "$" + ios.ExportMethodInputEnvKey},
+					envmanModels.EnvironmentItemModel{ios.DistributionMethodInputKey: "$" + ios.DistributionMethodEnvKey},
 					envmanModels.EnvironmentItemModel{ios.ConfigurationInputKey: defaultIOSConfiguration},
 				))
 			}
