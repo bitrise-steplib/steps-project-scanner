@@ -112,7 +112,7 @@ func (scanner *Scanner) expoOptions() (models.OptionNode, models.Warnings, error
 
 	log.TPrintf("Project name: %v", scanner.expoSettings.name)
 	var iosNode *models.OptionNode
-	var exportMethodOption *models.OptionNode
+	var distributionMethodOption *models.OptionNode
 	if scanner.expoSettings.isIOS { // ios options
 		schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeOptionalSelector)
 
@@ -135,8 +135,8 @@ func (scanner *Scanner) expoOptions() (models.OptionNode, models.Warnings, error
 		developmentTeamOption := models.NewOption(iosDevelopmentTeamInputTitle, iosDevelopmentTeamInputSummary, iosDevelopmentTeamEnv, models.TypeUserInput)
 		schemeOption.AddOption(projectName, developmentTeamOption)
 
-		exportMethodOption = models.NewOption(ios.IosExportMethodInputTitle, ios.IosExportMethodInputSummary, ios.ExportMethodInputEnvKey, models.TypeSelector)
-		developmentTeamOption.AddOption("", exportMethodOption)
+		distributionMethodOption = models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
+		developmentTeamOption.AddOption("", distributionMethodOption)
 	}
 
 	var androidNode *models.OptionNode
@@ -184,7 +184,7 @@ func (scanner *Scanner) expoOptions() (models.OptionNode, models.Warnings, error
 	if iosNode != nil {
 		if androidNode != nil {
 			for _, exportMethod := range ios.IosExportMethods {
-				exportMethodOption.AddOption(exportMethod, androidNode)
+				distributionMethodOption.AddOption(exportMethod, androidNode)
 			}
 		}
 	} else {
@@ -199,7 +199,7 @@ func (scanner *Scanner) expoOptions() (models.OptionNode, models.Warnings, error
 			continue
 		}
 
-		// iOS exportMethodOption is last
+		// iOS distributionMethodOption is last
 		for _, exportMethod := range ios.IosExportMethods {
 			lastOption.AddConfig(exportMethod, models.NewConfigOption(expoConfigName, nil))
 		}
@@ -228,6 +228,21 @@ func (scanner *Scanner) expoConfigs() (models.BitriseConfigMap, error) {
 	if relPackageJSONDir != "" {
 		workdirEnvList = append(workdirEnvList, envmanModels.EnvironmentItemModel{workDirInputKey: relPackageJSONDir})
 	}
+
+	xcodeArchiveStepListItem := steps.XcodeArchiveStepListItem(
+		envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
+		envmanModels.EnvironmentItemModel{ios.SchemeInputKey: "$" + ios.SchemeInputEnvKey},
+		envmanModels.EnvironmentItemModel{ios.ConfigurationInputKey: "Release"},
+		envmanModels.EnvironmentItemModel{ios.DistributionMethodInputKey: "$" + ios.DistributionMethodEnvKey},
+		// In case of Expo projects, you do not have the native project in your
+		// repository. During the build, we ask Expo to generate it (using the
+		// ExpoDetachStepListItem). The generated native project does not have
+		// codesigning set up (No valid development team selected). Because of this, we
+		// ask for the desired development team during the Add New App process and force
+		// the user-provided Development Team ID using the DEVELOPMENT_TEAM build setting.
+		envmanModels.EnvironmentItemModel{ios.XCConfigContentInputKey: "COMPILER_INDEX_STORE_ENABLE = NO\n" +
+			"DEVELOPMENT_TEAM = $BITRISE_IOS_DEVELOPMENT_TEAM"},
+	)
 
 	if !scanner.hasTest {
 		// if the project has no test script defined,
@@ -270,13 +285,7 @@ func (scanner *Scanner) expoConfigs() (models.BitriseConfigMap, error) {
 
 		// ios build
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.XcodeArchiveStepListItem(
-			envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
-			envmanModels.EnvironmentItemModel{ios.SchemeInputKey: "$" + ios.SchemeInputEnvKey},
-			envmanModels.EnvironmentItemModel{ios.ConfigurationInputKey: "Release"},
-			envmanModels.EnvironmentItemModel{ios.ExportMethodInputKey: "$" + ios.ExportMethodInputEnvKey},
-			envmanModels.EnvironmentItemModel{"force_team_id": "$BITRISE_IOS_DEVELOPMENT_TEAM"},
-		))
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, xcodeArchiveStepListItem)
 
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
 		configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, deployWorkflowDescription)
@@ -343,13 +352,7 @@ func (scanner *Scanner) expoConfigs() (models.BitriseConfigMap, error) {
 
 	// ios build
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveStepListItem(
-		envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
-		envmanModels.EnvironmentItemModel{ios.SchemeInputKey: "$" + ios.SchemeInputEnvKey},
-		envmanModels.EnvironmentItemModel{ios.ConfigurationInputKey: "Release"},
-		envmanModels.EnvironmentItemModel{ios.ExportMethodInputKey: "$" + ios.ExportMethodInputEnvKey},
-		envmanModels.EnvironmentItemModel{"force_team_id": "$BITRISE_IOS_DEVELOPMENT_TEAM"},
-	))
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, xcodeArchiveStepListItem)
 
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
@@ -380,13 +383,13 @@ func (Scanner) expoDefaultOptions() models.OptionNode {
 	schemeOption := models.NewOption(schemeInputTitle, schemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
 	bundleIDOption.AddOption("", schemeOption)
 
-	exportMethodOption := models.NewOption(ios.IosExportMethodInputTitle, ios.IosExportMethodInputSummary, ios.ExportMethodInputEnvKey, models.TypeSelector)
-	schemeOption.AddOption("", exportMethodOption)
+	distributionMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
+	schemeOption.AddOption("", distributionMethodOption)
 
 	// android options
 	androidPackageOption := models.NewOption(androidPackageInputTitle, androidPackageInputSummaryDefault, androidPackageEnvKey, models.TypeOptionalUserInput)
 	for _, exportMethod := range ios.IosExportMethods {
-		exportMethodOption.AddOption(exportMethod, androidPackageOption)
+		distributionMethodOption.AddOption(exportMethod, androidPackageOption)
 	}
 
 	workDirOption := models.NewOption(projectRootDirInputTitle, projectRootDirInputSummary, wordirEnv, models.TypeUserInput)
@@ -450,7 +453,7 @@ func (Scanner) expoDefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveStepListItem(
 		envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
 		envmanModels.EnvironmentItemModel{ios.SchemeInputKey: "$" + ios.SchemeInputEnvKey},
-		envmanModels.EnvironmentItemModel{ios.ExportMethodInputKey: "$" + ios.ExportMethodInputEnvKey},
+		envmanModels.EnvironmentItemModel{ios.DistributionMethodInputKey: "$" + ios.DistributionMethodEnvKey},
 		envmanModels.EnvironmentItemModel{ios.ConfigurationInputKey: "Release"},
 	))
 
