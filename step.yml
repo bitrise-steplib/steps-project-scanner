@@ -1,14 +1,11 @@
 title: "Project scanner"
-summary: Scans repository for iOS, macOS, Android, Xamarin, Fastlane and Cordova projects
+summary: Scans repository for iOS, macOS, Android, Fastlane and Cordova projects
 description: |-
   For iOS and macOS projects, the step detects CocoaPods and scans Xcode project files
   for valid Xcode command line configurations.
 
   For Android projects, the step checks for build.gradle files and lists all the gradle tasks. It
   also checks for gradlew file.
-
-  For Xamarin projects, the step checks the solution files and lists the configuration options. It
-  also checks for NuGet and Xamarin Components packages.
 
   For Cordova projects, the step checks for the config.xml file.
 
