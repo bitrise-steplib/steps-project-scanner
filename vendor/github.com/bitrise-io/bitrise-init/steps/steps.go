@@ -173,31 +173,6 @@ func XcodeTestStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseM
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
-// XamarinUserManagementStepListItem ...
-func XamarinUserManagementStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(XamarinUserManagementID, XamarinUserManagementVersion)
-	runIf := ".IsCI"
-	return stepListItem(stepIDComposite, "", runIf, inputs...)
-}
-
-// NugetRestoreStepListItem ...
-func NugetRestoreStepListItem() bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(NugetRestoreID, NugetRestoreVersion)
-	return stepListItem(stepIDComposite, "", "")
-}
-
-// XamarinComponentsRestoreStepListItem ...
-func XamarinComponentsRestoreStepListItem() bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(XamarinComponentsRestoreID, XamarinComponentsRestoreVersion)
-	return stepListItem(stepIDComposite, "", "")
-}
-
-// XamarinArchiveStepListItem ...
-func XamarinArchiveStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(XamarinArchiveID, XamarinArchiveVersion)
-	return stepListItem(stepIDComposite, "", "", inputs...)
-}
-
 // XcodeArchiveMacStepListItem ...
 func XcodeArchiveMacStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(XcodeArchiveMacID, XcodeArchiveMacVersion)

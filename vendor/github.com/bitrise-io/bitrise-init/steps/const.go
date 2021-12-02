@@ -136,34 +136,6 @@ const (
 )
 
 const (
-	// XamarinUserManagementID ...
-	XamarinUserManagementID = "xamarin-user-management"
-	// XamarinUserManagementVersion ...
-	XamarinUserManagementVersion = "1"
-)
-
-const (
-	// NugetRestoreID ...
-	NugetRestoreID = "nuget-restore"
-	// NugetRestoreVersion ...
-	NugetRestoreVersion = "1"
-)
-
-const (
-	// XamarinComponentsRestoreID ...
-	XamarinComponentsRestoreID = "xamarin-components-restore"
-	// XamarinComponentsRestoreVersion ...
-	XamarinComponentsRestoreVersion = "0"
-)
-
-const (
-	// XamarinArchiveID ...
-	XamarinArchiveID = "xamarin-archive"
-	// XamarinArchiveVersion ...
-	XamarinArchiveVersion = "1"
-)
-
-const (
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...

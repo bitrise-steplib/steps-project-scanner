@@ -8,6 +8,7 @@ import (
 
 	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
+	"github.com/bitrise-io/go-utils/log"
 )
 
 // Scanner ...
@@ -42,12 +43,23 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 		{"settings.gradle", "settings.gradle.kts"},
 	}
 	skipDirs := []string{".git", "CordovaLib", "node_modules"}
+
+	log.TInfof("Searching for android files")
+
 	scanner.ProjectRoots, err = walkMultipleFileGroups(searchDir, projectFiles, skipDirs)
 	if err != nil {
 		return false, fmt.Errorf("failed to search for build.gradle files, error: %s", err)
 	}
 
-	return len(scanner.ProjectRoots) > 0, err
+	log.TSuccessf("Platform detected")
+
+	for _, file := range projectFiles {
+		log.TPrintf("- %s", file)
+	}
+	countDetected := len(scanner.ProjectRoots)
+	log.TPrintf("%d android files detected", countDetected)
+	nonZeroCount := countDetected > 0
+	return nonZeroCount, err
 }
 
 // Options ...

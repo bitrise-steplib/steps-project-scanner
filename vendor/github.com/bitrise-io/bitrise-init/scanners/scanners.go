@@ -10,7 +10,6 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
 	"github.com/bitrise-io/bitrise-init/scanners/macos"
 	"github.com/bitrise-io/bitrise-init/scanners/reactnative"
-	"github.com/bitrise-io/bitrise-init/scanners/xamarin"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"gopkg.in/yaml.v2"
 )
@@ -19,7 +18,7 @@ import (
 type ScannerInterface interface {
 	// The name of the scanner is used for logging and
 	// to store the scanner outputs, like warnings, options and configs.
-	// The outputs are stored in a map[NAME]OUTPUT, like: warningMap[ios]warnings, optionsMap[android]options, configMap[xamarin]configs, ...,
+	// The outputs are stored in a map[NAME]OUTPUT, like: warningMap[ios]warnings, optionsMap[android]options, ...,
 	// this means, that the SCANNER NAME HAS TO BE UNIQUE.
 	// Returns:
 	// - the name of the scanner
@@ -77,7 +76,6 @@ var ProjectScanners = []ScannerInterface{
 	ios.NewScanner(),
 	macos.NewScanner(),
 	android.NewScanner(),
-	xamarin.NewScanner(),
 }
 
 // AutomationToolScanners contains active automation tool scanners
