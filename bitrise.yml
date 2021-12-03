@@ -24,7 +24,7 @@ workflows:
     - errcheck:
     - go-test:
     - script:
-        title: "Scann test: ios-no-shared-schemes"
+        title: "Scan test: ios-no-shared-schemes"
         inputs:
         - content: |-
             #!/bin/bash
@@ -41,7 +41,7 @@ workflows:
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
-        title: "Scann test: sample-apps-ios-simple-objc"
+        title: "Scan test: sample-apps-ios-simple-objc"
         inputs:
         - content: |-
             #!/bin/bash
@@ -58,7 +58,7 @@ workflows:
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
-        title: "Scann test: sample-apps-android-sdk22"
+        title: "Scan test: sample-apps-android-sdk22"
         inputs:
         - content: |-
             #!/bin/bash
@@ -75,24 +75,7 @@ workflows:
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
-        title: "Scann test: xamarin-sample-app"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf $CLONE_INTO_DIR
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/xamarin-sample-app.git
-            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
-    - path::./:
-        title: Step Test
-        inputs:
-        - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
-        - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
-        - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
-    - script:
-        title: "Scann test: sample-apps-ios-watchkit"
+        title: "Scan test: sample-apps-ios-watchkit"
         inputs:
         - content: |-
             #!/bin/bash
@@ -126,24 +109,7 @@ workflows:
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     - script:
-        title: "Scann test: sample-apps-xamarin-ios"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf $CLONE_INTO_DIR
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-ios.git
-            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
-    - path::./:
-        title: Step Test
-        inputs:
-        - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
-        - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
-        - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
-    - script:
-        title: "Scann test: android-non-executable-gradlew"
+        title: "Scan test: android-non-executable-gradlew"
         inputs:
         - content: |-
             #!/bin/bash
@@ -151,23 +117,6 @@ workflows:
 
             rm -rf $CLONE_INTO_DIR
             SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-samples/android-non-executable-gradlew.git
-            git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
-    - path::./:
-        title: Step Test
-        inputs:
-        - scan_dir: $CLONE_INTO_DIR
-        - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
-        - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
-        - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
-    - script:
-        title: "Scann test: sample-apps-xamarin-android"
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -x
-
-            rm -rf $CLONE_INTO_DIR
-            SAMPLE_APP_REPOSITORY_URL=https://github.com/bitrise-io/sample-apps-xamarin-android.git
             git clone $SAMPLE_APP_REPOSITORY_URL $CLONE_INTO_DIR
     - path::./:
         title: Step Test
@@ -206,6 +155,10 @@ workflows:
         - enable_repo_clone: "yes"
         - repository_url: $SAMPLE_APP_REPOSITORY_URL
         - branch: master
+
+  generate_readme:
+    steps:
+      - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: {}
 
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library

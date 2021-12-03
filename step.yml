@@ -1,5 +1,5 @@
 title: "Project scanner"
-summary: Scans repository for iOS, macOS, Android, Xamarin, Fastlane and Cordova projects
+summary: Scans repository for iOS, macOS, Android, Fastlane, Cordova, Ionic, React Native and Flutter projects
 description: |-
   For iOS and macOS projects, the step detects CocoaPods and scans Xcode project files
   for valid Xcode command line configurations.
@@ -7,12 +7,17 @@ description: |-
   For Android projects, the step checks for build.gradle files and lists all the gradle tasks. It
   also checks for gradlew file.
 
-  For Xamarin projects, the step checks the solution files and lists the configuration options. It
-  also checks for NuGet and Xamarin Components packages.
+  For Fastlane, the step detects Fastfile and lists the available lanes.
 
   For Cordova projects, the step checks for the config.xml file.
 
-  For Fastlane, the step detects Fastfile and lists the available lanes.
+  For Ionic projects, the step checks for the ionic.config.json and ionic.project files.
+
+  For React Native projects, the step checks for package.json files and also runs the
+  iOS and Android native project scanners.
+
+  For Flutter projects, the step checks for the pubspec.yaml files.
+
 website: https://github.com/bitrise-steplib/steps-project-scanner
 source_code_url: https://github.com/bitrise-steplib/steps-project-scanner
 support_url: https://github.com/bitrise-steplib/steps-project-scanner/issues
@@ -28,6 +33,7 @@ inputs:
   - scan_dir: $BITRISE_SOURCE_DIR
     opts:
       title: "Directory to scan."
+      description: "The step will look for the projects in this directory."
       is_required: true
   - scan_result_submit_url: "$BITRISE_SCAN_RESULT_POST_URL"
     opts:
@@ -60,21 +66,26 @@ inputs:
   - enable_repo_clone: "no"
     opts:
       title: "Activate SSH key and clone git repo inside the step"
+      description: |
+        If set to yes then it will setup the ssh key and will clone the repo with the provided url and branch name.
       value_options:
         - "yes"
         - "no"
   - ssh_rsa_private_key: "$SSH_RSA_PRIVATE_KEY"
     opts:
-      title: SSH private key in RSA format
+      title: "SSH private key in RSA format"
+      description: "SSH key to be used for the git clone."
       is_expand: true
       is_dont_change_value: true
       is_sensitive: true
   - repository_url: "$GIT_REPOSITORY_URL"
     opts:
       title: "Git repository URL"
+      description: "Url to be used for the git clone."
       is_dont_change_value: true
   - branch: "$BITRISE_GIT_BRANCH"
     opts:
       category: Clone Config
       title: "Git Branch to clone"
+      description: "Branch to be used for the git clone."
       is_dont_change_value: true

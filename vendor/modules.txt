@@ -3,7 +3,7 @@ github.com/beevik/etree
 # github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248
 ## explicit
 github.com/bitrise-io/bitrise/models
-# github.com/bitrise-io/bitrise-init v0.0.0-20211026075442-7480439d7726
+# github.com/bitrise-io/bitrise-init v0.0.0-20211201163403-80ed402ddf62
 ## explicit
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/errormapper
@@ -19,7 +19,6 @@ github.com/bitrise-io/bitrise-init/scanners/ionic
 github.com/bitrise-io/bitrise-init/scanners/ios
 github.com/bitrise-io/bitrise-init/scanners/macos
 github.com/bitrise-io/bitrise-init/scanners/reactnative
-github.com/bitrise-io/bitrise-init/scanners/xamarin
 github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/toolscanner
 github.com/bitrise-io/bitrise-init/utility
