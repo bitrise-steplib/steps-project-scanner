@@ -13,6 +13,7 @@ workflows:
   test:
     before_run:
     - audit-this-step
+    - test_repo_clone
     title: Bitrise Init Test
     description: Bitrise Init Test
     envs:
@@ -125,10 +126,7 @@ workflows:
         - output_dir: $ORIG_BITRISE_SOURCE_DIR/result
         - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
         - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
-    before_run:
-    - test_repo_clone
 
-  
   test_repo_clone:
     envs:
         - CLONE_INTO_DIR: _tmp
