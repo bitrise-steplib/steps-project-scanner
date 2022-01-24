@@ -131,7 +131,7 @@ that the right Gradle version is installed and used for the build. More info/gui
 	return nil
 }
 
-func (scanner *Scanner) generateConfigBuilder() models.ConfigBuilderModel {
+func (scanner *Scanner) generateConfigBuilder(shouldActivateSSHKey bool) models.ConfigBuilderModel {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	projectLocationEnv, gradlewPath, moduleEnv, variantEnv := "$"+ProjectLocationInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew", "$"+ModuleInputEnvKey, "$"+VariantInputEnvKey
@@ -160,7 +160,10 @@ func (scanner *Scanner) generateConfigBuilder() models.ConfigBuilderModel {
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(true)...)
 
 	//-- deploy
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(true)...)
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
+		ShouldIncludeCache:       true,
+		ShouldIncludeActivateSSH: shouldActivateSSHKey,
+	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
 	))
@@ -198,7 +201,7 @@ func (scanner *Scanner) generateConfigBuilder() models.ConfigBuilderModel {
 		},
 	))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.SignAPKStepListItem())
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(true)...)
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepListV2(true)...)
 
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 

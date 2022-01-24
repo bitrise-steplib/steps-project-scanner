@@ -87,7 +87,7 @@ func (o *scannerOutput) AddWarnings(tag string, errs ...string) {
 }
 
 // Config ...
-func Config(searchDir string) models.ScanResultModel {
+func Config(searchDir string, shouldActivateSSHKey bool) models.ScanResultModel {
 	result := models.ScanResultModel{}
 
 	//
@@ -148,7 +148,7 @@ func Config(searchDir string) models.ScanResultModel {
 	// Collect scanner outputs, by scanner name
 	scannerToOutput := map[string]scannerOutput{}
 	{
-		projectScannerToOutputs := runScanners(scanners.ProjectScanners, searchDir)
+		projectScannerToOutputs := runScanners(scanners.ProjectScanners, searchDir, shouldActivateSSHKey)
 		detectedProjectTypes := getDetectedScannerNames(projectScannerToOutputs)
 		log.Printf("Detected project types: %s", detectedProjectTypes)
 		fmt.Println()
@@ -162,7 +162,7 @@ func Config(searchDir string) models.ScanResultModel {
 			toolScanner.(scanners.AutomationToolScanner).SetDetectedProjectTypes(detectedProjectTypes)
 		}
 
-		toolScannerToOutputs := runScanners(scanners.AutomationToolScanners, searchDir)
+		toolScannerToOutputs := runScanners(scanners.AutomationToolScanners, searchDir, shouldActivateSSHKey)
 		detectedAutomationToolScanners := getDetectedScannerNames(toolScannerToOutputs)
 		log.Printf("Detected automation tools: %s", detectedAutomationToolScanners)
 		fmt.Println()
@@ -213,7 +213,7 @@ func Config(searchDir string) models.ScanResultModel {
 	}
 }
 
-func runScanners(scannerList []scanners.ScannerInterface, searchDir string) map[string]scannerOutput {
+func runScanners(scannerList []scanners.ScannerInterface, searchDir string, shouldActivateSSHKey bool) map[string]scannerOutput {
 	scannerOutputs := map[string]scannerOutput{}
 	var excludedScannerNames []string
 	for _, scanner := range scannerList {
@@ -226,7 +226,7 @@ func runScanners(scannerList []scanners.ScannerInterface, searchDir string) map[
 
 		log.TPrintf("+------------------------------------------------------------------------------+")
 		log.TPrintf("|                                                                              |")
-		scannerOutput := runScanner(scanner, searchDir)
+		scannerOutput := runScanner(scanner, searchDir, shouldActivateSSHKey)
 		log.TPrintf("|                                                                              |")
 		log.TPrintf("+------------------------------------------------------------------------------+")
 		fmt.Println()
@@ -238,7 +238,7 @@ func runScanners(scannerList []scanners.ScannerInterface, searchDir string) map[
 }
 
 // Collect output of a specific scanner
-func runScanner(detector scanners.ScannerInterface, searchDir string) scannerOutput {
+func runScanner(detector scanners.ScannerInterface, searchDir string, shouldActivateSSHKey bool) scannerOutput {
 	output := scannerOutput{}
 
 	if isDetect, err := detector.DetectPlatform(searchDir); err != nil {
@@ -275,7 +275,7 @@ func runScanner(detector scanners.ScannerInterface, searchDir string) scannerOut
 	}
 
 	// Generate configs
-	configs, err := detector.Configs()
+	configs, err := detector.Configs(shouldActivateSSHKey)
 	if err != nil {
 		data := detectorErrorData(detector.Name(), err)
 		analytics.LogError(configsFailedTag, data, "%s detector Configs failed", detector.Name())

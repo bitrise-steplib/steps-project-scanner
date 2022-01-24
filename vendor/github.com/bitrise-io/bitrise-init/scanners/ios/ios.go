@@ -59,7 +59,7 @@ func (Scanner) DefaultOptions() models.OptionNode {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 	return GenerateConfig(XcodeProjectTypeIOS, scanner.ConfigDescriptors, true)
 }
 

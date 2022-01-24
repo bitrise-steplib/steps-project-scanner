@@ -276,7 +276,7 @@ func (Scanner) DefaultOptions() models.OptionNode {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
 

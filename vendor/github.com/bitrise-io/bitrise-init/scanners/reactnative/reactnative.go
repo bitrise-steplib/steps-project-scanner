@@ -262,7 +262,7 @@ func (scanner *Scanner) Options() (options models.OptionNode, warnings models.Wa
 }
 
 // Configs implements ScannerInterface.Configs function.
-func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 	if scanner.expoSettings != nil {
 		return scanner.expoConfigs()
 	}
