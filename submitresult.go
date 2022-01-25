@@ -90,7 +90,7 @@ func (c *resultClient) uploadErrorResult(stepID string, err error) error {
 func (c *resultClient) uploadResults(result models.ScanResultModel) error {
 	bytes, err := json.MarshalIndent(result, "", "\t")
 	if err != nil {
-		return fmt.Errorf("failed to marshal results, error: %v", err)
+		return fmt.Errorf("failed to marshal results: %v", err)
 	}
 
 	if err := retry.Times(1).Wait(5 * time.Second).Try(func(attempt uint) error {
@@ -100,9 +100,9 @@ func (c *resultClient) uploadResults(result models.ScanResultModel) error {
 
 		req, err := http.NewRequest(http.MethodPost, c.URL.String(), strings.NewReader(string(bytes)))
 		if err != nil {
-			return fmt.Errorf("faield to create http reques: %v", err)
+			return fmt.Errorf("failed to create request: %v", err)
 		}
-		req.Header.Add("Conent-Type", "application/json")
+		req.Header.Add("Content-Type", "application/json")
 
 		reqDump, err := httputil.DumpRequestOut(req, true)
 		if err != nil {

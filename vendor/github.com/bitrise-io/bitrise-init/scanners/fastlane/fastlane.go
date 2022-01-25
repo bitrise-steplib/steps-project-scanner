@@ -2,6 +2,7 @@ package fastlane
 
 import (
 	"fmt"
+
 	"github.com/bitrise-io/go-utils/pathutil"
 
 	"gopkg.in/yaml.v2"
@@ -186,7 +187,7 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 	generateConfig := func(isIOS bool) (bitriseModels.BitriseDataModel, error) {
 		configBuilder := models.NewDefaultConfigBuilder()
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)

@@ -6,19 +6,18 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/bitrise-io/bitrise-init/errormapper"
-	"github.com/bitrise-io/go-steputils/step"
-
 	"github.com/bitrise-io/bitrise-init/analytics"
+	"github.com/bitrise-io/bitrise-init/errormapper"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/output"
+	"github.com/bitrise-io/go-steputils/step"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 )
 
 // GenerateScanResult runs the scanner, returns the results and if any platform was detected.
-func GenerateScanResult(searchDir string) (models.ScanResultModel, bool) {
-	scanResult := Config(searchDir)
+func GenerateScanResult(searchDir string, isPrivateRepository bool) (models.ScanResultModel, bool) {
+	scanResult := Config(searchDir, isPrivateRepository)
 
 	var platforms []string
 	for platform := range scanResult.ScannerToOptionRoot {
@@ -43,7 +42,7 @@ func GenerateScanResult(searchDir string) (models.ScanResultModel, bool) {
 
 // GenerateAndWriteResults runs the scanner and saves results to the given output dir.
 func GenerateAndWriteResults(searchDir string, outputDir string, format output.Format) (models.ScanResultModel, error) {
-	result, detected := GenerateScanResult(searchDir)
+	result, detected := GenerateScanResult(searchDir, true)
 
 	// Write output to files
 	log.TInfof("Saving outputs:")

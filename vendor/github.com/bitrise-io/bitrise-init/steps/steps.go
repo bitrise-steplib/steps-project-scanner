@@ -7,6 +7,12 @@ import (
 	stepmanModels "github.com/bitrise-io/stepman/models"
 )
 
+// PrepareListParams describes the default prepare Step options.
+type PrepareListParams struct {
+	ShouldIncludeCache       bool
+	ShouldIncludeActivateSSH bool
+}
+
 func stepIDComposite(ID, version string) string {
 	if version != "" {
 		return ID + "@" + version
@@ -45,6 +51,23 @@ func DefaultPrepareStepList(isIncludeCache bool) []bitriseModels.StepListItemMod
 	return append(stepList, ScriptSteplistItem(ScriptDefaultTitle))
 }
 
+// DefaultPrepareStepListV2 ...
+func DefaultPrepareStepListV2(params PrepareListParams) []bitriseModels.StepListItemModel {
+	stepList := []bitriseModels.StepListItemModel{}
+
+	if params.ShouldIncludeActivateSSH {
+		stepList = append(stepList, ActivateSSHKeyStepListItem())
+	}
+
+	stepList = append(stepList, GitCloneStepListItem())
+
+	if params.ShouldIncludeCache {
+		stepList = append(stepList, CachePullStepListItem())
+	}
+
+	return stepList
+}
+
 // DefaultDeployStepList ...
 func DefaultDeployStepList(isIncludeCache bool) []bitriseModels.StepListItemModel {
 	stepList := []bitriseModels.StepListItemModel{
@@ -54,6 +77,19 @@ func DefaultDeployStepList(isIncludeCache bool) []bitriseModels.StepListItemMode
 	if isIncludeCache {
 		stepList = append(stepList, CachePushStepListItem())
 	}
+
+	return stepList
+}
+
+// DefaultDeployStepListV2 ...
+func DefaultDeployStepListV2(shouldIncludeCache bool) []bitriseModels.StepListItemModel {
+	stepList := []bitriseModels.StepListItemModel{}
+
+	if shouldIncludeCache {
+		stepList = append(stepList, CachePushStepListItem())
+	}
+
+	stepList = append(stepList, DeployToBitriseIoStepListItem())
 
 	return stepList
 }

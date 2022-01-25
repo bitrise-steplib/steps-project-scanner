@@ -133,8 +133,8 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder()
+func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
+	configBuilder := scanner.generateConfigBuilder(isPrivateRepository)
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {
@@ -153,7 +153,7 @@ func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
 
 // DefaultConfigs ...
 func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder()
+	configBuilder := scanner.generateConfigBuilder(true)
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {
