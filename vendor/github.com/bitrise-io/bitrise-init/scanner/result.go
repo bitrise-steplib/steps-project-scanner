@@ -16,8 +16,8 @@ import (
 )
 
 // GenerateScanResult runs the scanner, returns the results and if any platform was detected.
-func GenerateScanResult(searchDir string, shouldActivateSSHKey bool) (models.ScanResultModel, bool) {
-	scanResult := Config(searchDir, shouldActivateSSHKey)
+func GenerateScanResult(searchDir string, isPrivateRepository bool) (models.ScanResultModel, bool) {
+	scanResult := Config(searchDir, isPrivateRepository)
 
 	var platforms []string
 	for platform := range scanResult.ScannerToOptionRoot {

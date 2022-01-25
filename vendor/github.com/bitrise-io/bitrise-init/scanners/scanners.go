@@ -53,7 +53,7 @@ type ScannerInterface interface {
 	// Every config's key should be the last option one of the OptionNode branches.
 	// Returns:
 	// - platform BitriseConfigMap
-	Configs(shouldActivateSSHKey bool) (models.BitriseConfigMap, error)
+	Configs(isPrivateRepository bool) (models.BitriseConfigMap, error)
 
 	// Returns:
 	// - platform default BitriseConfigMap

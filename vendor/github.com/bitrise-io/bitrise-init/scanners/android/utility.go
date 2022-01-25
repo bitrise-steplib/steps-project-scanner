@@ -131,7 +131,7 @@ that the right Gradle version is installed and used for the build. More info/gui
 	return nil
 }
 
-func (scanner *Scanner) generateConfigBuilder(shouldActivateSSHKey bool) models.ConfigBuilderModel {
+func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.ConfigBuilderModel {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	projectLocationEnv, gradlewPath, moduleEnv, variantEnv := "$"+ProjectLocationInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew", "$"+ModuleInputEnvKey, "$"+VariantInputEnvKey
@@ -162,7 +162,7 @@ func (scanner *Scanner) generateConfigBuilder(shouldActivateSSHKey bool) models.
 	//-- deploy
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
 		ShouldIncludeCache:       true,
-		ShouldIncludeActivateSSH: shouldActivateSSHKey,
+		ShouldIncludeActivateSSH: isPrivateRepository,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},

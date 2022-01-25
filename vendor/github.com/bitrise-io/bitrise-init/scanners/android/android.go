@@ -133,8 +133,8 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs(shouldActivateSSHKey bool) (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder(shouldActivateSSHKey)
+func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
+	configBuilder := scanner.generateConfigBuilder(isPrivateRepository)
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {
