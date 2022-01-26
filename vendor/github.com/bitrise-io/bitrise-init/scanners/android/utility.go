@@ -137,17 +137,12 @@ func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.C
 	projectLocationEnv, gradlewPath, moduleEnv, variantEnv := "$"+ProjectLocationInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew", "$"+ModuleInputEnvKey, "$"+VariantInputEnvKey
 
 	//-- primary
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(true)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
+		ShouldIncludeCache:       true,
+		ShouldIncludeActivateSSH: isPrivateRepository,
+	})...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
-	))
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.AndroidLintStepListItem(
-		envmanModels.EnvironmentItemModel{
-			ProjectLocationInputKey: projectLocationEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			VariantInputKey: variantEnv,
-		},
 	))
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.AndroidUnitTestStepListItem(
 		envmanModels.EnvironmentItemModel{
@@ -157,7 +152,8 @@ func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.C
 			VariantInputKey: variantEnv,
 		},
 	))
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(true)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(true)...)
+	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryWorkflowDescription)
 
 	//-- deploy
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
