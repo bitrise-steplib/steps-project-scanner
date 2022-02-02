@@ -39,8 +39,9 @@ func stepListItem(stepIDComposite, title, runIf string, inputs ...envmanModels.E
 
 // DefaultPrepareStepList ...
 func DefaultPrepareStepList(isIncludeCache bool) []bitriseModels.StepListItemModel {
+	runIfCondition := `{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`
 	stepList := []bitriseModels.StepListItemModel{
-		ActivateSSHKeyStepListItem(),
+		ActivateSSHKeyStepListItem(runIfCondition),
 		GitCloneStepListItem(),
 	}
 
@@ -56,7 +57,7 @@ func DefaultPrepareStepListV2(params PrepareListParams) []bitriseModels.StepList
 	stepList := []bitriseModels.StepListItemModel{}
 
 	if params.ShouldIncludeActivateSSH {
-		stepList = append(stepList, ActivateSSHKeyStepListItem())
+		stepList = append(stepList, ActivateSSHKeyStepListItem(""))
 	}
 
 	stepList = append(stepList, GitCloneStepListItem())
@@ -95,10 +96,9 @@ func DefaultDeployStepListV2(shouldIncludeCache bool) []bitriseModels.StepListIt
 }
 
 // ActivateSSHKeyStepListItem ...
-func ActivateSSHKeyStepListItem() bitriseModels.StepListItemModel {
+func ActivateSSHKeyStepListItem(runIfCondition string) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(ActivateSSHKeyID, ActivateSSHKeyVersion)
-	runIf := `{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`
-	return stepListItem(stepIDComposite, "", runIf)
+	return stepListItem(stepIDComposite, "", runIfCondition)
 }
 
 // AndroidLintStepListItem ...
@@ -200,6 +200,12 @@ func RecreateUserSchemesStepListItem(inputs ...envmanModels.EnvironmentItemModel
 // XcodeArchiveStepListItem ...
 func XcodeArchiveStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(XcodeArchiveID, XcodeArchiveVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
+// XcodeBuildForTestStepListItem ...
+func XcodeBuildForTestStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(XcodeBuildForTestID, XcodeBuildForTestVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 

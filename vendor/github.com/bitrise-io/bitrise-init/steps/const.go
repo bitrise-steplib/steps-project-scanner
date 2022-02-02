@@ -136,6 +136,13 @@ const (
 )
 
 const (
+	// XcodeBuildForTestID ...
+	XcodeBuildForTestID = "xcode-build-for-test"
+	// XcodeBuildForTestVersion ...
+	XcodeBuildForTestVersion = "1"
+)
+
+const (
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...
