@@ -65,15 +65,14 @@ end
 
 	absPodfilePth, err := filepath.Abs(podfileParser.podfilePth)
 	if err != nil {
-		return map[string]string{}, fmt.Errorf("failed to expand path (%s), error: %s", podfileParser.podfilePth, err)
+		return map[string]string{}, fmt.Errorf("failed to expand path (%s): %s", podfileParser.podfilePth, err)
 	}
 
 	envs := []string{fmt.Sprintf("PODFILE_PATH=%s", absPodfilePth)}
-	podfileDir := filepath.Dir(absPodfilePth)
 
-	out, err := runRubyScriptForOutput(rubyScriptContent, gemfileContent, podfileDir, envs)
+	out, err := runRubyScriptForOutput(rubyScriptContent, gemfileContent, envs)
 	if err != nil {
-		return map[string]string{}, fmt.Errorf("ruby script failed, error: %s", err)
+		return map[string]string{}, fmt.Errorf("ruby script failed: %s", err)
 	}
 
 	if out == "" {
@@ -87,11 +86,11 @@ end
 
 	var targetDefinitionOutput targetDefinitionOutputModel
 	if err := json.Unmarshal([]byte(out), &targetDefinitionOutput); err != nil {
-		return map[string]string{}, fmt.Errorf("failed to parse target definition output, error: %s", err)
+		return map[string]string{}, fmt.Errorf("failed to parse target definition output: %s", err)
 	}
 
 	if podfileParser.shouldRaiseReadDefinitionError(targetDefinitionOutput.Error) {
-		return map[string]string{}, fmt.Errorf("failed to read target defintion map, error: %s", targetDefinitionOutput.Error)
+		return map[string]string{}, fmt.Errorf("failed to read target definition map: %s", targetDefinitionOutput.Error)
 	}
 
 	return targetDefinitionOutput.Data, nil
@@ -115,7 +114,7 @@ func (podfileParser podfileParser) shouldRaiseReadDefinitionError(err string) bo
 func (podfileParser podfileParser) getUserDefinedProjectRelavtivePath(cocoapodsVersion string) (string, error) {
 	targetProjectMap, err := podfileParser.getTargetDefinitionProjectMap(cocoapodsVersion)
 	if err != nil {
-		return "", fmt.Errorf("failed to get target definition map, error: %s", err)
+		return "", fmt.Errorf("failed to get target definition map: %s", err)
 	}
 
 	for target, project := range targetProjectMap {
@@ -157,15 +156,14 @@ end
 `
 	absPodfilePth, err := filepath.Abs(podfileParser.podfilePth)
 	if err != nil {
-		return "", fmt.Errorf("failed to expand path (%s), error: %s", podfileParser.podfilePth, err)
+		return "", fmt.Errorf("failed to expand path (%s): %s", podfileParser.podfilePth, err)
 	}
 
 	envs := []string{fmt.Sprintf("PODFILE_PATH=%s", absPodfilePth)}
-	podfileDir := filepath.Dir(absPodfilePth)
 
-	out, err := runRubyScriptForOutput(rubyScriptContent, gemfileContent, podfileDir, envs)
+	out, err := runRubyScriptForOutput(rubyScriptContent, gemfileContent, envs)
 	if err != nil {
-		return "", fmt.Errorf("ruby script failed, error: %s", err)
+		return "", fmt.Errorf("ruby script failed: %s", err)
 	}
 
 	if out == "" {
@@ -179,11 +177,11 @@ end
 
 	var workspacePathOutput workspacePathOutputModel
 	if err := json.Unmarshal([]byte(out), &workspacePathOutput); err != nil {
-		return "", fmt.Errorf("failed to parse workspace path output, error: %s", err)
+		return "", fmt.Errorf("failed to parse workspace path output: %s", err)
 	}
 
 	if podfileParser.shouldRaiseReadDefinitionError(workspacePathOutput.Error) {
-		return "", fmt.Errorf("failed to read workspace path, error: %s", workspacePathOutput.Error)
+		return "", fmt.Errorf("failed to read workspace path: %s", workspacePathOutput.Error)
 	}
 
 	return workspacePathOutput.Data, nil
@@ -213,19 +211,19 @@ func (podfileParser podfileParser) GetWorkspaceProjectMap(projects []string) (ma
 
 	projectRelPth, err := podfileParser.getUserDefinedProjectRelavtivePath(cocoapodsVersion)
 	if err != nil {
-		return map[string]string{}, fmt.Errorf("failed to get user defined project path, error: %s", err)
+		return map[string]string{}, fmt.Errorf("failed to get user defined project path: %s", err)
 	}
 
 	if projectRelPth == "" {
 		projects, err := pathutil.FilterPaths(projects, pathutil.InDirectoryFilter(podfileDir, true))
 		if err != nil {
-			return map[string]string{}, fmt.Errorf("failed to filter projects, error: %s", err)
+			return map[string]string{}, fmt.Errorf("failed to filter projects: %s", err)
 		}
 
 		if len(projects) == 0 {
-			return map[string]string{}, errors.New("failed to determin workspace - project mapping: no explicit project specified and no project found in the Podfile's directory")
+			return map[string]string{}, errors.New("failed to determine workspace - project mapping: no explicit project specified and no project found in the Podfile's directory")
 		} else if len(projects) > 1 {
-			return map[string]string{}, errors.New("failed to determin workspace - project mapping: no explicit project specified and more than one project found in the Podfile's directory")
+			return map[string]string{}, errors.New("failed to determine workspace - project mapping: no explicit project specified and more than one project found in the Podfile's directory")
 		}
 
 		projectRelPth = filepath.Base(projects[0])
@@ -233,14 +231,14 @@ func (podfileParser podfileParser) GetWorkspaceProjectMap(projects []string) (ma
 	projectPth := filepath.Join(podfileDir, projectRelPth)
 
 	if exist, err := pathutil.IsPathExists(projectPth); err != nil {
-		return map[string]string{}, fmt.Errorf("failed to check if path (%s) exists, error: %s", projectPth, err)
+		return map[string]string{}, fmt.Errorf("failed to check if path (%s) exists: %s", projectPth, err)
 	} else if !exist {
 		return map[string]string{}, fmt.Errorf("project not found at: %s", projectPth)
 	}
 
 	workspaceRelPth, err := podfileParser.getUserDefinedWorkspaceRelativePath(cocoapodsVersion)
 	if err != nil {
-		return map[string]string{}, fmt.Errorf("failed to get user defined workspace path, error: %s", err)
+		return map[string]string{}, fmt.Errorf("failed to get user defined workspace path: %s", err)
 	}
 
 	if workspaceRelPth == "" {
@@ -286,7 +284,7 @@ func (podfileParser podfileParser) cocoapodsVersion(podfileLockPth string) (stri
 func (podfileParser podfileParser) fixPodfileQuotation(podfilePth string) error {
 	podfileContent, err := fileutil.ReadStringFromFile(podfilePth)
 	if err != nil {
-		return fmt.Errorf("failed to read podfile (%s), error: %s", podfilePth, err)
+		return fmt.Errorf("failed to read podfile (%s): %s", podfilePth, err)
 	}
 
 	podfileContent = strings.Replace(podfileContent, `‘`, `'`, -1)
@@ -295,7 +293,7 @@ func (podfileParser podfileParser) fixPodfileQuotation(podfilePth string) error 
 	podfileContent = strings.Replace(podfileContent, `”`, `"`, -1)
 
 	if err := fileutil.WriteStringToFile(podfilePth, podfileContent); err != nil {
-		return fmt.Errorf("failed to apply Podfile quotation fix, error: %s", err)
+		return fmt.Errorf("failed to apply Podfile quotation fix: %s", err)
 	}
 
 	return nil
