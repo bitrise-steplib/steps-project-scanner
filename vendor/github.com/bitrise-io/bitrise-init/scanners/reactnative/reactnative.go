@@ -258,15 +258,17 @@ func (scanner *Scanner) Options() (options models.OptionNode, warnings models.Wa
 	} else {
 		options, warnings, err = scanner.options()
 	}
+
 	return
 }
 
 // Configs implements ScannerInterface.Configs function.
-func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(isPrivateRepo bool) (models.BitriseConfigMap, error) {
 	if scanner.expoSettings != nil {
-		return scanner.expoConfigs()
+		return scanner.expoConfigs(isPrivateRepo)
 	}
-	return scanner.configs()
+
+	return scanner.configs(isPrivateRepo)
 }
 
 // DefaultOptions implements ScannerInterface.DefaultOptions function.
