@@ -3,7 +3,7 @@ github.com/beevik/etree
 # github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248
 ## explicit
 github.com/bitrise-io/bitrise/models
-# github.com/bitrise-io/bitrise-init v0.0.0-20220207155038-1a335925b04e
+# github.com/bitrise-io/bitrise-init v0.0.0-20220208135136-4b7636ba9f52
 ## explicit
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/errormapper
