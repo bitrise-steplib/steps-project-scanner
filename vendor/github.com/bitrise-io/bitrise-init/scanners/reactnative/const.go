@@ -20,19 +20,32 @@ Next steps:
 - Add tests to your project and configure the workflow to run them.
 - Check out [Getting started with React Native apps](https://devcenter.bitrise.io/en/getting-started/getting-started-with-react-native-apps.html).
 `
-	deployExpoWorkflowDescription = `Tests, builds and deploys the app.
+)
+
+const (
+	expoDeployWorkflowDescription = `Tests the app and runs a build on Expo Application Services (EAS).
+
+Next steps:
+- Configure the ` + "`Run Expo Application Services (EAS) build`" + ` Step's ` + "`Access Token`" + ` input.
+- Check out [Getting started with Expo apps](https://devcenter.bitrise.io/en/getting-started/getting-started-with-expo-apps.html).
+- For an alternative deploy workflow checkout the [(React Native) Expo: Build using Turtle CLI recipe](https://github.com/bitrise-io/workflow-recipes/blob/main/recipes/rn-expo-turtle-build.md).
+`
+
+	expoDeployWorkflowNoTestsDescription = `Runs a build on Expo Application Services (EAS).
+
+Next steps:
+- Configure the ` + "`Run Expo Application Services (EAS) build`" + ` Step's ` + "`Access Token`" + ` input.
+- Check out [Getting started with Expo apps](https://devcenter.bitrise.io/en/getting-started/getting-started-with-expo-apps.html).
+- For an alternative deploy workflow checkout the [(React Native) Expo: Build using Turtle CLI recipe](https://github.com/bitrise-io/workflow-recipes/blob/main/recipes/rn-expo-turtle-build.md).
+`
+
+	expoPrimaryWorkflowDescription = `Runs tests.
 
 Next steps:
 - Check out [Getting started with Expo apps](https://devcenter.bitrise.io/en/getting-started/getting-started-with-expo-apps.html).
 `
 
-	primaryExpoWorkflowDescription = `Runs tests.
-
-Next steps:
-- Check out [Getting started with Expo apps](https://devcenter.bitrise.io/en/getting-started/getting-started-with-expo-apps.html).
-`
-
-	primaryExpoWorkflowNoTestsDescription = `Installs dependencies.
+	expoPrimaryWorkflowNoTestsDescription = `Installs dependencies.
 
 Next steps:
 - Add tests to your project and configure the workflow to run them.

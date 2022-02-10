@@ -264,19 +264,39 @@ func KarmaJasmineTestRunnerStepListItem(inputs ...envmanModels.EnvironmentItemMo
 }
 
 // NpmStepListItem ...
-func NpmStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+func NpmStepListItem(command, workdir string) bitriseModels.StepListItemModel {
+	var inputs []envmanModels.EnvironmentItemModel
+	if workdir != "" {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{"workdir": workdir})
+	}
+	if command != "" {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{"command": command})
+	}
+
 	stepIDComposite := stepIDComposite(NpmID, NpmVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
-// ExpoDetachStepListItem ...
-func ExpoDetachStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(ExpoDetachID, ExpoDetachVersion)
+// RunEASBuildStepListItem ...
+func RunEASBuildStepListItem(workdir string) bitriseModels.StepListItemModel {
+	var inputs []envmanModels.EnvironmentItemModel
+	if workdir != "" && workdir != "$BITRISE_SOURCE_DIR" {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{"work_dir": workdir})
+	}
+	stepIDComposite := stepIDComposite(RunEASBuildID, RunEASBuildVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
 // YarnStepListItem ...
-func YarnStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+func YarnStepListItem(command, workdir string) bitriseModels.StepListItemModel {
+	var inputs []envmanModels.EnvironmentItemModel
+	if workdir != "" {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{"workdir": workdir})
+	}
+	if command != "" {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{"command": command})
+	}
+
 	stepIDComposite := stepIDComposite(YarnID, YarnVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
