@@ -25,7 +25,8 @@ const wordirEnv = "WORKDIR"
 
 // expoOptions implements ScannerInterface.Options function for Expo based React Native projects.
 func (scanner *Scanner) expoOptions() (models.OptionNode, models.Warnings, error) {
-	return models.OptionNode{}, models.Warnings{}, nil
+	configOption := models.NewConfigOption(expoConfigName, nil)
+	return *configOption, nil, nil
 }
 
 // expoConfigs implements ScannerInterface.Configs function for Expo based React Native projects.
@@ -93,14 +94,16 @@ func (scanner *Scanner) expoConfigs(isPrivateRepo bool) (models.BitriseConfigMap
 
 // expoDefaultOptions implements ScannerInterface.DefaultOptions function for Expo based React Native projects.
 func (Scanner) expoDefaultOptions() models.OptionNode {
-	// TODO: update options with Expo wording
 	workDirOption := models.NewOption(expoProjectDirInputTitle, expoProjectDirInputSummary, wordirEnv, models.TypeUserInput)
+	configOption := models.NewConfigOption(expoDefaultConfigName, nil)
+
+	workDirOption.AddConfig("", configOption)
+
 	return *workDirOption
 }
 
 // expoDefaultConfigs implements ScannerInterface.DefaultConfigs function for Expo based React Native projects.
 func (scanner Scanner) expoDefaultConfigs() (models.BitriseConfigMap, error) {
-	// TODO: should we ask if test, if yarn, which platform to deploy?
 	configMap := models.BitriseConfigMap{}
 
 	// primary workflow
