@@ -25,8 +25,14 @@ const wordirEnv = "WORKDIR"
 
 // expoOptions implements ScannerInterface.Options function for Expo based React Native projects.
 func (scanner *Scanner) expoOptions() (models.OptionNode, models.Warnings, error) {
+	platformOption := models.NewOption("Platform to build", "Which platform should be built by the deploy workflow?", "PLATFORM", models.TypeSelector)
 	configOption := models.NewConfigOption(expoConfigName, nil)
-	return *configOption, nil, nil
+
+	for _, platform := range []string{"all", "android", "ios"} {
+		platformOption.AddConfig(platform, configOption)
+	}
+
+	return *platformOption, nil, nil
 }
 
 // expoConfigs implements ScannerInterface.Configs function for Expo based React Native projects.
@@ -73,7 +79,7 @@ func (scanner *Scanner) expoConfigs(isPrivateRepo bool) (models.BitriseConfigMap
 		ShouldIncludeActivateSSH: isPrivateRepo,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, scanner.getTestSteps(relPackageJSONDir)...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem(relPackageJSONDir))
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem(relPackageJSONDir, "$PLATFORM"))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	// generate bitrise.yml
@@ -95,9 +101,13 @@ func (scanner *Scanner) expoConfigs(isPrivateRepo bool) (models.BitriseConfigMap
 // expoDefaultOptions implements ScannerInterface.DefaultOptions function for Expo based React Native projects.
 func (Scanner) expoDefaultOptions() models.OptionNode {
 	workDirOption := models.NewOption(expoProjectDirInputTitle, expoProjectDirInputSummary, wordirEnv, models.TypeUserInput)
+	platformOption := models.NewOption("Platform to build", "Which platform should be built by the deploy workflow?", "PLATFORM", models.TypeSelector)
 	configOption := models.NewConfigOption(expoDefaultConfigName, nil)
 
-	workDirOption.AddConfig("", configOption)
+	workDirOption.AddConfig("", platformOption)
+	for _, platform := range []string{"all", "android", "ios"} {
+		platformOption.AddConfig(platform, configOption)
+	}
 
 	return *workDirOption
 }
@@ -123,7 +133,7 @@ func (scanner Scanner) expoDefaultConfigs() (models.BitriseConfigMap, error) {
 		ShouldIncludeActivateSSH: true,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, getTestSteps("$WORKDIR", true, true)...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem("$WORKDIR"))
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem("$WORKDIR", "$PLATFORM"))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	// generate bitrise.yml

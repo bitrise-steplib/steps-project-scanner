@@ -278,9 +278,12 @@ func NpmStepListItem(command, workdir string) bitriseModels.StepListItemModel {
 }
 
 // RunEASBuildStepListItem ...
-func RunEASBuildStepListItem(workdir string) bitriseModels.StepListItemModel {
+func RunEASBuildStepListItem(workdir, platform string) bitriseModels.StepListItemModel {
 	var inputs []envmanModels.EnvironmentItemModel
-	if workdir != "" && workdir != "$BITRISE_SOURCE_DIR" {
+	if platform != "" {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{"platform": platform})
+	}
+	if workdir != "" {
 		inputs = append(inputs, envmanModels.EnvironmentItemModel{"work_dir": workdir})
 	}
 	stepIDComposite := stepIDComposite(RunEASBuildID, RunEASBuildVersion)
