@@ -43,24 +43,19 @@ func (scanner *Scanner) options() (models.OptionNode, models.Warnings, error) {
 
 	// android options
 	var androidOptions *models.OptionNode
-	androidDir := filepath.Join(projectDir, "android")
-	if exist, err := pathutil.IsDirExists(androidDir); err != nil {
-		return models.OptionNode{}, warnings, err
-	} else if exist {
-		if detected, err := scanner.androidScanner.DetectPlatform(scanner.searchDir); err != nil {
-			return models.OptionNode{}, warnings, err
-		} else if detected {
-			// only the first match we need
-			scanner.androidScanner.ExcludeTest = true
-			scanner.androidScanner.ProjectRoots = []string{scanner.androidScanner.ProjectRoots[0]}
+	if len(scanner.androidProjects) > 0 {
+		androidOptions = models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputSummary, android.ProjectLocationInputEnvKey, models.TypeSelector)
+		for _, project := range scanner.androidProjects {
+			warnings = append(warnings, project.Warnings...)
 
-			options, warns, _, err := scanner.androidScanner.Options()
-			warnings = append(warnings, warns...)
-			if err != nil {
-				return models.OptionNode{}, warnings, err
-			}
+			// This config option is removed when merging with ios config. This way no change is needed for the working options merging.
+			configOption := models.NewConfigOption("glue-only", nil)
+			moduleOption := models.NewOption(android.ModuleInputTitle, android.ModuleInputSummary, android.ModuleInputEnvKey, models.TypeUserInput)
+			variantOption := models.NewOption(android.VariantInputTitle, android.VariantInputSummary, android.VariantInputEnvKey, models.TypeOptionalUserInput)
 
-			androidOptions = &options
+			androidOptions.AddOption(project.RelPath, moduleOption)
+			moduleOption.AddOption("app", variantOption)
+			variantOption.AddConfig("", configOption)
 		}
 	}
 
@@ -70,10 +65,10 @@ func (scanner *Scanner) options() (models.OptionNode, models.Warnings, error) {
 	if exist, err := pathutil.IsDirExists(iosDir); err != nil {
 		return models.OptionNode{}, warnings, err
 	} else if exist {
+		scanner.iosScanner.SuppressPodFileParseError = true
 		if detected, err := scanner.iosScanner.DetectPlatform(scanner.searchDir); err != nil {
 			return models.OptionNode{}, warnings, err
 		} else if detected {
-			scanner.iosScanner.SuppressPodFileParseError = true
 			options, warns, _, err := scanner.iosScanner.Options()
 			warnings = append(warnings, warns...)
 			if err != nil {
@@ -122,7 +117,7 @@ func (scanner *Scanner) options() (models.OptionNode, models.Warnings, error) {
 					return models.OptionNode{}, warnings, fmt.Errorf("no config for option: %s", child.String())
 				}
 
-				configName := configName(scanner.androidScanner != nil, true, scanner.hasTest)
+				configName := configName(androidOptions != nil, true, scanner.hasTest)
 				child.Config = configName
 			}
 		}
@@ -143,7 +138,7 @@ func (scanner *Scanner) options() (models.OptionNode, models.Warnings, error) {
 
 // defaultOptions implements ScannerInterface.DefaultOptions function for plain React Native projects.
 func (scanner *Scanner) defaultOptions() models.OptionNode {
-	androidOptions := (&android.Scanner{ExcludeTest: true}).DefaultOptions()
+	androidOptions := (&android.Scanner{}).DefaultOptions()
 	androidOptions.RemoveConfigs()
 
 	iosOptions := (&ios.Scanner{}).DefaultOptions()
@@ -198,7 +193,8 @@ func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, er
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, scanner.getTestSteps(relPackageJSONDir)...)
 
 	// android cd
-	if scanner.androidScanner != nil {
+	hasAndroidProject := len(scanner.androidProjects) > 0
+	if hasAndroidProject {
 		projectLocationEnv := "$" + android.ProjectLocationInputEnvKey
 
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
@@ -248,7 +244,7 @@ func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, er
 				return models.BitriseConfigMap{}, err
 			}
 
-			configName := configName(scanner.androidScanner != nil, true, scanner.hasTest)
+			configName := configName(hasAndroidProject, true, scanner.hasTest)
 			configMap[configName] = string(data)
 		}
 	} else {
@@ -264,7 +260,7 @@ func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, er
 			return models.BitriseConfigMap{}, err
 		}
 
-		configName := configName(scanner.androidScanner != nil, false, scanner.hasTest)
+		configName := configName(hasAndroidProject, false, scanner.hasTest)
 		configMap[configName] = string(data)
 	}
 
@@ -282,8 +278,7 @@ func (scanner *Scanner) defaultConfigs() (models.BitriseConfigMap, error) {
 		ShouldIncludeActivateSSH: true,
 	})...)
 	// Assuming project uses yarn and has tests
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.YarnStepListItem(envmanModels.EnvironmentItemModel{"command": "install"}))
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.YarnStepListItem(envmanModels.EnvironmentItemModel{"command": "test"}))
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, getTestSteps("", true, true)...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(false)...)
 
 	// deploy
@@ -292,8 +287,7 @@ func (scanner *Scanner) defaultConfigs() (models.BitriseConfigMap, error) {
 		ShouldIncludeCache:       false,
 		ShouldIncludeActivateSSH: true,
 	})...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.YarnStepListItem(envmanModels.EnvironmentItemModel{"command": "install"}))
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.YarnStepListItem(envmanModels.EnvironmentItemModel{"command": "test"}))
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, getTestSteps("", true, true)...)
 
 	// android
 	projectLocationEnv := "$" + android.ProjectLocationInputEnvKey
@@ -334,27 +328,24 @@ func (scanner *Scanner) defaultConfigs() (models.BitriseConfigMap, error) {
 	return configMap, nil
 }
 
-func (scanner *Scanner) getTestSteps(workDir string) []bitriseModels.StepListItemModel {
-	var (
-		testSteps      = []bitriseModels.StepListItemModel{}
-		workdirEnvList = []envmanModels.EnvironmentItemModel{}
-	)
+func getTestSteps(workDir string, hasYarnLockFile, hasTest bool) []bitriseModels.StepListItemModel {
+	var testSteps []bitriseModels.StepListItemModel
 
-	if workDir != "" {
-		workdirEnvList = append(workdirEnvList, envmanModels.EnvironmentItemModel{workDirInputKey: workDir})
-	}
-
-	if scanner.hasYarnLockFile {
-		testSteps = append(testSteps, steps.YarnStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
-		if scanner.hasTest {
-			testSteps = append(testSteps, steps.YarnStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "test"})...))
+	if hasYarnLockFile {
+		testSteps = append(testSteps, steps.YarnStepListItem("install", workDir))
+		if hasTest {
+			testSteps = append(testSteps, steps.YarnStepListItem("test", workDir))
 		}
 	} else {
-		testSteps = append(testSteps, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "install"})...))
-		if scanner.hasTest {
-			testSteps = append(testSteps, steps.NpmStepListItem(append(workdirEnvList, envmanModels.EnvironmentItemModel{"command": "test"})...))
+		testSteps = append(testSteps, steps.NpmStepListItem("install", workDir))
+		if hasTest {
+			testSteps = append(testSteps, steps.NpmStepListItem("test", workDir))
 		}
 	}
 
 	return testSteps
+}
+
+func (scanner *Scanner) getTestSteps(workDir string) []bitriseModels.StepListItemModel {
+	return getTestSteps(workDir, scanner.hasYarnLockFile, scanner.hasTest)
 }

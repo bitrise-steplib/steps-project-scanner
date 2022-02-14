@@ -69,7 +69,9 @@ func availableScanners() (scannerNames []string) {
 func newDetectPlatformFailedMatcher() *errormapper.PatternErrorMatcher {
 	return newPatternErrorMatcher(
 		newDetectPlatformFailedGenericDetail,
-		nil,
+		map[string]errormapper.DetailedErrorBuilder{
+			`No Gradle Wrapper \(gradlew\) found\.`: newGradlewNotFoundDetail,
+		},
 	)
 }
 
@@ -85,10 +87,9 @@ func newOptionsFailedMatcher() *errormapper.PatternErrorMatcher {
 	return newPatternErrorMatcher(
 		newOptionsFailedGenericDetail,
 		map[string]errormapper.DetailedErrorBuilder{
-			`No Gradle Wrapper \(gradlew\) found\.`:                                                                                 newGradlewNotFoundDetail,
 			`app\.json file \((.+)\) missing or empty (.+) entry\nThe app\.json file needs to contain:`:                             newAppJSONIssueDetail,
 			`app\.json file \((.+)\) missing or empty (.+) entry\nIf the project uses Expo Kit the app.json file needs to contain:`: newExpoAppJSONIssueDetail,
-			`Cordova config.xml not found.`:                                                                                         newIonicCapacitorNotSupportedIssueDetail,
+			`Cordova config.xml not found.`: newIonicCapacitorNotSupportedIssueDetail,
 		},
 	)
 }
