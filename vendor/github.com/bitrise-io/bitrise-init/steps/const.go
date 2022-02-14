@@ -219,6 +219,9 @@ const (
 	RunEASBuildVersion = "0"
 )
 
+// RunEASBuildPlatforms ...
+var RunEASBuildPlatforms = []string{"all", "android", "ios"}
+
 const (
 	// YarnID ...
 	YarnID = "yarn"

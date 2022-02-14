@@ -19,16 +19,19 @@ const (
 const (
 	expoProjectDirInputTitle   = "Expo project directory"
 	expoProjectDirInputSummary = "Path of the directory containing the project's  `package.json` and app configuration file (`app.json`, `app.config.js`, `app.config.ts`)."
-)
+	expoProjectDirInputEnvKey  = "WORKDIR"
 
-const wordirEnv = "WORKDIR"
+	expoPlatformInputTitle   = "Platform to build"
+	expoPlatformInputSummary = "Which platform should be built by the deploy workflow?"
+	expoPlatformInputEnvKey  = "PLATFORM"
+)
 
 // expoOptions implements ScannerInterface.Options function for Expo based React Native projects.
 func (scanner *Scanner) expoOptions() (models.OptionNode, models.Warnings, error) {
-	platformOption := models.NewOption("Platform to build", "Which platform should be built by the deploy workflow?", "PLATFORM", models.TypeSelector)
+	platformOption := models.NewOption(expoPlatformInputTitle, expoPlatformInputSummary, expoPlatformInputEnvKey, models.TypeSelector)
 	configOption := models.NewConfigOption(expoConfigName, nil)
 
-	for _, platform := range []string{"all", "android", "ios"} {
+	for _, platform := range steps.RunEASBuildPlatforms {
 		platformOption.AddConfig(platform, configOption)
 	}
 
@@ -79,7 +82,7 @@ func (scanner *Scanner) expoConfigs(isPrivateRepo bool) (models.BitriseConfigMap
 		ShouldIncludeActivateSSH: isPrivateRepo,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, scanner.getTestSteps(relPackageJSONDir)...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem(relPackageJSONDir, "$PLATFORM"))
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem(relPackageJSONDir, "$"+expoPlatformInputEnvKey))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	// generate bitrise.yml
@@ -100,12 +103,12 @@ func (scanner *Scanner) expoConfigs(isPrivateRepo bool) (models.BitriseConfigMap
 
 // expoDefaultOptions implements ScannerInterface.DefaultOptions function for Expo based React Native projects.
 func (Scanner) expoDefaultOptions() models.OptionNode {
-	workDirOption := models.NewOption(expoProjectDirInputTitle, expoProjectDirInputSummary, wordirEnv, models.TypeUserInput)
-	platformOption := models.NewOption("Platform to build", "Which platform should be built by the deploy workflow?", "PLATFORM", models.TypeSelector)
+	workDirOption := models.NewOption(expoProjectDirInputTitle, expoProjectDirInputSummary, expoProjectDirInputEnvKey, models.TypeUserInput)
+	platformOption := models.NewOption(expoPlatformInputTitle, expoPlatformInputSummary, expoPlatformInputEnvKey, models.TypeSelector)
 	configOption := models.NewConfigOption(expoDefaultConfigName, nil)
 
 	workDirOption.AddConfig("", platformOption)
-	for _, platform := range []string{"all", "android", "ios"} {
+	for _, platform := range steps.RunEASBuildPlatforms {
 		platformOption.AddConfig(platform, configOption)
 	}
 
@@ -123,7 +126,7 @@ func (scanner Scanner) expoDefaultConfigs() (models.BitriseConfigMap, error) {
 		ShouldIncludeCache:       false,
 		ShouldIncludeActivateSSH: true,
 	})...)
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, getTestSteps("$WORKDIR", true, true)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, getTestSteps("$"+expoProjectDirInputEnvKey, true, true)...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(false)...)
 
 	// deploy workflow
@@ -132,8 +135,8 @@ func (scanner Scanner) expoDefaultConfigs() (models.BitriseConfigMap, error) {
 		ShouldIncludeCache:       false,
 		ShouldIncludeActivateSSH: true,
 	})...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, getTestSteps("$WORKDIR", true, true)...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem("$WORKDIR", "$PLATFORM"))
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, getTestSteps("$"+expoProjectDirInputEnvKey, true, true)...)
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem("$"+expoProjectDirInputEnvKey, "$"+expoPlatformInputEnvKey))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	// generate bitrise.yml

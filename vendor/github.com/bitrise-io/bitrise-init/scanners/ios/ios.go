@@ -8,8 +8,10 @@ import "github.com/bitrise-io/bitrise-init/models"
 
 // Scanner ...
 type Scanner struct {
-	SearchDir                 string
-	ConfigDescriptors         []ConfigDescriptor
+	DetectResult DetectResult
+
+	ConfigDescriptors []ConfigDescriptor
+
 	ExcludeAppIcon            bool
 	SuppressPodFileParseError bool
 }
@@ -26,13 +28,13 @@ func (Scanner) Name() string {
 
 // DetectPlatform ...
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
-	scanner.SearchDir = searchDir
-
-	detected, err := Detect(XcodeProjectTypeIOS, searchDir)
+	result, err := ParseProjects(XcodeProjectTypeIOS, searchDir, scanner.ExcludeAppIcon, scanner.SuppressPodFileParseError)
 	if err != nil {
 		return false, err
 	}
 
+	scanner.DetectResult = result
+	detected := len(result.Projects) > 0
 	return detected, nil
 }
 
@@ -43,7 +45,7 @@ func (Scanner) ExcludedScannerNames() []string {
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
-	options, configDescriptors, icons, warnings, err := GenerateOptions(XcodeProjectTypeIOS, scanner.SearchDir, scanner.ExcludeAppIcon, scanner.SuppressPodFileParseError)
+	options, configDescriptors, icons, warnings, err := GenerateOptions(XcodeProjectTypeIOS, scanner.DetectResult)
 	if err != nil {
 		return models.OptionNode{}, warnings, nil, err
 	}

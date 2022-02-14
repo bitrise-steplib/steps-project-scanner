@@ -16,6 +16,8 @@ github.com/bitrise-io/bitrise-init v0.0.0-20220211080444-a80b736485ce h1:Aj+erIA
 github.com/bitrise-io/bitrise-init v0.0.0-20220211080444-a80b736485ce/go.mod h1:I9KSWJm177/IOBMQHzn6BLgymVLQ0xlv/gMwDCYkWYU=
 github.com/bitrise-io/bitrise-init v0.0.0-20220211090524-39feb6849640 h1:DuOyJ2+Hr4FEwUcxOR34/XUaMudQpdPI9+Z37TvSijk=
 github.com/bitrise-io/bitrise-init v0.0.0-20220211090524-39feb6849640/go.mod h1:I9KSWJm177/IOBMQHzn6BLgymVLQ0xlv/gMwDCYkWYU=
+github.com/bitrise-io/bitrise-init v0.0.0-20220211145845-fc026626df26 h1:/294FJIKY58xhzNEJcSkXOl47p9p/Vgw1nabQ/MGsus=
+github.com/bitrise-io/bitrise-init v0.0.0-20220211145845-fc026626df26/go.mod h1:I9KSWJm177/IOBMQHzn6BLgymVLQ0xlv/gMwDCYkWYU=
 github.com/bitrise-io/colorstring v0.0.0-20180614154802-a8cd70115192/go.mod h1:CIHVcxZUvsG99XUJV6JlR7okNsMMGY81jMvPC20W+O0=
 github.com/bitrise-io/envman v0.0.0-20200512105748-919e33f391ee/go.mod h1:m8pTp1o3Sw9uzDxb1WRm5IBRnMau2iOvPMSnRCAhQNI=
 github.com/bitrise-io/envman v0.0.0-20210517135508-b2b4fe89eac5/go.mod h1:m8pTp1o3Sw9uzDxb1WRm5IBRnMau2iOvPMSnRCAhQNI=
