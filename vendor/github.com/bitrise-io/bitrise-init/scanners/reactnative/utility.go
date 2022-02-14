@@ -10,7 +10,7 @@ import (
 
 // CollectPackageJSONFiles collects package.json files, with react-native dependency.
 func CollectPackageJSONFiles(searchDir string) ([]string, error) {
-	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, true)
+	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, false)
 	if err != nil {
 		return nil, err
 	}

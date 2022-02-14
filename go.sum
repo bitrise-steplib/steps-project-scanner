@@ -6,18 +6,8 @@ github.com/bitrise-io/bitrise v0.0.0-20210519130014-380842fb41c1/go.mod h1:Jqf2P
 github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248 h1:GfhBF379/Uwu4fmalhwwoJv3RcqlrlEo8+gGEcuXLsw=
 github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248/go.mod h1:jqk9VdrvlRpRfIqA2DZHVNEMvPycmlpBfpiKxk89R6w=
 github.com/bitrise-io/bitrise-init v0.0.0-20210518121553-1e678625c45d/go.mod h1:2bxvLp7xgXC3HsacG2Z5nn6WOjk8kbNOmLWjinnhnKg=
-github.com/bitrise-io/bitrise-init v0.0.0-20220207155038-1a335925b04e h1:8WxOgFiJE/EZppYJaOrXvSHbnFUFhu/AXlkJ7tiANXI=
-github.com/bitrise-io/bitrise-init v0.0.0-20220207155038-1a335925b04e/go.mod h1:I9KSWJm177/IOBMQHzn6BLgymVLQ0xlv/gMwDCYkWYU=
-github.com/bitrise-io/bitrise-init v0.0.0-20220208135136-4b7636ba9f52 h1:Fb/oSqSFiQpbutGQv1OtxfbE94aVAK/Jxed2lApXJPE=
-github.com/bitrise-io/bitrise-init v0.0.0-20220208135136-4b7636ba9f52/go.mod h1:I9KSWJm177/IOBMQHzn6BLgymVLQ0xlv/gMwDCYkWYU=
-github.com/bitrise-io/bitrise-init v0.0.0-20220210095651-656d93f3ae6c h1:TgkBHNKym+xJj1DkM5mnz252gYTe+Z4s1K/LF9E3v8Y=
-github.com/bitrise-io/bitrise-init v0.0.0-20220210095651-656d93f3ae6c/go.mod h1:I9KSWJm177/IOBMQHzn6BLgymVLQ0xlv/gMwDCYkWYU=
-github.com/bitrise-io/bitrise-init v0.0.0-20220211080444-a80b736485ce h1:Aj+erIAEvIsEZLq5wZZrEryBiYgdRQE8ZFfHd/N0Ino=
-github.com/bitrise-io/bitrise-init v0.0.0-20220211080444-a80b736485ce/go.mod h1:I9KSWJm177/IOBMQHzn6BLgymVLQ0xlv/gMwDCYkWYU=
-github.com/bitrise-io/bitrise-init v0.0.0-20220211090524-39feb6849640 h1:DuOyJ2+Hr4FEwUcxOR34/XUaMudQpdPI9+Z37TvSijk=
-github.com/bitrise-io/bitrise-init v0.0.0-20220211090524-39feb6849640/go.mod h1:I9KSWJm177/IOBMQHzn6BLgymVLQ0xlv/gMwDCYkWYU=
-github.com/bitrise-io/bitrise-init v0.0.0-20220211145845-fc026626df26 h1:/294FJIKY58xhzNEJcSkXOl47p9p/Vgw1nabQ/MGsus=
-github.com/bitrise-io/bitrise-init v0.0.0-20220211145845-fc026626df26/go.mod h1:I9KSWJm177/IOBMQHzn6BLgymVLQ0xlv/gMwDCYkWYU=
+github.com/bitrise-io/bitrise-init v0.0.0-20220214143634-72be2c60ebf8 h1:/Q1R6lMZFrI741weGWOAJ74c1iLkBeJhB+stjpVgwB8=
+github.com/bitrise-io/bitrise-init v0.0.0-20220214143634-72be2c60ebf8/go.mod h1:I9KSWJm177/IOBMQHzn6BLgymVLQ0xlv/gMwDCYkWYU=
 github.com/bitrise-io/colorstring v0.0.0-20180614154802-a8cd70115192/go.mod h1:CIHVcxZUvsG99XUJV6JlR7okNsMMGY81jMvPC20W+O0=
 github.com/bitrise-io/envman v0.0.0-20200512105748-919e33f391ee/go.mod h1:m8pTp1o3Sw9uzDxb1WRm5IBRnMau2iOvPMSnRCAhQNI=
 github.com/bitrise-io/envman v0.0.0-20210517135508-b2b4fe89eac5/go.mod h1:m8pTp1o3Sw9uzDxb1WRm5IBRnMau2iOvPMSnRCAhQNI=
@@ -64,7 +54,6 @@ github.com/bitrise-steplib/steps-git-clone v0.0.0-20210715081304-d10e4259c5d6 h1
 github.com/bitrise-steplib/steps-git-clone v0.0.0-20210715081304-d10e4259c5d6/go.mod h1:cT9qpMAf+6Dkyr2ldrf62GtCJWoW5IYKNI4ZsJz5Ul8=
 github.com/bitrise-steplib/steps-xcode-test v0.0.0-20210504122558-8d13146f093c/go.mod h1:3vjk5RND3jeCH21LVxe9Fdp/BzlLHYD2G2PsiRgtMws=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
-github.com/cpuguy83/go-md2man/v2 v2.0.0 h1:EoUDS0afbrsXAZ9YQ9jdu/mZ2sXgT1/2yyNng4PGlyM=
 github.com/cpuguy83/go-md2man/v2 v2.0.0/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -98,7 +87,6 @@ github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/ryanuber/go-glob v1.0.0 h1:iQh3xXAumdQ+4Ufa5b25cRpC5TYKlno6hsv6Cb3pkBk=
 github.com/ryanuber/go-glob v1.0.0/go.mod h1:807d1WSdnB0XRJzKNil9Om6lcp/3a0v4qIHxIXzX/Yc=
@@ -114,7 +102,6 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/urfave/cli v1.22.5 h1:lNq9sAHXK2qfdI8W+GRItjCEkI+2oR4d+MEHy1CKXoU=
 github.com/urfave/cli v1.22.5/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/whilp/git-urls v1.0.0/go.mod h1:J16SAmobsqc3Qcy98brfl5f5+e0clUvg1krgwk/qCfE=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

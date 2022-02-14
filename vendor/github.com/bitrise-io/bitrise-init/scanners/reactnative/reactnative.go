@@ -15,26 +15,31 @@ import (
 const scannerName = "react-native"
 
 const (
-	// workDirInputKey is a key of the working directory step input.
-	workDirInputKey = "workdir"
-)
+	projectDirInputTitle   = "React Native project directory"
+	projectDirInputSummary = "Path of the directory containing the project's `package.json` file."
+	projectDirInputEnvKey  = "WORKDIR"
 
-const (
 	isExpoBasedProjectInputTitle   = "Is this an [Expo](https://expo.dev)-based React Native project?"
 	isExpoBasedProjectInputSummary = "Default deploy workflow runs builds on Expo Application Services (EAS) for Expo-based React Native projects.\nOtherwise native iOS and Android build steps will be used."
 )
 
-// Scanner implements the project scanner for plain React Native and Expo based projects.
-type Scanner struct {
-	searchDir       string
-	iosScanner      *ios.Scanner
-	androidProjects []android.Project
+type project struct {
+	projectRelDir string
 
 	hasTest         bool
 	hasYarnLockFile bool
-	packageJSONPth  string
 
+	// non-Expo; native projects
+	iosProjects     ios.DetectResult
+	androidProjects []android.Project
+}
+
+// Scanner implements the project scanner for plain React Native and Expo based projects.
+type Scanner struct {
 	isExpoBased bool
+	projects    []project
+
+	configDescriptors []configDescriptor
 }
 
 // NewScanner creates a new scanner instance.
@@ -72,21 +77,23 @@ func isExpoBasedProject(packageJSONPth string) (bool, error) {
 	return false, nil
 }
 
-func hasNativeIOSProject(searchDir, projectDir string, iosScanner *ios.Scanner) (bool, error) {
+func hasNativeIOSProject(projectDir string, iosScanner *ios.Scanner) (bool, ios.DetectResult, error) {
 	absProjectDir, err := pathutil.AbsPath(projectDir)
 	if err != nil {
-		return false, err
+		return false, ios.DetectResult{}, err
 	}
 
 	iosDir := filepath.Join(absProjectDir, "ios")
 	if exist, err := pathutil.IsDirExists(iosDir); err != nil || !exist {
-		return false, err
+		return false, ios.DetectResult{}, err
 	}
 
-	return iosScanner.DetectPlatform(searchDir)
+	detected, err := iosScanner.DetectPlatform(projectDir)
+
+	return detected, iosScanner.DetectResult, err
 }
 
-func hasNativeAndroidProject(searchDir, projectDir string, androidScanner *android.Scanner) (bool, []android.Project, error) {
+func hasNativeAndroidProject(projectDir string, androidScanner *android.Scanner) (bool, []android.Project, error) {
 	absProjectDir, err := pathutil.AbsPath(projectDir)
 	if err != nil {
 		return false, nil, err
@@ -97,18 +104,55 @@ func hasNativeAndroidProject(searchDir, projectDir string, androidScanner *andro
 		return false, nil, err
 	}
 
-	if detected, err := androidScanner.DetectPlatform(searchDir); err != nil || !detected {
+	if detected, err := androidScanner.DetectPlatform(projectDir); err != nil || !detected {
 		return false, nil, err
 	}
 
 	return true, androidScanner.Projects, nil
 }
 
+func getNativeProjects(packageJSONPth, relPackageJSONDir string) (ios.DetectResult, []android.Project) {
+	var (
+		iosScanner     = ios.NewScanner()
+		androidScanner = android.NewScanner()
+	)
+	iosScanner.ExcludeAppIcon = true
+	iosScanner.SuppressPodFileParseError = true
+
+	projectDir := filepath.Dir(packageJSONPth)
+	isIOSProject, iosProjects, err := hasNativeIOSProject(projectDir, iosScanner)
+	if err != nil {
+		log.TWarnf("failed to check native iOS projects: %s", err)
+	}
+	log.TPrintf("Found native ios project: %v", isIOSProject)
+
+	isAndroidProject, androidProjects, err := hasNativeAndroidProject(projectDir, androidScanner)
+	if err != nil {
+		log.TWarnf("failed to check native Android projects: %s", err)
+	}
+	log.TPrintf("Found native android project: %v", isAndroidProject)
+
+	// Update native projects paths relative to search dir (otherwise would be relative to package.json dir).
+	var newIosProjects []ios.Project
+	for _, p := range iosProjects.Projects {
+		p.RelPath = filepath.Join(relPackageJSONDir, p.RelPath)
+		newIosProjects = append(newIosProjects, p)
+	}
+	iosProjects.Projects = newIosProjects
+
+	var newAndroidProjects []android.Project
+	for _, p := range androidProjects {
+		p.RelPath = filepath.Join(relPackageJSONDir, p.RelPath)
+		newAndroidProjects = append(newAndroidProjects, p)
+	}
+	androidProjects = newAndroidProjects
+
+	return iosProjects, androidProjects
+}
+
 // DetectPlatform implements ScannerInterface.DetectPlatform function.
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
-	scanner.searchDir = searchDir
-
-	log.TInfof("Collect package.json files")
+	log.TInfof("Collecting package.json files")
 
 	packageJSONPths, err := CollectPackageJSONFiles(searchDir)
 	if err != nil {
@@ -116,89 +160,93 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	}
 
 	log.TPrintf("%d package.json file detected", len(packageJSONPths))
-	log.TPrintf("Filter relevant package.json files")
+	for _, path := range packageJSONPths {
+		log.TPrintf("- %s", path)
+	}
 
-	isExpoBased := false
-	var packageFile string
-
+	log.TPrintf("Filtering relevant package.json files")
 	for _, packageJSONPth := range packageJSONPths {
 		log.TPrintf("Checking: %s", packageJSONPth)
 
-		expoBased, err := isExpoBasedProject(packageJSONPth)
+		isExpoBased, err := isExpoBasedProject(packageJSONPth)
 		if err != nil {
 			log.TWarnf("failed to determine if project is Expo based: %s", err)
-		} else if expoBased {
-			log.TPrintf("Project uses expo: %v", expoBased)
-			isExpoBased = true
-			packageFile = packageJSONPth
-			// TODO: This break drops other package.json files
+		}
+
+		log.TPrintf("Project uses expo: %v", isExpoBased)
+
+		// determine workdir
+		packageJSONDir := filepath.Dir(packageJSONPth)
+		relPackageJSONDir, err := utility.RelPath(searchDir, packageJSONDir)
+		if err != nil {
+			return false, fmt.Errorf("failed to get relative package.json dir path: %s", err)
+		}
+
+		var (
+			iosProjects     ios.DetectResult
+			androidProjects []android.Project
+		)
+		if !isExpoBased {
+			iosProjects, androidProjects = getNativeProjects(packageJSONPth, relPackageJSONDir)
+			if len(iosProjects.Projects) == 0 && len(androidProjects) == 0 {
+				continue
+			}
+		}
+
+		// determine Js dependency manager
+		hasYarnLockFile, err := containsYarnLock(filepath.Dir(packageJSONPth))
+		if err != nil {
+			return false, err
+		}
+		log.TPrintf("Js dependency manager for %s is yarn: %t", packageJSONPth, hasYarnLockFile)
+
+		packages, err := utility.ParsePackagesJSON(packageJSONPth)
+		if err != nil {
+			return false, err
+		}
+
+		_, hasTests := packages.Scripts["test"]
+		log.TPrintf("Test script found in package.json: %v", hasTests)
+
+		result := project{
+			projectRelDir:   relPackageJSONDir,
+			hasTest:         hasTests,
+			hasYarnLockFile: hasYarnLockFile,
+			iosProjects:     iosProjects,
+			androidProjects: androidProjects,
+		}
+
+		if isExpoBased {
+			scanner.projects = []project{result}
+			scanner.isExpoBased = true
+
 			break
 		}
 
-		log.TPrintf("Project uses expo: %v", expoBased)
-
-		if scanner.iosScanner == nil {
-			scanner.iosScanner = ios.NewScanner()
-			scanner.iosScanner.ExcludeAppIcon = true
-		}
-		androidScanner := android.NewScanner()
-
-		projectDir := filepath.Dir(packageJSONPth)
-		isIOSProject, err := hasNativeIOSProject(searchDir, projectDir, scanner.iosScanner)
-		if err != nil {
-			log.TWarnf("failed to check native iOS projects: %s", err)
-		}
-		log.TPrintf("Found native ios project: %v", isIOSProject)
-		if !isIOSProject {
-			scanner.iosScanner = nil
-		}
-
-		isAndroidProject, androidProjects, err := hasNativeAndroidProject(searchDir, projectDir, androidScanner)
-		if err != nil {
-			log.TWarnf("failed to check native Android projects: %s", err)
-		}
-		log.TPrintf("Found native android project: %v", isAndroidProject)
-		scanner.androidProjects = androidProjects
-
-		if isIOSProject || isAndroidProject {
-			// Treating the project as a plain React Native project
-			packageFile = packageJSONPth
-			break
-		}
+		scanner.projects = append(scanner.projects, result)
 	}
 
-	if packageFile == "" {
+	if len(scanner.projects) == 0 {
 		return false, nil
 	}
-
-	scanner.isExpoBased = isExpoBased
-	scanner.packageJSONPth = packageFile
-
-	// determine Js dependency manager
-	if scanner.hasYarnLockFile, err = containsYarnLock(filepath.Dir(scanner.packageJSONPth)); err != nil {
-		return false, err
-	}
-	log.TPrintf("Js dependency manager for %s is yarn: %t", scanner.packageJSONPth, scanner.hasYarnLockFile)
-
-	packages, err := utility.ParsePackagesJSON(scanner.packageJSONPth)
-	if err != nil {
-		return false, err
-	}
-
-	if _, found := packages.Scripts["test"]; found {
-		scanner.hasTest = true
-	}
-	log.TPrintf("Test script found in package.json: %v", scanner.hasTest)
 
 	return true, nil
 }
 
 // Options implements ScannerInterface.Options function.
-func (scanner *Scanner) Options() (options models.OptionNode, warnings models.Warnings, icons models.Icons, err error) {
+func (scanner *Scanner) Options() (options models.OptionNode, allWarnings models.Warnings, icons models.Icons, err error) {
 	if scanner.isExpoBased {
-		options, warnings, err = scanner.expoOptions()
+		options = scanner.expoOptions()
 	} else {
-		options, warnings, err = scanner.options()
+		projectRootOption := models.NewOption(projectDirInputTitle, projectDirInputSummary, projectDirInputEnvKey, models.TypeSelector)
+		options = *projectRootOption
+
+		for _, project := range scanner.projects {
+			options, warnings := scanner.options(project)
+			allWarnings = append(allWarnings, warnings...)
+
+			projectRootOption.AddOption(project.projectRelDir, &options)
+		}
 	}
 
 	return
@@ -207,7 +255,7 @@ func (scanner *Scanner) Options() (options models.OptionNode, warnings models.Wa
 // Configs implements ScannerInterface.Configs function.
 func (scanner *Scanner) Configs(isPrivateRepo bool) (models.BitriseConfigMap, error) {
 	if scanner.isExpoBased {
-		return scanner.expoConfigs(isPrivateRepo)
+		return scanner.expoConfigs(scanner.projects[0], isPrivateRepo)
 	}
 
 	return scanner.configs(isPrivateRepo)
