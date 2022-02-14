@@ -1,13 +1,8 @@
 package reactnative
 
 import (
-	"fmt"
-	"path/filepath"
-
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/steps"
-	"github.com/bitrise-io/bitrise-init/utility"
-	"github.com/bitrise-io/go-utils/log"
 	"gopkg.in/yaml.v2"
 )
 
@@ -27,7 +22,7 @@ const (
 )
 
 // expoOptions implements ScannerInterface.Options function for Expo based React Native projects.
-func (scanner *Scanner) expoOptions() (models.OptionNode, models.Warnings, error) {
+func (scanner *Scanner) expoOptions() models.OptionNode {
 	platformOption := models.NewOption(expoPlatformInputTitle, expoPlatformInputSummary, expoPlatformInputEnvKey, models.TypeSelector)
 	configOption := models.NewConfigOption(expoConfigName, nil)
 
@@ -35,28 +30,22 @@ func (scanner *Scanner) expoOptions() (models.OptionNode, models.Warnings, error
 		platformOption.AddConfig(platform, configOption)
 	}
 
-	return *platformOption, nil, nil
+	return *platformOption
 }
 
 // expoConfigs implements ScannerInterface.Configs function for Expo based React Native projects.
-func (scanner *Scanner) expoConfigs(isPrivateRepo bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) expoConfigs(project project, isPrivateRepo bool) (models.BitriseConfigMap, error) {
 	configMap := models.BitriseConfigMap{}
 
-	// determine workdir
-	packageJSONDir := filepath.Dir(scanner.packageJSONPth)
-	relPackageJSONDir, err := utility.RelPath(scanner.searchDir, packageJSONDir)
-	if err != nil {
-		return models.BitriseConfigMap{}, fmt.Errorf("Failed to get relative package.json dir path, error: %s", err)
-	}
-	if relPackageJSONDir == "." {
+	if project.projectRelDir == "." {
 		// package.json placed in the search dir, no need to change-dir in the workflows
-		relPackageJSONDir = ""
+		project.projectRelDir = ""
 	}
-	log.TPrintf("Working directory: %v", relPackageJSONDir)
+	testSteps := getTestSteps(project.projectRelDir, project.hasYarnLockFile, project.hasTest)
 
 	// primary workflow
 	primaryDescription := expoPrimaryWorkflowDescription
-	if !scanner.hasTest {
+	if !project.hasTest {
 		primaryDescription = expoPrimaryWorkflowNoTestsDescription
 	}
 
@@ -66,13 +55,13 @@ func (scanner *Scanner) expoConfigs(isPrivateRepo bool) (models.BitriseConfigMap
 		ShouldIncludeCache:       false,
 		ShouldIncludeActivateSSH: isPrivateRepo,
 	})...)
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, scanner.getTestSteps(relPackageJSONDir)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, testSteps...)
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(false)...)
 
 	// deploy workflow
 	deployDescription := expoDeployWorkflowDescription
-	if !scanner.hasTest {
+	if !project.hasTest {
 		deployDescription = expoDeployWorkflowNoTestsDescription
 	}
 
@@ -81,8 +70,8 @@ func (scanner *Scanner) expoConfigs(isPrivateRepo bool) (models.BitriseConfigMap
 		ShouldIncludeCache:       false,
 		ShouldIncludeActivateSSH: isPrivateRepo,
 	})...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, scanner.getTestSteps(relPackageJSONDir)...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem(relPackageJSONDir, "$"+expoPlatformInputEnvKey))
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, testSteps...)
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem(project.projectRelDir, "$"+expoPlatformInputEnvKey))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
 
 	// generate bitrise.yml

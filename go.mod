@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248 // indirect
-	github.com/bitrise-io/bitrise-init v0.0.0-20220211145845-fc026626df26
+	github.com/bitrise-io/bitrise-init v0.0.0-20220214143634-72be2c60ebf8
 	github.com/bitrise-io/envman v0.0.0-20210630102032-df85af51bd1a // indirect
 	github.com/bitrise-io/go-steputils v0.0.0-20210527075147-910ce7a105a1
 	github.com/bitrise-io/go-utils v0.0.0-20210713111255-08be784d45d0
