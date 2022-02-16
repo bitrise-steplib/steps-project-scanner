@@ -90,7 +90,7 @@ const (
 	// InstallMissingAndroidToolsID ...
 	InstallMissingAndroidToolsID = "install-missing-android-tools"
 	// InstallMissingAndroidToolsVersion ...
-	InstallMissingAndroidToolsVersion = "2"
+	InstallMissingAndroidToolsVersion = "3"
 )
 
 const (
@@ -167,7 +167,7 @@ const (
 	// CordovaArchiveID ...
 	CordovaArchiveID = "cordova-archive"
 	// CordovaArchiveVersion ...
-	CordovaArchiveVersion = "2"
+	CordovaArchiveVersion = "3"
 )
 
 const (
