@@ -19,6 +19,8 @@ import (
 func GenerateScanResult(searchDir string, isPrivateRepository bool) (models.ScanResultModel, bool) {
 	scanResult := Config(searchDir, isPrivateRepository)
 
+	logUnknownTools(searchDir)
+
 	var platforms []string
 	for platform := range scanResult.ScannerToOptionRoot {
 		platforms = append(platforms, platform)
@@ -87,4 +89,20 @@ func writeScanResult(scanResult models.ScanResultModel, outputDir string, format
 	}
 
 	return output.WriteToFile(scanResult, format, path.Join(outputDir, "result"))
+}
+
+func logUnknownTools(searchDir string) {
+	for _, detector := range UnknownToolDetectors {
+		result, err := detector.DetectToolIn(searchDir)
+		if err != nil {
+			log.Warnf("Failed to detect %s: %s", detector.ToolName(), err)
+		}
+		if result.Detected {
+			data := map[string]interface{}{
+				"project_tree": result.ProjectTree,
+			}
+			analytics.LogInfo("tool-detector", data, "Tool detected: %s", detector.ToolName())
+			log.Debugf("Tool detected: %s", detector.ToolName())
+		}
+	}
 }
