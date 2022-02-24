@@ -12,7 +12,8 @@ import (
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/go-xcode/xcodeproj"
+	"github.com/bitrise-io/go-utils/sliceutil"
+	"github.com/bitrise-io/go-xcode/xcodeproject/xcscheme"
 )
 
 const (
@@ -117,11 +118,11 @@ type Scheme struct {
 
 // Project is an Xcode project on the filesystem
 type Project struct {
+	RelPath string
 	// Is it a standalone project or a workspace?
 	IsWorkspace    bool
 	IsPodWorkspace bool
 
-	RelPath string
 	// Carthage command to run: bootstrap/update
 	CarthageCommand string
 	Warnings        models.Warnings
@@ -133,6 +134,12 @@ type Project struct {
 type DetectResult struct {
 	Projects []Project
 	Warnings models.Warnings
+}
+
+type containers struct {
+	standaloneProjects []container
+	workspaces         []container
+	podWorkspacePaths  []string
 }
 
 // ConfigDescriptor ...
@@ -209,7 +216,7 @@ func fileContains(pth, str string) (bool, error) {
 	return strings.Contains(content, str), nil
 }
 
-func printMissingSharedSchemesAndGenerateWarning(projectPth, defaultGitignorePth string, targets []xcodeproj.TargetModel) string {
+func printMissingSharedSchemesAndGenerateWarning(projectRelPth, defaultGitignorePth string) string {
 	isXcshareddataGitignored := false
 	if exist, err := pathutil.IsPathExists(defaultGitignorePth); err != nil {
 		log.TWarnf("Failed to check if .gitignore file exists at: %s, error: %s", defaultGitignorePth, err)
@@ -223,10 +230,10 @@ func printMissingSharedSchemesAndGenerateWarning(projectPth, defaultGitignorePth
 	}
 
 	log.TPrintf("")
-	log.TErrorf("No shared schemes found, adding recreate-user-schemes step...")
+	log.TErrorf("No shared schemes found, adding recreate-user-schemes Step...")
 	log.TErrorf("The newly generated schemes may differ from the ones in your project.")
 
-	message := `No shared schemes found for project: ` + projectPth + `.` + "\n"
+	message := `No shared schemes found for project: ` + projectRelPth + `.` + "\n"
 
 	if isXcshareddataGitignored {
 		log.TErrorf("Your gitignore file (%s) contains 'xcshareddata', maybe shared schemes are gitignored?", defaultGitignorePth)
@@ -238,14 +245,7 @@ func printMissingSharedSchemesAndGenerateWarning(projectPth, defaultGitignorePth
 	}
 
 	message += `Automatically generated schemes may differ from the ones in your project.
-Make sure to <a href="http://devcenter.bitrise.io/ios/frequent-ios-issues/#xcode-scheme-not-found">share your schemes</a> for the expected behaviour.`
-
-	log.TPrintf("")
-
-	log.TWarnf("%d user schemes will be generated", len(targets))
-	for _, target := range targets {
-		log.TWarnf("- %s", target.Name)
-	}
+Make sure to <a href="https://support.bitrise.io/hc/en-us/articles/4405779956625">share your schemes</a> for the expected behaviour.`
 
 	log.TPrintf("")
 
@@ -273,15 +273,14 @@ It is <a href="https://github.com/Carthage/Carthage/blob/master/Documentation/Ar
 	return carthageCommand, warning
 }
 
-func projectPathByScheme(projects []xcodeproj.ProjectModel, targetScheme string) string {
-	for _, p := range projects {
-		for _, s := range p.SharedSchemes {
-			if s.Name == targetScheme {
-				return p.Pth
-			}
-		}
+func relPathForLog(searchDir string, path string) string {
+	relPath, err := filepath.Rel(searchDir, path)
+	if err != nil {
+		log.TWarnf("failed to get relative path: %s", err)
+		return ""
 	}
-	return ""
+
+	return relPath
 }
 
 // ParseProjects collects available iOS/macOS projects
@@ -291,19 +290,7 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 		warnings models.Warnings
 	)
 
-	// While not ideal, the expectation is that the searchDir is the current directory, due to using relative paths.
-	// Enforcing this to allow unit test to pass.
-	undoChDir, err := pathutil.RevokableChangeDir(searchDir)
-	if err != nil {
-		return DetectResult{}, err
-	}
-	defer func() {
-		if err := undoChDir(); err != nil {
-			log.TWarnf("failed to restore working dir: %s", err)
-		}
-	}()
-
-	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, true)
+	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, false)
 	if err != nil {
 		return DetectResult{}, err
 	}
@@ -317,7 +304,7 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 
 	log.TPrintf("%d Xcode %s project files found", len(projectFiles), string(projectType))
 	for _, xcodeprojectFile := range projectFiles {
-		log.TPrintf("- %s", xcodeprojectFile)
+		log.TPrintf("- %s", relPathForLog(searchDir, xcodeprojectFile))
 	}
 
 	if len(projectFiles) == 0 {
@@ -332,7 +319,7 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 		return DetectResult{}, err
 	}
 
-	standaloneProjects, workspaces, err := CreateStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles)
+	detectedContainers, err := createStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles)
 	if err != nil {
 		return DetectResult{}, err
 	}
@@ -348,7 +335,7 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 	log.TPrintf("%d Podfiles detected", len(podfiles))
 
 	for _, podfile := range podfiles {
-		log.TPrintf("- %s", podfile)
+		log.TPrintf("- %s", relPathForLog(searchDir, podfile))
 
 		podfileParser := podfileParser{
 			podfilePth:                podfile,
@@ -360,19 +347,18 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 			warning := fmt.Sprintf("Failed to determine cocoapods project-workspace mapping, error: %s", err)
 			warnings = append(warnings, warning)
 			log.Warnf(warning)
+
 			continue
 		}
 
-		aStandaloneProjects, aWorkspaces, err := MergePodWorkspaceProjectMap(workspaceProjectMap, standaloneProjects, workspaces)
+		detectedContainers, err = mergePodWorkspaceProjectMap(workspaceProjectMap, detectedContainers)
 		if err != nil {
 			warning := fmt.Sprintf("Failed to create cocoapods project-workspace mapping, error: %s", err)
 			warnings = append(warnings, warning)
 			log.Warnf(warning)
+
 			continue
 		}
-
-		standaloneProjects = aStandaloneProjects
-		workspaces = aWorkspaces
 	}
 
 	// Carthage
@@ -387,174 +373,92 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 
 	log.TPrintf("%d Cartfiles detected", len(cartfiles))
 	for _, file := range cartfiles {
-		log.TPrintf("- %s", file)
+		log.TPrintf("- %s", relPathForLog(searchDir, file))
 	}
 
 	defaultGitignorePth := filepath.Join(searchDir, ".gitignore")
 
-	// Standalone Projects
-	for _, project := range standaloneProjects {
+	for _, container := range append(detectedContainers.standaloneProjects, detectedContainers.workspaces...) {
 		var (
 			projectWarnings []string
-			schemes         []Scheme
+			detectedSchemes []Scheme
 		)
 
-		log.TInfof("Inspecting standalone project file: %s", project.Pth)
-
-		projectPath, err := filepath.Abs(filepath.Join(searchDir, project.Pth))
+		containerPath := container.path()
+		containerRelPath, err := filepath.Rel(searchDir, containerPath)
 		if err != nil {
-			return DetectResult{Warnings: warnings}, fmt.Errorf("failed to get project path, error: %s", err)
+			return DetectResult{Warnings: warnings}, fmt.Errorf("failed to get relative path: %s", err)
 		}
 
-		carthageCommand, warning := detectCarthageCommand(project.Pth)
+		log.TInfof("Inspecting file: %s", containerRelPath)
+		carthageCommand, warning := detectCarthageCommand(containerPath)
 		if warning != "" {
 			projectWarnings = append(projectWarnings, warning)
 		}
 
-		log.TPrintf("%d shared schemes detected", len(project.SharedSchemes))
-		if len(project.SharedSchemes) == 0 {
-			message := printMissingSharedSchemesAndGenerateWarning(project.Pth, defaultGitignorePth, project.Targets)
+		projectToSchemes, err := container.schemes()
+		if err != nil {
+			return DetectResult{}, fmt.Errorf("failed to read Schemes: %s", err)
+		}
+
+		numSharedShemes := numberOfSharedSchemes(projectToSchemes)
+		log.TPrintf("%d shared schemes detected", numSharedShemes)
+		shouldRecreateSchemes := numSharedShemes == 0
+
+		containerProjects, missingProjects, err := container.projects()
+		if err != nil {
+			return DetectResult{}, fmt.Errorf("%s", err)
+		}
+
+		for _, missingProject := range missingProjects {
+			log.Warnf("Skipping Project (%s), as it is not present", relPathForLog(searchDir, missingProject))
+		}
+
+		if shouldRecreateSchemes {
+			message := printMissingSharedSchemesAndGenerateWarning(containerRelPath, defaultGitignorePth)
 			if message != "" {
 				projectWarnings = append(projectWarnings, message)
 			}
+		}
 
-			for _, target := range project.Targets {
-				var icons models.Icons
-				if !excludeAppIcon {
-					if icons, err = lookupIconByTargetName(projectPath, target.Name, searchDir); err != nil {
-						log.Warnf("could not get icons for app: %s, error: %s", projectPath, err)
-						analytics.LogInfo(iconFailureTag, analytics.DetectorErrorData(string(XcodeProjectTypeIOS), err), "Failed to lookup ios icons")
-					}
+		for _, project := range containerProjects {
+			var sharedSchemes []xcscheme.Scheme
+			for _, s := range projectToSchemes[project.Path] {
+				if s.IsShared {
+					sharedSchemes = append(sharedSchemes, s)
 				}
-
-				schemes = append(schemes, Scheme{
-					Name:       target.Name,
-					Missing:    true,
-					HasXCTests: target.HasXCTest,
-					HasAppClip: target.HasAppClip,
-					Icons:      icons,
-				})
 			}
-		} else {
-			for _, scheme := range project.SharedSchemes {
+
+			if shouldRecreateSchemes {
+				sharedSchemes = project.ReCreateSchemes()
+			}
+
+			for _, scheme := range sharedSchemes {
 				log.TPrintf("- %s", scheme.Name)
 
 				var icons models.Icons
 				if !excludeAppIcon {
-					if icons, err = lookupIconBySchemeName(projectPath, scheme.Name, searchDir); err != nil {
-						log.Warnf("could not get icons for app: %s, error: %s", projectPath, err)
+					if icons, err = lookupIconByScheme(project, scheme, searchDir); err != nil {
+						log.Warnf("could not get icons for app: %s, error: %s", containerRelPath, err)
 						analytics.LogInfo(iconFailureTag, analytics.DetectorErrorData(string(XcodeProjectTypeIOS), err), "Failed to lookup ios icons")
 					}
 				}
 
-				schemes = append(schemes, Scheme{
+				detectedSchemes = append(detectedSchemes, Scheme{
 					Name:       scheme.Name,
-					Missing:    false,
-					HasXCTests: scheme.HasXCTest,
-					HasAppClip: schemeHasAppClipTarget(scheme, project.Targets),
+					Missing:    shouldRecreateSchemes,
+					HasXCTests: scheme.IsTestable(),
+					HasAppClip: schemeHasAppClipTarget(project, scheme),
 					Icons:      icons,
 				})
 			}
 		}
 
 		projects = append(projects, Project{
-			IsWorkspace:     false,
-			IsPodWorkspace:  false,
-			RelPath:         project.Pth,
-			CarthageCommand: carthageCommand,
-			Warnings:        projectWarnings,
-			Schemes:         schemes,
-		})
-	}
-
-	// Workspaces
-	for _, workspace := range workspaces {
-		var (
-			projectWarnings []string
-			schemes         []Scheme
-		)
-
-		log.TInfof("Inspecting workspace file: %s", workspace.Pth)
-
-		carthageCommand, warning := detectCarthageCommand(workspace.Pth)
-		if warning != "" {
-			projectWarnings = append(projectWarnings, warning)
-		}
-
-		workspaceSharedSchemes := workspace.GetSharedSchemes()
-		log.TPrintf("%d shared schemes detected", len(workspaceSharedSchemes))
-
-		if len(workspaceSharedSchemes) == 0 {
-			message := printMissingSharedSchemesAndGenerateWarning(workspace.Pth, defaultGitignorePth, workspace.GetTargets())
-			if message != "" {
-				warnings = append(warnings, message)
-			}
-
-			// Workspace path need not exist as it could be generated by cocoapods
-			for _, project := range workspace.Projects {
-				// Not using workspace.GetTargets() as project path is needed
-				for _, target := range project.Targets {
-					var icons models.Icons
-					if !excludeAppIcon {
-						if icons, err = lookupIconByTargetName(project.Pth, target.Name, searchDir); err != nil {
-							log.Warnf("could not get icons for app: %s, error: %s", project.Pth, err)
-							analytics.LogInfo(iconFailureTag, analytics.DetectorErrorData(string(XcodeProjectTypeIOS), err), "Failed to lookup ios icons")
-						}
-					}
-
-					schemes = append(schemes, Scheme{
-						Name:       target.Name,
-						Missing:    true,
-						HasXCTests: target.HasXCTest,
-						HasAppClip: target.HasAppClip,
-						Icons:      icons,
-					})
-				}
-			}
-		} else {
-			for _, scheme := range workspaceSharedSchemes {
-				var icons models.Icons
-				log.TPrintf("- %s", scheme.Name)
-
-				if !excludeAppIcon {
-					// Workspace path need not exist as it could be generated by cocoapods
-					projectPathRel := projectPathByScheme(workspace.Projects, scheme.Name)
-					if projectPathRel == "" {
-						warningMsg := fmt.Sprintf("could not get project path (%s) for scheme (%s) and workspace (%s), error: %s",
-							projectPathRel, scheme.Name, workspace.Pth, err)
-						log.Warnf(warningMsg)
-						warnings = append(warnings, warningMsg)
-						continue
-					}
-					projectPath, err := filepath.Abs(filepath.Join(searchDir, projectPathRel))
-					if err != nil {
-						warningMsg := fmt.Sprintf("could not get absolute path, error: %s", err)
-						log.Warnf(warningMsg)
-						warnings = append(warnings, warningMsg)
-						continue
-					}
-
-					if icons, err = lookupIconBySchemeName(projectPath, scheme.Name, searchDir); err != nil {
-						log.Warnf("could not get icons for app: %s, error: %s", projectPath, err)
-						analytics.LogInfo(iconFailureTag, analytics.DetectorErrorData(string(XcodeProjectTypeIOS), err), "Failed to lookup ios icons")
-					}
-				}
-
-				schemes = append(schemes, Scheme{
-					Name:       scheme.Name,
-					Missing:    false,
-					HasXCTests: scheme.HasXCTest,
-					HasAppClip: schemeHasAppClipTarget(scheme, workspace.GetTargets()),
-					Icons:      icons,
-				})
-			}
-		}
-
-		projects = append(projects, Project{
-			IsWorkspace:     true,
-			IsPodWorkspace:  workspace.IsPodWorkspace,
-			RelPath:         workspace.Pth,
-			Schemes:         schemes,
+			RelPath:         containerRelPath,
+			IsWorkspace:     container.isWorkspace(),
+			IsPodWorkspace:  sliceutil.IsStringInSlice(containerPath, detectedContainers.podWorkspacePaths),
+			Schemes:         detectedSchemes,
 			CarthageCommand: carthageCommand,
 			Warnings:        projectWarnings,
 		})

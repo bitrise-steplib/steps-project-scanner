@@ -4,15 +4,21 @@ import (
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/steps"
 	envmanModels "github.com/bitrise-io/envman/models"
-	"github.com/bitrise-io/go-xcode/xcodeproj"
+	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-xcode/xcodeproject/xcodeproj"
+	"github.com/bitrise-io/go-xcode/xcodeproject/xcscheme"
 )
 
-func schemeHasAppClipTarget(scheme xcodeproj.SchemeModel, targets []xcodeproj.TargetModel) bool {
-	for _, target := range targets {
-		for _, referenceID := range scheme.BuildableReferenceIDs {
-			if referenceID == target.ID && target.HasAppClip {
-				return true
-			}
+func schemeHasAppClipTarget(project xcodeproj.XcodeProj, scheme xcscheme.Scheme) bool {
+	for _, entry := range scheme.BuildAction.BuildActionEntries {
+		target, found := project.Proj.Target(entry.BuildableReference.BlueprintIdentifier)
+		if !found {
+			log.TDebugf("no target found for blueprint ID (%s) project (%s)", entry.BuildableReference.BlueprintIdentifier, project.Path)
+			continue
+		}
+
+		if target.CanExportAppClip() {
+			return true
 		}
 	}
 

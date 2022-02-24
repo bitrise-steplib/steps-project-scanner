@@ -3,7 +3,7 @@ github.com/beevik/etree
 # github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248
 ## explicit
 github.com/bitrise-io/bitrise/models
-# github.com/bitrise-io/bitrise-init v0.0.0-20220216103435-ee05a81e7191
+# github.com/bitrise-io/bitrise-init v0.0.0-20220223091922-37dca4521588
 ## explicit
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/errormapper
@@ -28,14 +28,13 @@ github.com/bitrise-io/envman/envman
 github.com/bitrise-io/envman/models
 # github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10
 github.com/bitrise-io/go-plist
-# github.com/bitrise-io/go-steputils v0.0.0-20210527075147-910ce7a105a1
+# github.com/bitrise-io/go-steputils v1.0.1
 ## explicit
-github.com/bitrise-io/go-steputils/command/rubyscript
 github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-utils v0.0.0-20210713111255-08be784d45d0
+# github.com/bitrise-io/go-utils v1.0.1
 ## explicit
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
@@ -49,13 +48,10 @@ github.com/bitrise-io/go-utils/pointers
 github.com/bitrise-io/go-utils/pretty
 github.com/bitrise-io/go-utils/retry
 github.com/bitrise-io/go-utils/sliceutil
-# github.com/bitrise-io/go-xcode v0.0.0-20210714144817-465637d28b74
-## explicit
+# github.com/bitrise-io/go-xcode v1.0.3
 github.com/bitrise-io/go-xcode/pathfilters
-github.com/bitrise-io/go-xcode/plistutil
-github.com/bitrise-io/go-xcode/xcodeproj
+github.com/bitrise-io/go-xcode/xcodebuild
 github.com/bitrise-io/go-xcode/xcodeproject/serialized
-github.com/bitrise-io/go-xcode/xcodeproject/xcodebuild
 github.com/bitrise-io/go-xcode/xcodeproject/xcodeproj
 github.com/bitrise-io/go-xcode/xcodeproject/xcscheme
 github.com/bitrise-io/go-xcode/xcodeproject/xcworkspace
@@ -76,25 +72,19 @@ github.com/bitrise-steplib/steps-git-clone/gitclone
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-retryablehttp v0.7.0
 github.com/hashicorp/go-retryablehttp
-# github.com/pkg/errors v0.9.1
-github.com/pkg/errors
 # github.com/ryanuber/go-glob v1.0.0
 github.com/ryanuber/go-glob
-# golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
-## explicit
+# golang.org/x/crypto v0.0.0-20211202192323-5770296d904e
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
-## explicit
+# golang.org/x/sys v0.0.0-20211205182925-97ca703d548d
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
+# golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 golang.org/x/term
-# golang.org/x/text v0.3.6
+# golang.org/x/text v0.3.7
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
 # gopkg.in/yaml.v2 v2.4.0
 gopkg.in/yaml.v2
-# howett.net/plist v0.0.0-20201203080718-1454fab16a06
-howett.net/plist
