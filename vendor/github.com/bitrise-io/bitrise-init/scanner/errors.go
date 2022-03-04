@@ -56,10 +56,10 @@ func newNoPlatformDetectedGenericDetail() errormapper.DetailedError {
 }
 
 func availableScanners() (scannerNames []string) {
-	for _, scanner := range scanners.ProjectScanners {
+	for _, scanner := range scanners.ProjectScanners() {
 		scannerNames = append(scannerNames, scanner.Name())
 	}
-	for _, scanner := range scanners.AutomationToolScanners {
+	for _, scanner := range scanners.AutomationToolScanners() {
 		scannerNames = append(scannerNames, scanner.Name())
 	}
 	return

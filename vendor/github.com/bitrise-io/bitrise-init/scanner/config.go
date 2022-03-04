@@ -148,7 +148,7 @@ func Config(searchDir string, isPrivateRepository bool) models.ScanResultModel {
 	// Collect scanner outputs, by scanner name
 	scannerToOutput := map[string]scannerOutput{}
 	{
-		projectScannerToOutputs := runScanners(scanners.ProjectScanners, searchDir, isPrivateRepository)
+		projectScannerToOutputs := runScanners(scanners.ProjectScanners(), searchDir, isPrivateRepository)
 		detectedProjectTypes := getDetectedScannerNames(projectScannerToOutputs)
 		log.Printf("Detected project types: %s", detectedProjectTypes)
 		fmt.Println()
@@ -158,11 +158,14 @@ func Config(searchDir string, isPrivateRepository bool) models.ScanResultModel {
 		if len(detectedProjectTypes) == 0 {
 			detectedProjectTypes = []string{otherProjectType}
 		}
-		for _, toolScanner := range scanners.AutomationToolScanners {
+
+		automationToolScanners := scanners.AutomationToolScanners()
+
+		for _, toolScanner := range automationToolScanners {
 			toolScanner.(scanners.AutomationToolScanner).SetDetectedProjectTypes(detectedProjectTypes)
 		}
 
-		toolScannerToOutputs := runScanners(scanners.AutomationToolScanners, searchDir, isPrivateRepository)
+		toolScannerToOutputs := runScanners(automationToolScanners, searchDir, isPrivateRepository)
 		detectedAutomationToolScanners := getDetectedScannerNames(toolScannerToOutputs)
 		log.Printf("Detected automation tools: %s", detectedAutomationToolScanners)
 		fmt.Println()

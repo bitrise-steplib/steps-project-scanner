@@ -66,9 +66,6 @@ const (
 	ExportMethodInputSummary = "The export method used to create an .app file in your builds, stored as an Environment Variable. You can change this at any time, or even create several .app files with different export methods in the same build."
 )
 
-// XCConfigContentInputKey ...
-const XCConfigContentInputKey = "xcconfig_content"
-
 // IosExportMethods ...
 var IosExportMethods = []string{"app-store", "ad-hoc", "enterprise", "development"}
 
@@ -351,7 +348,7 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 			continue
 		}
 
-		detectedContainers, err = mergePodWorkspaceProjectMap(workspaceProjectMap, detectedContainers)
+		podContainers, err := mergePodWorkspaceProjectMap(workspaceProjectMap, detectedContainers)
 		if err != nil {
 			warning := fmt.Sprintf("Failed to create cocoapods project-workspace mapping, error: %s", err)
 			warnings = append(warnings, warning)
@@ -359,6 +356,7 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 
 			continue
 		}
+		detectedContainers = podContainers
 	}
 
 	// Carthage

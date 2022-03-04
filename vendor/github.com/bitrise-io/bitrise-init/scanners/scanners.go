@@ -68,19 +68,23 @@ type AutomationToolScanner interface {
 }
 
 // ProjectScanners ...
-var ProjectScanners = []ScannerInterface{
-	reactnative.NewScanner(),
-	flutter.NewScanner(),
-	ionic.NewScanner(),
-	cordova.NewScanner(),
-	ios.NewScanner(),
-	macos.NewScanner(),
-	android.NewScanner(),
+func ProjectScanners() []ScannerInterface {
+	return []ScannerInterface{
+		reactnative.NewScanner(),
+		flutter.NewScanner(),
+		ionic.NewScanner(),
+		cordova.NewScanner(),
+		ios.NewScanner(),
+		macos.NewScanner(),
+		android.NewScanner(),
+	}
 }
 
-// AutomationToolScanners contains active automation tool scanners
-var AutomationToolScanners = []ScannerInterface{
-	fastlane.NewScanner(),
+// AutomationToolScanners returns active automation tool scanners
+func AutomationToolScanners() []ScannerInterface {
+	return []ScannerInterface{
+		fastlane.NewScanner(),
+	}
 }
 
 // CustomProjectType ...
