@@ -9,7 +9,7 @@ import (
 
 // ManualConfig ...
 func ManualConfig() (models.ScanResultModel, error) {
-	scannerList := append(scanners.ProjectScanners, scanners.AutomationToolScanners...)
+	scannerList := append(scanners.ProjectScanners(), scanners.AutomationToolScanners()...)
 	scannerToOptionRoot := map[string]models.OptionNode{}
 	scannerToBitriseConfigMap := map[string]models.BitriseConfigMap{}
 
