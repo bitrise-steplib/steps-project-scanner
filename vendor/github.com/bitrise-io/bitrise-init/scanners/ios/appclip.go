@@ -17,7 +17,14 @@ func schemeHasAppClipTarget(project xcodeproj.XcodeProj, scheme xcscheme.Scheme)
 			continue
 		}
 
-		if target.CanExportAppClip() {
+		var canExportAppClip bool
+		for _, dependentTarget := range project.DependentTargetsOfTarget(target) {
+			if dependentTarget.IsAppClipProduct() {
+				canExportAppClip = true
+				break
+			}
+		}
+		if canExportAppClip {
 			return true
 		}
 	}
