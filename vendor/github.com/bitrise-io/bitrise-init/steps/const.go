@@ -32,7 +32,7 @@ const (
 	// GitCloneID ...
 	GitCloneID = "git-clone"
 	// GitCloneVersion ...
-	GitCloneVersion = "6"
+	GitCloneVersion = "7"
 )
 
 const (
@@ -203,13 +203,6 @@ const (
 	NpmID = "npm"
 	// NpmVersion ...
 	NpmVersion = "1"
-)
-
-const (
-	// ExpoDetachID ...
-	ExpoDetachID = "expo-detach"
-	// ExpoDetachVersion ...
-	ExpoDetachVersion = "1"
 )
 
 const (
