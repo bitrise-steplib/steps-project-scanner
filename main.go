@@ -111,7 +111,6 @@ func cloneRepo(cfg repoConfig) error {
 		BuildAPIToken: "",
 
 		UpdateSubmodules: true,
-		ManualMerge:      true,
 	}
 	if _, err := gitcloner.CheckoutState(config); err != nil {
 		return err
