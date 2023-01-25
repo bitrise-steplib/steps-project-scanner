@@ -14,6 +14,9 @@ import (
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	cmdv2 "github.com/bitrise-io/go-utils/v2/command"
+	"github.com/bitrise-io/go-utils/v2/env"
+	logv2 "github.com/bitrise-io/go-utils/v2/log"
 	"github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey"
 	"github.com/bitrise-steplib/steps-git-clone/gitclone"
 )
@@ -93,7 +96,12 @@ func cloneRepo(cfg repoConfig) error {
 	}
 
 	// Git clone
-	if err := gitclone.Execute(gitclone.Config{
+	logger := logv2.NewLogger()
+	envRepo := env.NewRepository()
+	tracker := gitclone.NewStepTracker(envRepo, logger)
+	cmdFactory := cmdv2.NewFactory(envRepo)
+	gitcloner := gitclone.NewGitCloner(logger, tracker, cmdFactory)
+	config := gitclone.Config{
 		RepositoryURL: cfg.RepositoryURL,
 		CloneIntoDir:  cfg.CloneIntoDir, // Using same directory later to run scan
 		Branch:        cfg.Branch,
@@ -104,7 +112,8 @@ func cloneRepo(cfg repoConfig) error {
 
 		UpdateSubmodules: true,
 		ManualMerge:      true,
-	}); err != nil {
+	}
+	if _, err := gitcloner.CheckoutState(config); err != nil {
 		return err
 	}
 
