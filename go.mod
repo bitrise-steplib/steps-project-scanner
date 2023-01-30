@@ -6,8 +6,9 @@ require (
 	github.com/bitrise-io/bitrise-init v0.0.0-20230105114151-b1a021c4060a
 	github.com/bitrise-io/go-steputils v1.0.2
 	github.com/bitrise-io/go-utils v1.0.1
+	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.15
 	github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203
-	github.com/bitrise-steplib/steps-git-clone v0.0.0-20230124055135-1d8a39843119
+	github.com/bitrise-steplib/steps-git-clone v0.0.0-20230130163124-2237d7df95a9
 )
 
 require (
@@ -16,7 +17,6 @@ require (
 	github.com/bitrise-io/envman v0.0.0-20211026063720-03283f9c3f32 // indirect
 	github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10 // indirect
 	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.15 // indirect
-	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.15 // indirect
 	github.com/bitrise-io/go-xcode v1.0.6 // indirect
 	github.com/bitrise-io/goinp v0.0.0-20211005113137-305e91b481f4 // indirect
 	github.com/bitrise-io/stepman v0.0.0-20220107162322-d37bb82e8983 // indirect
