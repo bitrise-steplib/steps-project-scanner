@@ -3,7 +3,7 @@ module github.com/bitrise-steplib/steps-project-scanner
 go 1.17
 
 require (
-	github.com/bitrise-io/bitrise-init v0.0.0-20230105114151-b1a021c4060a
+	github.com/bitrise-io/bitrise-init v0.0.0-20230220121531-85336f9441d8
 	github.com/bitrise-io/go-steputils v1.0.2
 	github.com/bitrise-io/go-utils v1.0.1
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.15
@@ -25,9 +25,9 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
-	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/crypto v0.6.1-0.20230215202200-ebe92624d142 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

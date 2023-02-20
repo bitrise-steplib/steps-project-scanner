@@ -103,14 +103,13 @@ func (d kotlinMultiplatformDetector) DetectToolIn(rootPath string) (DetectionRes
 	}
 
 	fileNamePattern := `.+\.gradle(\.kts)?$`
+	re, err := regexp.Compile(fileNamePattern)
+	if err != nil {
+		return DetectionResult{}, err
+	}
 	var potentialFilePaths []string
 	for index, fileName := range fileNames {
-		match, err := regexp.MatchString(fileNamePattern, fileName)
-		if err != nil {
-			log.Warnf(err.Error())
-			continue
-		}
-		if match {
+		if re.MatchString(fileName) {
 			potentialFilePaths = append(potentialFilePaths, filePaths[index])
 		}
 	}

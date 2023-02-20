@@ -316,14 +316,13 @@ func (scanner Scanner) generateConfigMap(isPrivateRepository bool) (models.Bitri
 		configBuilder := models.NewDefaultConfigBuilder()
 
 		// Common steps to all workflows
-		prepareSteps := steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-			ShouldIncludeCache:       false,
+		prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{
 			ShouldIncludeActivateSSH: isPrivateRepository,
 		})
 		flutterInstallStep := steps.FlutterInstallStepListItem(
 			envmanModels.EnvironmentItemModel{installerUpdateFlutterKey: "false"},
 		)
-		deploySteps := steps.DefaultDeployStepListV2(true)
+		deploySteps := steps.DefaultDeployStepList()
 
 		// primary
 		configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryWorkflowDescription)
@@ -332,14 +331,16 @@ func (scanner Scanner) generateConfigMap(isPrivateRepository bool) (models.Bitri
 
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, flutterInstallStep)
 
-		// cache-pull is after flutter-installer, to prevent removal of pub system cache
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CachePullStepListItem())
+		// restore cache is after flutter-installer, to prevent removal of pub system cache
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreDartCache())
 
 		if variant.test {
 			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FlutterTestStepListItem(
 				envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
 			))
 		}
+
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveDartCache())
 
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, deploySteps...)
 
@@ -353,8 +354,6 @@ func (scanner Scanner) generateConfigMap(isPrivateRepository bool) (models.Bitri
 		}
 
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, flutterInstallStep)
-
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CachePullStepListItem())
 
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterAnalyzeStepListItem(
 			envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
