@@ -96,8 +96,8 @@ const CustomConfigName = "other-config"
 // CustomConfig ...
 func CustomConfig() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{ShouldIncludeActivateSSH: true})...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 	config, err := configBuilder.Generate(CustomProjectType)
 	if err != nil {

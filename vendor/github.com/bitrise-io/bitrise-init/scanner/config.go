@@ -146,35 +146,31 @@ func Config(searchDir string, isPrivateRepository bool) models.ScanResultModel {
 	fmt.Println()
 
 	// Collect scanner outputs, by scanner name
-	scannerToOutput := map[string]scannerOutput{}
-	{
-		projectScannerToOutputs := runScanners(scanners.ProjectScanners(), searchDir, isPrivateRepository)
-		detectedProjectTypes := getDetectedScannerNames(projectScannerToOutputs)
-		log.Printf("Detected project types: %s", detectedProjectTypes)
-		fmt.Println()
+	projectScannerToOutputs := runScanners(scanners.ProjectScanners(), searchDir, isPrivateRepository)
+	detectedProjectTypes := getDetectedScannerNames(projectScannerToOutputs)
+	log.Printf("Detected project types: %s", detectedProjectTypes)
+	fmt.Println()
 
-		// Project types are needed by tool scanners, to create decision tree on which project type
-		// to actually use in bitrise.yml
-		if len(detectedProjectTypes) == 0 {
-			detectedProjectTypes = []string{otherProjectType}
-		}
+	// Project types are needed by tool scanners, to create decision tree on which project type
+	// to actually use in bitrise.yml
+	if len(detectedProjectTypes) == 0 {
+		detectedProjectTypes = []string{otherProjectType}
+	}
 
-		automationToolScanners := scanners.AutomationToolScanners()
+	automationToolScanners := scanners.AutomationToolScanners()
 
-		for _, toolScanner := range automationToolScanners {
-			toolScanner.(scanners.AutomationToolScanner).SetDetectedProjectTypes(detectedProjectTypes)
-		}
+	for _, toolScanner := range automationToolScanners {
+		toolScanner.(scanners.AutomationToolScanner).SetDetectedProjectTypes(detectedProjectTypes)
+	}
 
-		toolScannerToOutputs := runScanners(automationToolScanners, searchDir, isPrivateRepository)
-		detectedAutomationToolScanners := getDetectedScannerNames(toolScannerToOutputs)
-		log.Printf("Detected automation tools: %s", detectedAutomationToolScanners)
-		fmt.Println()
+	scannerToOutput := runScanners(automationToolScanners, searchDir, isPrivateRepository)
+	detectedAutomationToolScanners := getDetectedScannerNames(scannerToOutput)
+	log.Printf("Detected automation tools: %s", detectedAutomationToolScanners)
+	fmt.Println()
 
-		// Merge project and tool scanner outputs
-		scannerToOutput = toolScannerToOutputs
-		for scanner, scannerOutput := range projectScannerToOutputs {
-			scannerToOutput[scanner] = scannerOutput
-		}
+	// Merge project and tool scanner outputs
+	for scanner, scannerOutput := range projectScannerToOutputs {
+		scannerToOutput[scanner] = scannerOutput
 	}
 
 	scannerToWarnings := map[string]models.Warnings{}

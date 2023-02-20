@@ -281,10 +281,11 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 	return *workDirOption
 }
 
-// Configs ...
-func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+		ShouldIncludeActivateSSH: isPrivateRepository,
+	})...)
 
 	workdirEnvList := []envmanModels.EnvironmentItemModel{}
 	workdir := ""
@@ -294,6 +295,7 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 	}
 
 	if scanner.hasJasmineTest || scanner.hasKarmaJasmineTest {
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem("install", workdir))
 
 		// CI
@@ -302,10 +304,13 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 		} else if scanner.hasJasmineTest {
 			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.JasmineTestRunnerStepListItem(workdirEnvList...))
 		}
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveNPMCache())
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 		// CD
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+			ShouldIncludeActivateSSH: isPrivateRepository,
+		})...)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem("install", workdir))
@@ -319,14 +324,14 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.GenerateCordovaBuildConfigStepListItem())
 
 		cordovaArchiveEnvs := []envmanModels.EnvironmentItemModel{
-			envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
-			envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator},
+			{platformInputKey: "$" + platformInputEnvKey},
+			{targetInputKey: targetEmulator},
 		}
 		if scanner.relCordovaConfigDir != "" {
 			cordovaArchiveEnvs = append(cordovaArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 		}
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CordovaArchiveStepListItem(cordovaArchiveEnvs...))
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList()...)
 
 		config, err := configBuilder.Generate(ScannerName)
 		if err != nil {
@@ -344,19 +349,21 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 	}
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem("install", workdir))
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.GenerateCordovaBuildConfigStepListItem())
 
 	cordovaArchiveEnvs := []envmanModels.EnvironmentItemModel{
-		envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
-		envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator},
+		{platformInputKey: "$" + platformInputEnvKey},
+		{targetInputKey: targetEmulator},
 	}
 	if scanner.relCordovaConfigDir != "" {
 		cordovaArchiveEnvs = append(cordovaArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 	}
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CordovaArchiveStepListItem(cordovaArchiveEnvs...))
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveNPMCache())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {
@@ -376,9 +383,11 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 // DefaultConfigs ...
 func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{ShouldIncludeActivateSSH: true})...)
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem("install", "$"+workDirInputEnvKey))
 
@@ -389,7 +398,9 @@ func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
 		envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator}))
 
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveNPMCache())
+
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {

@@ -19,7 +19,6 @@ const scannerName = "fastlane"
 
 const (
 	unknownProjectType = "other"
-	fastlaneWorkflowID = scannerName
 )
 
 const (
@@ -53,6 +52,11 @@ const (
 const (
 	fastlaneXcodeListTimeoutEnvKey   = "FASTLANE_XCODE_LIST_TIMEOUT"
 	fastlaneXcodeListTimeoutEnvValue = "120"
+)
+
+const (
+	cacheInputKey = "enable_cache"
+	cacheInputNo  = "no"
 )
 
 //------------------
@@ -187,10 +191,12 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
 	generateConfig := func(isIOS bool) (bitriseModels.BitriseDataModel, error) {
 		configBuilder := models.NewDefaultConfigBuilder()
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+			ShouldIncludeActivateSSH: isPrivateRepository,
+		})...)
 
 		if isIOS {
 			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
@@ -199,9 +205,10 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FastlaneStepListItem(
 			envmanModels.EnvironmentItemModel{laneInputKey: "$" + laneInputEnvKey},
 			envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
+			envmanModels.EnvironmentItemModel{cacheInputKey: cacheInputNo},
 		))
 
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 		// Fill in project type later, from the list of detected project types
 		return configBuilder.Generate(unknownProjectType,
@@ -241,7 +248,7 @@ func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 	for _, p := range platforms {
 		configBuilder := models.NewDefaultConfigBuilder()
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{ShouldIncludeActivateSSH: true})...)
 
 		if p == iosPlatform {
 			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
@@ -250,8 +257,9 @@ func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FastlaneStepListItem(
 			envmanModels.EnvironmentItemModel{laneInputKey: "$" + laneInputEnvKey},
 			envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
+			envmanModels.EnvironmentItemModel{cacheInputKey: cacheInputNo},
 		))
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 		config, err := configBuilder.Generate(p, envmanModels.EnvironmentItemModel{fastlaneXcodeListTimeoutEnvKey: fastlaneXcodeListTimeoutEnvValue})
 		if err != nil {

@@ -23,84 +23,59 @@ const (
 )
 
 const (
-	// ProjectPathInputKey ...
-	ProjectPathInputKey = "project_path"
-	// ProjectPathInputEnvKey ...
-	ProjectPathInputEnvKey = "BITRISE_PROJECT_PATH"
-	// ProjectPathInputTitle ...
-	ProjectPathInputTitle = "Project or Workspace path"
-	// ProjectPathInputSummary ...
+	ProjectPathInputKey     = "project_path"
+	ProjectPathInputEnvKey  = "BITRISE_PROJECT_PATH"
+	ProjectPathInputTitle   = "Project or Workspace path"
 	ProjectPathInputSummary = "The location of your Xcode project or Xcode workspace files, stored as an Environment Variable. In your Workflows, you can specify paths relative to this path."
 )
 
 const (
-	// SchemeInputKey ...
-	SchemeInputKey = "scheme"
-	// SchemeInputEnvKey ...
-	SchemeInputEnvKey = "BITRISE_SCHEME"
-	// SchemeInputTitle ...
-	SchemeInputTitle = "Scheme name"
-	// SchemeInputSummary ...
+	SchemeInputKey     = "scheme"
+	SchemeInputEnvKey  = "BITRISE_SCHEME"
+	SchemeInputTitle   = "Scheme name"
 	SchemeInputSummary = "An Xcode scheme defines a collection of targets to build, a configuration to use when building, and a collection of tests to execute. Only shared schemes are detected automatically but you can use any scheme as a target on Bitrise. You can change the scheme at any time in your Env Vars."
 )
 
 const (
-	// DistributionMethodInputKey ...
-	DistributionMethodInputKey = "distribution_method"
-	// DistributionMethodEnvKey ...
-	DistributionMethodEnvKey = "BITRISE_DISTRIBUTION_METHOD"
-	// DistributionMethodInputTitle ...
-	DistributionMethodInputTitle = "Distribution method"
-	// DistributionMethodInputSummary ...
+	DistributionMethodInputKey     = "distribution_method"
+	DistributionMethodEnvKey       = "BITRISE_DISTRIBUTION_METHOD"
+	DistributionMethodInputTitle   = "Distribution method"
 	DistributionMethodInputSummary = "The export method used to create an .ipa file in your builds, stored as an Environment Variable. You can change this at any time, or even create several .ipa files with different export methods in the same build."
 )
 
 const (
-	// ExportMethodInputKey ...
-	ExportMethodInputKey = "export_method"
-	// ExportMethodEnvKey ...
-	ExportMethodEnvKey = "BITRISE_EXPORT_METHOD"
-	// ExportMethodInputTitle ...
-	ExportMethodInputTitle = "Application export method\nNOTE: `none` means: Export a copy of the application without re-signing."
-	// ExportMethodInputSummary ...
+	ExportMethodInputKey     = "export_method"
+	ExportMethodEnvKey       = "BITRISE_EXPORT_METHOD"
+	ExportMethodInputTitle   = "Application export method\nNOTE: `none` means: Export a copy of the application without re-signing."
 	ExportMethodInputSummary = "The export method used to create an .app file in your builds, stored as an Environment Variable. You can change this at any time, or even create several .app files with different export methods in the same build."
 )
 
-// IosExportMethods ...
 var IosExportMethods = []string{"app-store", "ad-hoc", "enterprise", "development"}
 
 const (
-	// ExportXCArchiveProductInputKey ...
 	ExportXCArchiveProductInputKey = "product"
 
-	// ExportXCArchiveProductInputAppClipValue ...
 	ExportXCArchiveProductInputAppClipValue = "app-clip"
 )
 
-// MacExportMethods ...
 var MacExportMethods = []string{"app-store", "developer-id", "development", "none"}
 
 const (
-	// ConfigurationInputKey ...
 	ConfigurationInputKey = "configuration"
 )
 
 const (
-	// AutomaticCodeSigningInputKey ...
-	AutomaticCodeSigningInputKey = "automatic_code_signing"
-	// AutomaticCodeSigningInputAPIKeyValue ...
+	AutomaticCodeSigningInputKey         = "automatic_code_signing"
 	AutomaticCodeSigningInputAPIKeyValue = "api-key"
 )
 
 const (
-	// CarthageCommandInputKey ...
 	CarthageCommandInputKey = "carthage_command"
 )
 
 const cartfileBase = "Cartfile"
 const cartfileResolvedBase = "Cartfile.resolved"
 
-// AllowCartfileBaseFilter ...
 var AllowCartfileBaseFilter = pathutil.BaseFilter(cartfileBase, true)
 
 // Scheme is an Xcode project scheme or target
@@ -127,9 +102,12 @@ type Project struct {
 	Schemes []Scheme
 }
 
-// DetectResult ...
 type DetectResult struct {
 	Projects []Project
+
+	// HasSPMDependencies is true if SPM usage is detected, either in one of the Xcode Projects or as a pure Swift package
+	HasSPMDependencies bool
+
 	Warnings models.Warnings
 }
 
@@ -139,29 +117,28 @@ type containers struct {
 	podWorkspacePaths  []string
 }
 
-// ConfigDescriptor ...
 type ConfigDescriptor struct {
 	HasPodfile           bool
 	CarthageCommand      string
 	HasTest              bool
 	HasAppClip           bool
+	HasSPMDependencies   bool
 	ExportMethod         string
 	MissingSharedSchemes bool
 }
 
-// NewConfigDescriptor ...
-func NewConfigDescriptor(hasPodfile bool, carthageCommand string, hasXCTest, hasAppClip bool, exportMethod string, missingSharedSchemes bool) ConfigDescriptor {
+func NewConfigDescriptor(hasPodfile bool, carthageCommand string, hasXCTest, hasAppClip, hasSPMDependencies bool, exportMethod string, missingSharedSchemes bool) ConfigDescriptor {
 	return ConfigDescriptor{
 		HasPodfile:           hasPodfile,
 		CarthageCommand:      carthageCommand,
 		HasTest:              hasXCTest,
 		HasAppClip:           hasAppClip,
+		HasSPMDependencies:   hasSPMDependencies,
 		ExportMethod:         exportMethod,
 		MissingSharedSchemes: missingSharedSchemes,
 	}
 }
 
-// ConfigName ...
 func (descriptor ConfigDescriptor) ConfigName(projectType XcodeProjectType) string {
 	qualifiers := ""
 	if descriptor.HasPodfile {
@@ -169,6 +146,9 @@ func (descriptor ConfigDescriptor) ConfigName(projectType XcodeProjectType) stri
 	}
 	if descriptor.CarthageCommand != "" {
 		qualifiers += "-carthage"
+	}
+	if descriptor.HasSPMDependencies {
+		qualifiers += "-spm"
 	}
 	if descriptor.HasTest {
 		qualifiers += "-test"
@@ -182,7 +162,6 @@ func (descriptor ConfigDescriptor) ConfigName(projectType XcodeProjectType) stri
 	return fmt.Sprintf(configNameFormat, string(projectType), qualifiers)
 }
 
-// HasCartfileInDirectoryOf ...
 func HasCartfileInDirectoryOf(pth string) bool {
 	dir := filepath.Dir(pth)
 	cartfilePth := filepath.Join(dir, cartfileBase)
@@ -193,7 +172,6 @@ func HasCartfileInDirectoryOf(pth string) bool {
 	return exist
 }
 
-// HasCartfileResolvedInDirectoryOf ...
 func HasCartfileResolvedInDirectoryOf(pth string) bool {
 	dir := filepath.Dir(pth)
 	cartfileResolvedPth := filepath.Join(dir, cartfileResolvedBase)
@@ -319,6 +297,16 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 	detectedContainers, err := createStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles)
 	if err != nil {
 		return DetectResult{}, err
+	}
+
+	// Detect SPM
+	log.TInfof("Searching for Swift Package Manager dependencies")
+	hasSPMDeps, err := HasSPMDependencies(fileList)
+	if err != nil {
+		return DetectResult{}, err
+	}
+	if hasSPMDeps {
+		log.TPrintf("Swift Package Manager usage detected")
 	}
 
 	// Create cocoapods workspace-project mapping
@@ -463,12 +451,12 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 	}
 
 	return DetectResult{
-		Projects: projects,
-		Warnings: warnings,
+		Projects:           projects,
+		Warnings:           warnings,
+		HasSPMDependencies: hasSPMDeps,
 	}, nil
 }
 
-// GenerateOptions ...
 func GenerateOptions(projectType XcodeProjectType, result DetectResult) (models.OptionNode, []ConfigDescriptor, models.Icons, models.Warnings, error) {
 	var (
 		exportMethodInputTitle   string
@@ -515,7 +503,7 @@ func GenerateOptions(projectType XcodeProjectType, result DetectResult) (models.
 
 			for _, exportMethod := range exportMethods {
 				// Whether app-clip export Step is added later depends on the used export method
-				configDescriptor := NewConfigDescriptor(project.IsPodWorkspace, project.CarthageCommand, scheme.HasXCTests, scheme.HasAppClip, exportMethod, scheme.Missing)
+				configDescriptor := NewConfigDescriptor(project.IsPodWorkspace, project.CarthageCommand, scheme.HasXCTests, scheme.HasAppClip, result.HasSPMDependencies, exportMethod, scheme.Missing)
 				configDescriptors = append(configDescriptors, configDescriptor)
 				configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType), iconIDs)
 
@@ -533,7 +521,6 @@ func GenerateOptions(projectType XcodeProjectType, result DetectResult) (models.
 	return *projectPathOption, configDescriptors, iconsForAllProjects, allWarnings, nil
 }
 
-// GenerateDefaultOptions ...
 func GenerateDefaultOptions(projectType XcodeProjectType) models.OptionNode {
 	projectPathOption := models.NewOption(ProjectPathInputTitle, ProjectPathInputSummary, ProjectPathInputEnvKey, models.TypeUserInput)
 
@@ -568,15 +555,14 @@ func GenerateDefaultOptions(projectType XcodeProjectType) models.OptionNode {
 	return *projectPathOption
 }
 
-// GenerateConfigBuilder ...
 func GenerateConfigBuilder(
 	projectType XcodeProjectType,
 	isPrivateRepository,
 	hasPodfile,
 	hasTest,
 	hasAppClip,
-	missingSharedSchemes,
-	includeCache bool,
+	hasSPMDependencies,
+	missingSharedSchemes bool,
 	carthageCommand,
 	exportMethod string,
 ) models.ConfigBuilderModel {
@@ -586,11 +572,11 @@ func GenerateConfigBuilder(
 		projectType:          projectType,
 		configBuilder:        configBuilder,
 		isPrivateRepository:  isPrivateRepository,
-		includeCache:         includeCache,
 		missingSharedSchemes: missingSharedSchemes,
 		hasTests:             hasTest,
 		hasAppClip:           hasAppClip,
 		hasPodfile:           hasPodfile,
+		hasSPMDependencies:   hasSPMDependencies,
 		carthageCommand:      carthageCommand,
 		exportMethod:         exportMethod,
 	}
@@ -601,7 +587,6 @@ func GenerateConfigBuilder(
 	return *configBuilder
 }
 
-// RemoveDuplicatedConfigDescriptors ...
 func RemoveDuplicatedConfigDescriptors(configDescriptors []ConfigDescriptor, projectType XcodeProjectType) []ConfigDescriptor {
 	descritorNameMap := map[string]ConfigDescriptor{}
 	for _, descriptor := range configDescriptors {
@@ -617,7 +602,6 @@ func RemoveDuplicatedConfigDescriptors(configDescriptors []ConfigDescriptor, pro
 	return descriptors
 }
 
-// GenerateConfig ...
 func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDescriptor, isPrivateRepository bool) (models.BitriseConfigMap, error) {
 	bitriseDataMap := models.BitriseConfigMap{}
 	for _, descriptor := range configDescriptors {
@@ -627,8 +611,8 @@ func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDesc
 			descriptor.HasPodfile,
 			descriptor.HasTest,
 			descriptor.HasAppClip,
+			descriptor.HasSPMDependencies,
 			descriptor.MissingSharedSchemes,
-			true,
 			descriptor.CarthageCommand,
 			descriptor.ExportMethod)
 
@@ -648,7 +632,6 @@ func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDesc
 	return bitriseDataMap, nil
 }
 
-// GenerateDefaultConfig ...
 func GenerateDefaultConfig(projectType XcodeProjectType) (models.BitriseConfigMap, error) {
 	configBuilder := GenerateConfigBuilder(
 		projectType,

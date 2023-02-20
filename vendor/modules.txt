@@ -4,7 +4,7 @@ github.com/beevik/etree
 # github.com/bitrise-io/bitrise v0.0.0-20220217113333-f2def13a7946
 ## explicit; go 1.16
 github.com/bitrise-io/bitrise/models
-# github.com/bitrise-io/bitrise-init v0.0.0-20230105114151-b1a021c4060a
+# github.com/bitrise-io/bitrise-init v0.0.0-20230220121531-85336f9441d8
 ## explicit; go 1.17
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/errormapper
@@ -99,19 +99,19 @@ github.com/mitchellh/mapstructure
 # github.com/ryanuber/go-glob v1.0.0
 ## explicit
 github.com/ryanuber/go-glob
-# golang.org/x/crypto v0.0.0-20220214200702-86341886e292
+# golang.org/x/crypto v0.6.1-0.20230215202200-ebe92624d142
 ## explicit; go 1.17
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/sys v0.2.0
+# golang.org/x/sys v0.5.0
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
+# golang.org/x/term v0.5.0
 ## explicit; go 1.17
 golang.org/x/term
-# golang.org/x/text v0.3.7
+# golang.org/x/text v0.7.0
 ## explicit; go 1.17
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm

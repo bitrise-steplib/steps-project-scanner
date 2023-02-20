@@ -51,13 +51,13 @@ func (scanner *Scanner) expoConfigs(project project, isPrivateRepo bool) (models
 
 	configBuilder := models.NewDefaultConfigBuilder()
 	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryDescription)
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-		ShouldIncludeCache:       false,
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
 		ShouldIncludeActivateSSH: isPrivateRepo,
 	})...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, testSteps...)
-
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveNPMCache())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 	// deploy workflow
 	deployDescription := expoDeployWorkflowDescription
@@ -66,13 +66,12 @@ func (scanner *Scanner) expoConfigs(project project, isPrivateRepo bool) (models
 	}
 
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployDescription)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-		ShouldIncludeCache:       false,
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
 		ShouldIncludeActivateSSH: isPrivateRepo,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, testSteps...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem(project.projectRelDir, "$"+expoPlatformInputEnvKey))
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList()...)
 
 	// generate bitrise.yml
 	bitriseDataModel, err := configBuilder.Generate(scannerName)
@@ -111,22 +110,22 @@ func (scanner Scanner) expoDefaultConfigs() (models.BitriseConfigMap, error) {
 	// primary workflow
 	configBuilder := models.NewDefaultConfigBuilder()
 	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, expoPrimaryWorkflowDescription)
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-		ShouldIncludeCache:       false,
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
 		ShouldIncludeActivateSSH: true,
 	})...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, getTestSteps("$"+expoProjectDirInputEnvKey, true, true)...)
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveNPMCache())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 	// deploy workflow
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, expoDeployWorkflowDescription)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-		ShouldIncludeCache:       false,
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
 		ShouldIncludeActivateSSH: true,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, getTestSteps("$"+expoProjectDirInputEnvKey, true, true)...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem("$"+expoProjectDirInputEnvKey, "$"+expoPlatformInputEnvKey))
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList()...)
 
 	// generate bitrise.yml
 	bitriseDataModel, err := configBuilder.Generate(scannerName)

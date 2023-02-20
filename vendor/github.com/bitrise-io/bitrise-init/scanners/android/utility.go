@@ -40,6 +40,9 @@ const (
 	ModuleInputSummary = "Modules provide a container for your Android project's source code, resource files, and app level settings, such as the module-level build file and Android manifest file. Each module can be independently built, tested, and debugged. You can add new modules to your Bitrise builds at any time."
 
 	GradlewPathInputKey = "gradlew_path"
+
+	CacheLevelInputKey = "cache_level"
+	CacheLevelNone     = "none"
 )
 
 // Project is an Android project on the filesystem
@@ -144,10 +147,10 @@ func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.C
 	projectLocationEnv, gradlewPath, moduleEnv, variantEnv := "$"+ProjectLocationInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew", "$"+ModuleInputEnvKey, "$"+VariantInputEnvKey
 
 	//-- primary
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-		ShouldIncludeCache:       true,
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
 		ShouldIncludeActivateSSH: isPrivateRepository,
 	})...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreGradleCache())
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
 	))
@@ -158,13 +161,16 @@ func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.C
 		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
 		},
+		envmanModels.EnvironmentItemModel{
+			CacheLevelInputKey: CacheLevelNone,
+		},
 	))
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(true)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveGradleCache())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryWorkflowDescription)
 
 	//-- deploy
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-		ShouldIncludeCache:       true,
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
 		ShouldIncludeActivateSSH: isPrivateRepository,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
@@ -182,6 +188,9 @@ func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.C
 		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
 		},
+		envmanModels.EnvironmentItemModel{
+			CacheLevelInputKey: CacheLevelNone,
+		},
 	))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.AndroidUnitTestStepListItem(
 		envmanModels.EnvironmentItemModel{
@@ -189,6 +198,9 @@ func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.C
 		},
 		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			CacheLevelInputKey: CacheLevelNone,
 		},
 	))
 
@@ -202,9 +214,12 @@ func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.C
 		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
 		},
+		envmanModels.EnvironmentItemModel{
+			CacheLevelInputKey: CacheLevelNone,
+		},
 	))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.SignAPKStepListItem())
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepListV2(true)...)
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList()...)
 
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 

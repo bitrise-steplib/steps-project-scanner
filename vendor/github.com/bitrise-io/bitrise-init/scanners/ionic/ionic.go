@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/scanners/android"
@@ -207,7 +207,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	log.TPrintf("config.xml: %s", filepath.Join(projectRootDir, "config.xml"))
 
 	if !cordovaConfigExist {
-		warning := fmt.Sprintf("Cordova config.xml not found.")
+		warning := "Cordova config.xml not found."
 		warnings = append(warnings, warning)
 	}
 
@@ -218,7 +218,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 		return models.OptionNode{},
 			warnings,
 			nil,
-			fmt.Errorf("Failed to get relative config.xml dir path, error: %s", err)
+			fmt.Errorf("failed to get relative config.xml dir path, error: %s", err)
 	}
 	if relCordovaConfigDir == "." {
 		// config.xml placed in the search dir, no need to change-dir in the workflows
@@ -276,9 +276,11 @@ func (Scanner) DefaultOptions() models.OptionNode {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+		ShouldIncludeActivateSSH: isPrivateRepository,
+	})...)
 
 	workdirEnvList := []envmanModels.EnvironmentItemModel{}
 	workdir := ""
@@ -288,6 +290,7 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 	}
 
 	if scanner.hasJasmineTest || scanner.hasKarmaJasmineTest {
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem("install", workdir))
 
 		// CI
@@ -296,10 +299,11 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 		} else if scanner.hasJasmineTest {
 			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.JasmineTestRunnerStepListItem(workdirEnvList...))
 		}
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveNPMCache())
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 		// CD
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{})...)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.NpmStepListItem("install", workdir))
@@ -313,14 +317,14 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.GenerateCordovaBuildConfigStepListItem())
 
 		ionicArchiveEnvs := []envmanModels.EnvironmentItemModel{
-			envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
-			envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator},
+			{platformInputKey: "$" + platformInputEnvKey},
+			{targetInputKey: targetEmulator},
 		}
 		if scanner.relCordovaConfigDir != "" {
 			ionicArchiveEnvs = append(ionicArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 		}
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.IonicArchiveStepListItem(ionicArchiveEnvs...))
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList()...)
 
 		config, err := configBuilder.Generate(scannerName)
 		if err != nil {
@@ -338,19 +342,21 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 	}
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem("install", workdir))
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.GenerateCordovaBuildConfigStepListItem())
 
 	ionicArchiveEnvs := []envmanModels.EnvironmentItemModel{
-		envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
-		envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator},
+		{platformInputKey: "$" + platformInputEnvKey},
+		{targetInputKey: targetEmulator},
 	}
 	if scanner.relCordovaConfigDir != "" {
 		ionicArchiveEnvs = append(ionicArchiveEnvs, envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey})
 	}
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.IonicArchiveStepListItem(ionicArchiveEnvs...))
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveNPMCache())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 	config, err := configBuilder.Generate(scannerName)
 	if err != nil {
@@ -370,9 +376,11 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 // DefaultConfigs ...
 func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{ShouldIncludeActivateSSH: true})...)
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.NpmStepListItem("install", "$"+workDirInputEnvKey))
 
@@ -382,7 +390,9 @@ func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		envmanModels.EnvironmentItemModel{platformInputKey: "$" + platformInputEnvKey},
 		envmanModels.EnvironmentItemModel{targetInputKey: targetEmulator}))
 
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveNPMCache())
+
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 	config, err := configBuilder.Generate(scannerName)
 	if err != nil {
