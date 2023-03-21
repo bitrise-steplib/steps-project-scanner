@@ -171,8 +171,8 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder(isPrivateRepository)
+func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
+	configBuilder := scanner.generateConfigBuilder(repoAccess)
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {
@@ -191,7 +191,7 @@ func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigM
 
 // DefaultConfigs ...
 func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder(true)
+	configBuilder := scanner.generateConfigBuilder(models.RepoAccessUnknown)
 
 	config, err := configBuilder.Generate(ScannerName)
 	if err != nil {

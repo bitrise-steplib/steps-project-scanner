@@ -252,13 +252,12 @@ func (scanner *Scanner) Options() (options models.OptionNode, allWarnings models
 	return
 }
 
-// Configs implements ScannerInterface.Configs function.
-func (scanner *Scanner) Configs(isPrivateRepo bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
 	if scanner.isExpoBased {
-		return scanner.expoConfigs(scanner.projects[0], isPrivateRepo)
+		return scanner.expoConfigs(scanner.projects[0], repoAccess)
 	}
 
-	return scanner.configs(isPrivateRepo)
+	return scanner.configs(repoAccess)
 }
 
 // DefaultOptions implements ScannerInterface.DefaultOptions function.

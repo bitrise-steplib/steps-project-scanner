@@ -288,17 +288,15 @@ func (Scanner) DefaultOptions() models.OptionNode {
 	return *flutterProjectLocationOption
 }
 
-// Configs ...
-func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
-	return scanner.generateConfigMap(isPrivateRepository)
+func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
+	return scanner.generateConfigMap(repoAccess)
 }
 
-// DefaultConfigs ...
 func (scanner Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	return scanner.generateConfigMap(true)
+	return scanner.generateConfigMap(models.RepoAccessUnknown)
 }
 
-func (scanner Scanner) generateConfigMap(isPrivateRepository bool) (models.BitriseConfigMap, error) {
+func (scanner Scanner) generateConfigMap(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
 	configs := models.BitriseConfigMap{}
 
 	for _, variant := range []struct {
@@ -316,9 +314,7 @@ func (scanner Scanner) generateConfigMap(isPrivateRepository bool) (models.Bitri
 		configBuilder := models.NewDefaultConfigBuilder()
 
 		// Common steps to all workflows
-		prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{
-			ShouldIncludeActivateSSH: isPrivateRepository,
-		})
+		prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{RepoAccess: repoAccess})
 		flutterInstallStep := steps.FlutterInstallStepListItem(
 			envmanModels.EnvironmentItemModel{installerUpdateFlutterKey: "false"},
 		)

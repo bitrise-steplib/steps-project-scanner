@@ -557,7 +557,7 @@ func GenerateDefaultOptions(projectType XcodeProjectType) models.OptionNode {
 
 func GenerateConfigBuilder(
 	projectType XcodeProjectType,
-	isPrivateRepository,
+	repoAccess models.RepoAccess,
 	hasPodfile,
 	hasTest,
 	hasAppClip,
@@ -571,7 +571,7 @@ func GenerateConfigBuilder(
 	params := workflowSetupParams{
 		projectType:          projectType,
 		configBuilder:        configBuilder,
-		isPrivateRepository:  isPrivateRepository,
+		repoAccess:           repoAccess,
 		missingSharedSchemes: missingSharedSchemes,
 		hasTests:             hasTest,
 		hasAppClip:           hasAppClip,
@@ -602,12 +602,12 @@ func RemoveDuplicatedConfigDescriptors(configDescriptors []ConfigDescriptor, pro
 	return descriptors
 }
 
-func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDescriptor, isPrivateRepository bool) (models.BitriseConfigMap, error) {
+func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDescriptor, repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
 	bitriseDataMap := models.BitriseConfigMap{}
 	for _, descriptor := range configDescriptors {
 		configBuilder := GenerateConfigBuilder(
 			projectType,
-			isPrivateRepository,
+			repoAccess,
 			descriptor.HasPodfile,
 			descriptor.HasTest,
 			descriptor.HasAppClip,
@@ -635,7 +635,7 @@ func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDesc
 func GenerateDefaultConfig(projectType XcodeProjectType) (models.BitriseConfigMap, error) {
 	configBuilder := GenerateConfigBuilder(
 		projectType,
-		true,
+		models.RepoAccessUnknown,
 		true,
 		true,
 		false,

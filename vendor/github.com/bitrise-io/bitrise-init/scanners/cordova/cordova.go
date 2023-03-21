@@ -281,10 +281,10 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 	return *workDirOption
 }
 
-func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		ShouldIncludeActivateSSH: isPrivateRepository,
+		RepoAccess: repoAccess,
 	})...)
 
 	workdirEnvList := []envmanModels.EnvironmentItemModel{}
@@ -309,7 +309,7 @@ func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigM
 
 		// CD
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-			ShouldIncludeActivateSSH: isPrivateRepository,
+			RepoAccess: repoAccess,
 		})...)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
@@ -383,7 +383,9 @@ func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigM
 // DefaultConfigs ...
 func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{ShouldIncludeActivateSSH: true})...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+		RepoAccess: models.RepoAccessUnknown,
+	})...)
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 

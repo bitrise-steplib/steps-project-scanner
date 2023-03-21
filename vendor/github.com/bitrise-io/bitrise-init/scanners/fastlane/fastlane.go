@@ -190,12 +190,11 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 	return *workDirOption
 }
 
-// Configs ...
-func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
 	generateConfig := func(isIOS bool) (bitriseModels.BitriseDataModel, error) {
 		configBuilder := models.NewDefaultConfigBuilder()
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-			ShouldIncludeActivateSSH: isPrivateRepository,
+			RepoAccess: repoAccess,
 		})...)
 
 		if isIOS {
@@ -242,13 +241,12 @@ func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigM
 	return nameToConfigString, nil
 }
 
-// DefaultConfigs ...
 func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configMap := models.BitriseConfigMap{}
 
 	for _, p := range platforms {
 		configBuilder := models.NewDefaultConfigBuilder()
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{ShouldIncludeActivateSSH: true})...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{RepoAccess: models.RepoAccessUnknown})...)
 
 		if p == iosPlatform {
 			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
