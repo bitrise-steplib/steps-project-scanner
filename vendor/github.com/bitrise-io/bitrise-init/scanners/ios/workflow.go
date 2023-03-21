@@ -37,7 +37,7 @@ Next steps:
 type workflowSetupParams struct {
 	projectType          XcodeProjectType
 	configBuilder        *models.ConfigBuilderModel
-	isPrivateRepository  bool
+	repoAccess           models.RepoAccess
 	missingSharedSchemes bool
 	hasTests             bool
 	hasAppClip           bool
@@ -115,7 +115,7 @@ func addArchiveStep(workflow models.WorkflowID, configBuilder *models.ConfigBuil
 
 func addSharedSetupSteps(workflow models.WorkflowID, params workflowSetupParams, includeCertificateAndProfileInstallStep, includeCache bool) {
 	params.configBuilder.AppendStepListItemsTo(workflow, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		ShouldIncludeActivateSSH: params.isPrivateRepository,
+		RepoAccess: params.repoAccess,
 	})...)
 
 	if includeCache {

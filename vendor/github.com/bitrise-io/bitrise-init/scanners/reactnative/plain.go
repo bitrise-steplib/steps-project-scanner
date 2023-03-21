@@ -167,8 +167,7 @@ func (scanner *Scanner) defaultOptions() models.OptionNode {
 	return *androidOptions
 }
 
-// configs implements ScannerInterface.Configs function for plain React Native projects.
-func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
 	configMap := models.BitriseConfigMap{}
 
 	if len(scanner.configDescriptors) == 0 {
@@ -187,7 +186,7 @@ func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, er
 
 		configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryDescription)
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-			ShouldIncludeActivateSSH: isPrivateRepo,
+			RepoAccess: repoAccess,
 		})...)
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, testSteps...)
@@ -197,7 +196,7 @@ func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, er
 		// cd
 		configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-			ShouldIncludeActivateSSH: isPrivateRepo,
+			RepoAccess: repoAccess,
 		})...)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, testSteps...)
 
@@ -260,14 +259,13 @@ func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, er
 	return configMap, nil
 }
 
-// defaultConfigs implements ScannerInterface.DefaultConfigs function for plain React Native projects.
 func (scanner *Scanner) defaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	// primary
 	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryWorkflowDescription)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		ShouldIncludeActivateSSH: true,
+		RepoAccess: models.RepoAccessUnknown,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 	// Assuming project uses yarn and has tests
@@ -278,7 +276,7 @@ func (scanner *Scanner) defaultConfigs() (models.BitriseConfigMap, error) {
 	// deploy
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		ShouldIncludeActivateSSH: true,
+		RepoAccess: models.RepoAccessUnknown,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, getTestSteps("", true, true)...)
 

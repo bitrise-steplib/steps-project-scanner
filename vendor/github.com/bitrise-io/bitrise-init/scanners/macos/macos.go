@@ -55,17 +55,14 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	return options, warnings, nil, nil
 }
 
-// DefaultOptions ...
 func (Scanner) DefaultOptions() models.OptionNode {
 	return ios.GenerateDefaultOptions(ios.XcodeProjectTypeMacOS)
 }
 
-// Configs ...
-func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
-	return ios.GenerateConfig(ios.XcodeProjectTypeMacOS, scanner.configDescriptors, isPrivateRepository)
+func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
+	return ios.GenerateConfig(ios.XcodeProjectTypeMacOS, scanner.configDescriptors, repoAccess)
 }
 
-// DefaultConfigs ...
 func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	return ios.GenerateDefaultConfig(ios.XcodeProjectTypeMacOS)
 }

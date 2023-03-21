@@ -1,6 +1,7 @@
 package steps
 
 import (
+	"github.com/bitrise-io/bitrise-init/models"
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/pointers"
@@ -9,7 +10,7 @@ import (
 
 // PrepareListParams describes the default prepare Step options.
 type PrepareListParams struct {
-	ShouldIncludeActivateSSH bool
+	RepoAccess models.RepoAccess
 }
 
 func stepIDComposite(ID, version string) string {
@@ -39,8 +40,23 @@ func stepListItem(stepIDComposite, title, runIf string, inputs ...envmanModels.E
 func DefaultPrepareStepList(params PrepareListParams) []bitriseModels.StepListItemModel {
 	stepList := []bitriseModels.StepListItemModel{}
 
-	if params.ShouldIncludeActivateSSH {
-		stepList = append(stepList, ActivateSSHKeyStepListItem(""))
+	switch params.RepoAccess {
+	case models.RepoAccessPublic:
+		{
+			// No SSH key setup needed
+		}
+	case models.RepoAccessPrivate:
+		{
+			// This needs the `SSH_RSA_PRIVATE_KEY` env to be defined, which depends on the selected path in the website
+			// add-new-app flow.
+			stepList = append(stepList, ActivateSSHKeyStepListItem(""))
+		}
+	case models.RepoAccessUnknown:
+		{
+			// Add the SSH key step just in case, but only run it if the required env var is available.
+			runCondition := `{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}`
+			stepList = append(stepList, ActivateSSHKeyStepListItem(runCondition))
+		}
 	}
 
 	stepList = append(stepList, GitCloneStepListItem())

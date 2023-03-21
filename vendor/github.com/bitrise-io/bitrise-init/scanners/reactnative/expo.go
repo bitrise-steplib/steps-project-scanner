@@ -34,7 +34,7 @@ func (scanner *Scanner) expoOptions() models.OptionNode {
 }
 
 // expoConfigs implements ScannerInterface.Configs function for Expo based React Native projects.
-func (scanner *Scanner) expoConfigs(project project, isPrivateRepo bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) expoConfigs(project project, repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
 	configMap := models.BitriseConfigMap{}
 
 	if project.projectRelDir == "." {
@@ -52,7 +52,7 @@ func (scanner *Scanner) expoConfigs(project project, isPrivateRepo bool) (models
 	configBuilder := models.NewDefaultConfigBuilder()
 	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryDescription)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		ShouldIncludeActivateSSH: isPrivateRepo,
+		RepoAccess: repoAccess,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, testSteps...)
@@ -67,7 +67,7 @@ func (scanner *Scanner) expoConfigs(project project, isPrivateRepo bool) (models
 
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployDescription)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		ShouldIncludeActivateSSH: isPrivateRepo,
+		RepoAccess: repoAccess,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, testSteps...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem(project.projectRelDir, "$"+expoPlatformInputEnvKey))
@@ -111,7 +111,7 @@ func (scanner Scanner) expoDefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, expoPrimaryWorkflowDescription)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		ShouldIncludeActivateSSH: true,
+		RepoAccess: models.RepoAccessUnknown,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, getTestSteps("$"+expoProjectDirInputEnvKey, true, true)...)
@@ -121,7 +121,7 @@ func (scanner Scanner) expoDefaultConfigs() (models.BitriseConfigMap, error) {
 	// deploy workflow
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, expoDeployWorkflowDescription)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		ShouldIncludeActivateSSH: true,
+		RepoAccess: models.RepoAccessUnknown,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, getTestSteps("$"+expoProjectDirInputEnvKey, true, true)...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RunEASBuildStepListItem("$"+expoProjectDirInputEnvKey, "$"+expoPlatformInputEnvKey))

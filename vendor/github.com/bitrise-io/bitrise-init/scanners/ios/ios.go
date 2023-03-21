@@ -1,6 +1,8 @@
 package ios
 
-import "github.com/bitrise-io/bitrise-init/models"
+import (
+	"github.com/bitrise-io/bitrise-init/models"
+)
 
 //------------------
 // ScannerInterface
@@ -60,9 +62,8 @@ func (Scanner) DefaultOptions() models.OptionNode {
 	return GenerateDefaultOptions(XcodeProjectTypeIOS)
 }
 
-// Configs ...
-func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
-	return GenerateConfig(XcodeProjectTypeIOS, scanner.ConfigDescriptors, isPrivateRepository)
+func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
+	return GenerateConfig(XcodeProjectTypeIOS, scanner.ConfigDescriptors, repoAccess)
 }
 
 // DefaultConfigs ...

@@ -22,7 +22,7 @@ const (
 
 const (
 	GitCloneID      = "git-clone"
-	GitCloneVersion = "7"
+	GitCloneVersion = "8"
 )
 
 const (

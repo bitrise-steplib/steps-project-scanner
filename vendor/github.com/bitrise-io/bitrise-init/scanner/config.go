@@ -274,7 +274,13 @@ func runScanner(detector scanners.ScannerInterface, searchDir string, isPrivateR
 	}
 
 	// Generate configs
-	configs, err := detector.Configs(isPrivateRepository)
+	var repoAccess models.RepoAccess
+	if isPrivateRepository {
+		repoAccess = models.RepoAccessPrivate
+	} else {
+		repoAccess = models.RepoAccessPublic
+	}
+	configs, err := detector.Configs(repoAccess)
 	if err != nil {
 		data := detectorErrorData(detector.Name(), err)
 		analytics.LogError(configsFailedTag, data, "%s detector Configs failed", detector.Name())

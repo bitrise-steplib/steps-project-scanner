@@ -141,15 +141,14 @@ that the right Gradle version is installed and used for the build. More info/gui
 	return nil
 }
 
-func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.ConfigBuilderModel {
+func (scanner *Scanner) generateConfigBuilder(repoAccess models.RepoAccess) models.ConfigBuilderModel {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	projectLocationEnv, gradlewPath, moduleEnv, variantEnv := "$"+ProjectLocationInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew", "$"+ModuleInputEnvKey, "$"+VariantInputEnvKey
 
 	//-- primary
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		ShouldIncludeActivateSSH: isPrivateRepository,
-	})...)
+		RepoAccess: repoAccess})...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreGradleCache())
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
@@ -171,7 +170,7 @@ func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.C
 
 	//-- deploy
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		ShouldIncludeActivateSSH: isPrivateRepository,
+		RepoAccess: repoAccess,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},

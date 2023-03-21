@@ -53,7 +53,7 @@ type ScannerInterface interface {
 	// Every config's key should be the last option one of the OptionNode branches.
 	// Returns:
 	// - platform BitriseConfigMap
-	Configs(isPrivateRepository bool) (models.BitriseConfigMap, error)
+	Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error)
 
 	// Returns:
 	// - platform default BitriseConfigMap
@@ -96,7 +96,9 @@ const CustomConfigName = "other-config"
 // CustomConfig ...
 func CustomConfig() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{ShouldIncludeActivateSSH: true})...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+		RepoAccess: models.RepoAccessUnknown,
+	})...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 	config, err := configBuilder.Generate(CustomProjectType)
