@@ -68,7 +68,17 @@ func (builder *ConfigBuilderModel) Generate(projectType string, appEnvs ...envma
 		workflows[string(workflowID)] = workflowBuilder.generate()
 	}
 
-	triggerMap := []bitriseModels.TriggerMapItemModel{}
+	triggerMap := []bitriseModels.TriggerMapItemModel{
+		bitriseModels.TriggerMapItemModel{
+			PushBranch: "*",
+			WorkflowID: string(PrimaryWorkflowID),
+		},
+		bitriseModels.TriggerMapItemModel{
+			PullRequestSourceBranch: "*",
+			WorkflowID:              string(PrimaryWorkflowID),
+		},
+	}
+
 	app := bitriseModels.AppModel{
 		Environments: appEnvs,
 	}
