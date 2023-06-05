@@ -525,7 +525,7 @@ func GenerateDefaultOptions(projectType XcodeProjectType) models.OptionNode {
 	projectPathOption := models.NewOption(ProjectPathInputTitle, ProjectPathInputSummary, ProjectPathInputEnvKey, models.TypeUserInput)
 
 	schemeOption := models.NewOption(SchemeInputTitle, SchemeInputSummary, SchemeInputEnvKey, models.TypeUserInput)
-	projectPathOption.AddOption("", schemeOption)
+	projectPathOption.AddOption(models.UserInputOptionDefaultValue, schemeOption)
 
 	var exportMethodInputTitle string
 	var exportMethodInputSummary string
@@ -545,7 +545,7 @@ func GenerateDefaultOptions(projectType XcodeProjectType) models.OptionNode {
 	}
 
 	exportMethodOption := models.NewOption(exportMethodInputTitle, exportMethodInputSummary, exportMethodEnvKey, models.TypeSelector)
-	schemeOption.AddOption("", exportMethodOption)
+	schemeOption.AddOption(models.UserInputOptionDefaultValue, exportMethodOption)
 
 	for _, exportMethod := range exportMethods {
 		configOption := models.NewConfigOption(fmt.Sprintf(defaultConfigNameFormat, string(projectType)), nil)

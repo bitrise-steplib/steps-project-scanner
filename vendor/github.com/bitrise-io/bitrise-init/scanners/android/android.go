@@ -163,8 +163,8 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	variantOption := models.NewOption(VariantInputTitle, VariantInputSummary, VariantInputEnvKey, models.TypeOptionalUserInput)
 	configOption := models.NewConfigOption(DefaultConfigName, nil)
 
-	projectLocationOption.AddOption("", moduleOption)
-	moduleOption.AddOption("", variantOption)
+	projectLocationOption.AddOption(models.UserInputOptionDefaultValue, moduleOption)
+	moduleOption.AddOption(models.UserInputOptionDefaultValue, variantOption)
 	variantOption.AddConfig("", configOption)
 
 	return *projectLocationOption

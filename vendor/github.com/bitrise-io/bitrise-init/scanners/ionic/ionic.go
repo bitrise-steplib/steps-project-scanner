@@ -260,7 +260,7 @@ func (Scanner) DefaultOptions() models.OptionNode {
 	workDirOption := models.NewOption(workDirInputTitle, workDirInputSummary, workDirInputEnvKey, models.TypeUserInput)
 
 	projectTypeOption := models.NewOption(platformInputTitle, platformInputSummary, platformInputEnvKey, models.TypeSelector)
-	workDirOption.AddOption("", projectTypeOption)
+	workDirOption.AddOption(models.UserInputOptionDefaultValue, projectTypeOption)
 
 	platforms := []string{
 		"ios",

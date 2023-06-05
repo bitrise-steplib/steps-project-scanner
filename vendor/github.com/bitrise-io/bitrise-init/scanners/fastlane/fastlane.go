@@ -177,10 +177,10 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 	workDirOption := models.NewOption(workDirInputTitle, workDirInputSummary, workDirInputEnvKey, models.TypeUserInput)
 
 	laneOption := models.NewOption(laneInputTitle, laneInputSummary, laneInputEnvKey, models.TypeUserInput)
-	workDirOption.AddOption("", laneOption)
+	workDirOption.AddOption(models.UserInputOptionDefaultValue, laneOption)
 
 	projectTypeOption := models.NewOption(projectTypeInputTitle, projectTypeInputSummary, "", models.TypeSelector)
-	laneOption.AddOption("", projectTypeOption)
+	laneOption.AddOption(models.UserInputOptionDefaultValue, projectTypeOption)
 
 	for _, p := range platforms {
 		configOption := models.NewConfigOption(fmt.Sprintf(defaultConfigNameFormat, p), nil)
