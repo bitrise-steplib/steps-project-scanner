@@ -3,18 +3,20 @@ module github.com/bitrise-steplib/steps-project-scanner
 go 1.17
 
 require (
-	github.com/bitrise-io/bitrise-init v0.0.0-20230508082530-9a12e413bd62
+	github.com/bitrise-io/bitrise-init v0.0.0-20230605120245-3a82eadbef61
 	github.com/bitrise-io/go-steputils v1.0.2
 	github.com/bitrise-io/go-utils v1.0.1
-	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.15
+	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.18
 	github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203
 	github.com/bitrise-steplib/steps-git-clone v0.0.0-20230130163124-2237d7df95a9
 )
 
 require (
+	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/beevik/etree v1.1.0 // indirect
 	github.com/bitrise-io/bitrise v0.0.0-20220217113333-f2def13a7946 // indirect
 	github.com/bitrise-io/envman v0.0.0-20211026063720-03283f9c3f32 // indirect
+	github.com/bitrise-io/go-flutter v0.1.0 // indirect
 	github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10 // indirect
 	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.15 // indirect
 	github.com/bitrise-io/go-xcode v1.0.6 // indirect
@@ -30,4 +32,5 @@ require (
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -237,7 +237,23 @@ func YarnStepListItem(command, workdir string) bitriseModels.StepListItemModel {
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
-func FlutterInstallStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+func FlutterInstallStepListItem(version string, isUpdate bool) bitriseModels.StepListItemModel {
+	const versionInputKey = "version"
+	const isUpdateInputKey = "is_update"
+
+	var inputs []envmanModels.EnvironmentItemModel
+
+	if version != "" {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{versionInputKey: version})
+	}
+
+	isUpdateStr := "false"
+	if isUpdate {
+		isUpdateStr = "true"
+	}
+
+	inputs = append(inputs, envmanModels.EnvironmentItemModel{isUpdateInputKey: isUpdateStr})
+
 	stepIDComposite := stepIDComposite(FlutterInstallID, FlutterInstallVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }

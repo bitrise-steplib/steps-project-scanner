@@ -7,22 +7,38 @@ Scans repository for iOS, macOS, Android, Fastlane, Cordova, Ionic, React Native
 <details>
 <summary>Description</summary>
 
-For iOS and macOS projects, the step detects CocoaPods and scans Xcode project files
-for valid Xcode command line configurations.
+This Step scans your repository to determine your project's type.
 
-For Android projects, the step checks for build.gradle files and lists all the gradle tasks. It
-also checks for gradlew file.
+The Step scans for:
 
-For Fastlane, the step detects Fastfile and lists the available lanes.
+* **iOS** and **macOS** projects, the Step detects `CocoaPods` and scans Xcode project files for valid Xcode command line configurations.
+* **Android** projects, the Step checks for `build.gradle` files and lists all the Gradle tasks. It also checks for a `gradlew` file.
+* **Fastlane**, the Step detects `Fastfile` and lists the available lanes.
+* **Cordova** projects, the Step checks for the `config.xml` file.
+* **Ionic** projects, the Step checks for the `ionic.config.json` and `ionic.project` files.
+* **React Native** projects, the Step checks for `package.json` files and also runs the **iOS** and **Android** native project scanners.
+* **Flutter** projects, the Step checks for the `pubspec.yaml` files.
 
-For Cordova projects, the step checks for the config.xml file.
+### Configuring the Step
+ 
+To successfully run the Step, you need: 
+1. An SSH key
+1. A repository
 
-For Ionic projects, the step checks for the ionic.config.json and ionic.project files.
+To configure the Step:
 
-For React Native projects, the step checks for package.json files and also runs the
-iOS and Android native project scanners.
+1. **POST url to send the scan results to**: You can send your app's scan results to an URL as a POST request.
+1. **URL to get app icon candidates upload URLs**: You can upload your app's icons using this input. 
+1. **Verbose log option**: You can set this input to `yes` to produce more informative logs.
+1. **Activate SSH key and clone git repo inside the Step**: You can set this input to `true` to activate an SSH key and clone the git repository of your app.
 
-For Flutter projects, the step checks for the pubspec.yaml files.
+### Troubleshooting
+
+If you receive an error message, `No known platform detected`, make sure that you cloned the correct repository and you have a valid SSH key.
+
+### Useful links
+
+* [Creating your own project scanner](https://devcenter.bitrise.io/en/steps-and-workflows/developing-your-own-bitrise-step/creating-your-own-bitrise-project-scanner.html)
 </details>
 
 ## 🧩 Get started
@@ -38,7 +54,7 @@ You can also run this step directly with [Bitrise CLI](https://github.com/bitris
 
 | Key | Description | Flags | Default |
 | --- | --- | --- | --- |
-| `scan_dir` | The step will look for the projects in this directory. | required | `$BITRISE_SOURCE_DIR` |
+| `scan_dir` | The Step will look for the projects in this directory. | required | `$BITRISE_SOURCE_DIR` |
 | `scan_result_submit_url` | If provided, the scan results will be sent to the given URL, with a POST request.  |  | `$BITRISE_SCAN_RESULT_POST_URL` |
 | `scan_result_submit_api_token` | If provided and `scan_result_submit_url` also provided, this API Token will be used for sending the Scan Results.  | sensitive | `$BITRISE_APP_API_TOKEN` |
 | `icon_candidates_url` | If provided, the app icons will be uploaded.  |  | `$BITRISE_AVATAR_CANDIDATES_POST_URL` |
