@@ -8,8 +8,8 @@ github.com/bitrise-io/bitrise v0.0.0-20210519130014-380842fb41c1/go.mod h1:Jqf2P
 github.com/bitrise-io/bitrise v0.0.0-20220217113333-f2def13a7946 h1:c+dLJvoW8eswyrV88mJunzc+dSidsV0S4CCfGe5QZyo=
 github.com/bitrise-io/bitrise v0.0.0-20220217113333-f2def13a7946/go.mod h1:wZJS5uJ+mLhTbV4manrofZgGninsaMjMJndWC5OvcCY=
 github.com/bitrise-io/bitrise-init v0.0.0-20210518121553-1e678625c45d/go.mod h1:2bxvLp7xgXC3HsacG2Z5nn6WOjk8kbNOmLWjinnhnKg=
-github.com/bitrise-io/bitrise-init v0.0.0-20230605120245-3a82eadbef61 h1:LuPKxFgnNEKulzaVcAZtlIcojJrqhnIyakVo32css84=
-github.com/bitrise-io/bitrise-init v0.0.0-20230605120245-3a82eadbef61/go.mod h1:dfGAIaFZCssxdiogcGFQnAmcwOMsyId7dT3FMR7Ik1Y=
+github.com/bitrise-io/bitrise-init v0.0.0-20230615082523-d68c1dbf7b63 h1:/VyhHlqnd1c6+LjBS4hEq4+MllASrELQNW3R0UAdwAw=
+github.com/bitrise-io/bitrise-init v0.0.0-20230615082523-d68c1dbf7b63/go.mod h1:dfGAIaFZCssxdiogcGFQnAmcwOMsyId7dT3FMR7Ik1Y=
 github.com/bitrise-io/colorstring v0.0.0-20180614154802-a8cd70115192/go.mod h1:CIHVcxZUvsG99XUJV6JlR7okNsMMGY81jMvPC20W+O0=
 github.com/bitrise-io/envman v0.0.0-20200512105748-919e33f391ee/go.mod h1:m8pTp1o3Sw9uzDxb1WRm5IBRnMau2iOvPMSnRCAhQNI=
 github.com/bitrise-io/envman v0.0.0-20210517135508-b2b4fe89eac5/go.mod h1:m8pTp1o3Sw9uzDxb1WRm5IBRnMau2iOvPMSnRCAhQNI=

@@ -68,17 +68,6 @@ func (builder *ConfigBuilderModel) Generate(projectType string, appEnvs ...envma
 		workflows[string(workflowID)] = workflowBuilder.generate()
 	}
 
-	triggerMap := []bitriseModels.TriggerMapItemModel{
-		bitriseModels.TriggerMapItemModel{
-			PushBranch: "*",
-			WorkflowID: string(PrimaryWorkflowID),
-		},
-		bitriseModels.TriggerMapItemModel{
-			PullRequestSourceBranch: "*",
-			WorkflowID:              string(PrimaryWorkflowID),
-		},
-	}
-
 	app := bitriseModels.AppModel{
 		Environments: appEnvs,
 	}
@@ -87,7 +76,6 @@ func (builder *ConfigBuilderModel) Generate(projectType string, appEnvs ...envma
 		FormatVersion:        FormatVersion,
 		DefaultStepLibSource: defaultSteplibSource,
 		ProjectType:          projectType,
-		TriggerMap:           triggerMap,
 		Workflows:            workflows,
 		App:                  app,
 	}, nil
