@@ -177,6 +177,8 @@ func main() {
 			CloneIntoDir:     cfg.ScanDirectory,
 			RepositoryURL:    cfg.RepositoryURL,
 			SSHRsaPrivateKey: cfg.SSHRsaPrivateKey,
+			GitHTTPUsername:  cfg.GitHTTPUsername,
+			GitHTTPPassword:  cfg.GitHTTPPassword,
 			Branch:           cfg.Branch,
 		}); err != nil {
 			if stepError, ok := err.(*step.Error); ok {
