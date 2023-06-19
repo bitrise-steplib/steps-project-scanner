@@ -20,15 +20,15 @@ The Step scans for:
 * **Flutter** projects, the Step checks for the `pubspec.yaml` files.
 
 ### Configuring the Step
- 
-To successfully run the Step, you need: 
-1. An SSH key
+
+To successfully run the Step, you need:
+1. An SSH key or Git HTTP credentials
 1. A repository
 
 To configure the Step:
 
 1. **POST url to send the scan results to**: You can send your app's scan results to an URL as a POST request.
-1. **URL to get app icon candidates upload URLs**: You can upload your app's icons using this input. 
+1. **URL to get app icon candidates upload URLs**: You can upload your app's icons using this input.
 1. **Verbose log option**: You can set this input to `yes` to produce more informative logs.
 1. **Activate SSH key and clone git repo inside the Step**: You can set this input to `true` to activate an SSH key and clone the git repository of your app.
 
@@ -61,6 +61,8 @@ You can also run this step directly with [Bitrise CLI](https://github.com/bitris
 | `verbose_log` | You can enable the verbose log for easier debugging.  |  | `false` |
 | `enable_repo_clone` | If set to yes then it will setup the ssh key and will clone the repo with the provided url and branch name.  |  | `no` |
 | `ssh_rsa_private_key` | SSH key to be used for the git clone. | sensitive | `$SSH_RSA_PRIVATE_KEY` |
+| `git_http_username` | Username for establishing an HTTP(S) connection to the repository | sensitive | `$GIT_HTTP_USERNAME` |
+| `git_http_password` | Personal access token (or password) for establishing an HTTP(S) connection to the repository | sensitive | `$GIT_HTTP_PASSWORD` |
 | `repository_url` | Url to be used for the git clone. |  | `$GIT_REPOSITORY_URL` |
 | `branch` | Branch to be used for the git clone. |  | `$BITRISE_GIT_BRANCH` |
 </details>

@@ -38,7 +38,7 @@ github.com/bitrise-io/go-flutter/fluttersdk
 # github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10
 ## explicit; go 1.15
 github.com/bitrise-io/go-plist
-# github.com/bitrise-io/go-steputils v1.0.2
+# github.com/bitrise-io/go-steputils v1.0.5
 ## explicit; go 1.15
 github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
@@ -90,9 +90,15 @@ github.com/bitrise-io/stepman/models
 # github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203
 ## explicit; go 1.16
 github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey
-# github.com/bitrise-steplib/steps-git-clone v0.0.0-20230130163124-2237d7df95a9
+# github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230216105320-8cb845d52e28
+## explicit; go 1.17
+github.com/bitrise-steplib/steps-authenticate-host-with-netrc/netrcutil
+# github.com/bitrise-steplib/steps-git-clone v0.0.0-20230619101604-67b0d018398a
 ## explicit; go 1.17
 github.com/bitrise-steplib/steps-git-clone/gitclone
+github.com/bitrise-steplib/steps-git-clone/gitclone/bitriseapi
+github.com/bitrise-steplib/steps-git-clone/gitclone/tracker
+github.com/bitrise-steplib/steps-git-clone/transport
 # github.com/gofrs/uuid v4.3.1+incompatible
 ## explicit
 github.com/gofrs/uuid

@@ -14,11 +14,15 @@ import (
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/retry"
 	cmdv2 "github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
 	logv2 "github.com/bitrise-io/go-utils/v2/log"
 	"github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey"
 	"github.com/bitrise-steplib/steps-git-clone/gitclone"
+	"github.com/bitrise-steplib/steps-git-clone/gitclone/bitriseapi"
+	"github.com/bitrise-steplib/steps-git-clone/gitclone/tracker"
+	"github.com/bitrise-steplib/steps-git-clone/transport"
 )
 
 type config struct {
@@ -33,6 +37,10 @@ type config struct {
 
 	// Activate SSH Key step
 	SSHRsaPrivateKey stepconf.Secret `env:"ssh_rsa_private_key"`
+
+	// Git HTTP credentials
+	GitHTTPUsername stepconf.Secret `env:"git_http_username"`
+	GitHTTPPassword stepconf.Secret `env:"git_http_password"`
 
 	// Git clone step
 	RepositoryURL string `env:"repository_url"`
@@ -63,6 +71,8 @@ type repoConfig struct {
 	CloneIntoDir     string
 	RepositoryURL    string
 	SSHRsaPrivateKey stepconf.Secret
+	GitHTTPUsername  stepconf.Secret
+	GitHTTPPassword  stepconf.Secret
 	Branch           string
 }
 
@@ -95,20 +105,30 @@ func cloneRepo(cfg repoConfig) error {
 		}
 	}
 
+	// Activate Git HTTP credentials
+	if err := transport.Setup(transport.Config{
+		URL:          cfg.RepositoryURL,
+		HTTPUsername: string(cfg.GitHTTPUsername),
+		HTTPPassword: string(cfg.GitHTTPPassword),
+	}); err != nil {
+		return err
+	}
+
 	// Git clone
 	logger := logv2.NewLogger()
 	envRepo := env.NewRepository()
-	tracker := gitclone.NewStepTracker(envRepo, logger)
+
+	tracker := tracker.NewStepTracker(envRepo, logger)
 	cmdFactory := cmdv2.NewFactory(envRepo)
-	gitcloner := gitclone.NewGitCloner(logger, tracker, cmdFactory)
+	// patchSource and mergeRefChecker used for merging only
+	// build URL and build api token doesn't apply here
+	patchSource := bitriseapi.NewPatchSource("", "")
+	mergeRefChecker := bitriseapi.NewMergeRefChecker("", "", retry.NewHTTPClient(), logger, tracker)
+	gitcloner := gitclone.NewGitCloner(logger, tracker, cmdFactory, patchSource, mergeRefChecker)
 	config := gitclone.Config{
 		RepositoryURL: cfg.RepositoryURL,
 		CloneIntoDir:  cfg.CloneIntoDir, // Using same directory later to run scan
 		Branch:        cfg.Branch,
-
-		// BuildURL and BuildAPIToken used for merging only
-		BuildURL:      "",
-		BuildAPIToken: "",
 
 		UpdateSubmodules: true,
 	}
