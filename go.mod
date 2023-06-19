@@ -4,11 +4,11 @@ go 1.17
 
 require (
 	github.com/bitrise-io/bitrise-init v0.0.0-20230615082523-d68c1dbf7b63
-	github.com/bitrise-io/go-steputils v1.0.2
+	github.com/bitrise-io/go-steputils v1.0.5
 	github.com/bitrise-io/go-utils v1.0.1
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.18
 	github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203
-	github.com/bitrise-steplib/steps-git-clone v0.0.0-20230130163124-2237d7df95a9
+	github.com/bitrise-steplib/steps-git-clone v0.0.0-20230619101604-67b0d018398a
 )
 
 require (
@@ -22,6 +22,7 @@ require (
 	github.com/bitrise-io/go-xcode v1.0.6 // indirect
 	github.com/bitrise-io/goinp v0.0.0-20211005113137-305e91b481f4 // indirect
 	github.com/bitrise-io/stepman v0.0.0-20220107162322-d37bb82e8983 // indirect
+	github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230216105320-8cb845d52e28 // indirect
 	github.com/gofrs/uuid v4.3.1+incompatible // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
