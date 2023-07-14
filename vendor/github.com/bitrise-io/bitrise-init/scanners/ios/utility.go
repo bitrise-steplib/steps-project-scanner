@@ -26,7 +26,7 @@ const (
 	ProjectPathInputKey     = "project_path"
 	ProjectPathInputEnvKey  = "BITRISE_PROJECT_PATH"
 	ProjectPathInputTitle   = "Project or Workspace path"
-	ProjectPathInputSummary = "The location of your Xcode project or Xcode workspace files, stored as an Environment Variable. In your Workflows, you can specify paths relative to this path."
+	ProjectPathInputSummary = "The location of your Xcode project, Xcode workspace or SPM project files stored as an Environment Variable. In your Workflows, you can specify paths relative to this path."
 )
 
 const (
@@ -94,6 +94,7 @@ type Project struct {
 	// Is it a standalone project or a workspace?
 	IsWorkspace    bool
 	IsPodWorkspace bool
+	IsSPMProject   bool
 
 	// Carthage command to run: bootstrap/update
 	CarthageCommand string
@@ -123,17 +124,19 @@ type ConfigDescriptor struct {
 	HasTest              bool
 	HasAppClip           bool
 	HasSPMDependencies   bool
+	isSPMProject         bool
 	ExportMethod         string
 	MissingSharedSchemes bool
 }
 
-func NewConfigDescriptor(hasPodfile bool, carthageCommand string, hasXCTest, hasAppClip, hasSPMDependencies bool, exportMethod string, missingSharedSchemes bool) ConfigDescriptor {
+func NewConfigDescriptor(hasPodfile bool, carthageCommand string, hasXCTest, hasAppClip, hasSPMDependencies, isSPMProject bool, exportMethod string, missingSharedSchemes bool) ConfigDescriptor {
 	return ConfigDescriptor{
 		HasPodfile:           hasPodfile,
 		CarthageCommand:      carthageCommand,
 		HasTest:              hasXCTest,
 		HasAppClip:           hasAppClip,
 		HasSPMDependencies:   hasSPMDependencies,
+		isSPMProject:         isSPMProject,
 		ExportMethod:         exportMethod,
 		MissingSharedSchemes: missingSharedSchemes,
 	}
@@ -149,6 +152,9 @@ func (descriptor ConfigDescriptor) ConfigName(projectType XcodeProjectType) stri
 	}
 	if descriptor.HasSPMDependencies {
 		qualifiers += "-spm"
+	}
+	if descriptor.isSPMProject {
+		qualifiers += "-spm-project"
 	}
 	if descriptor.HasTest {
 		qualifiers += "-test"
@@ -491,6 +497,25 @@ func GenerateOptions(projectType XcodeProjectType, result DetectResult) (models.
 		projectPathOption.AddOption(project.RelPath, schemeOption)
 
 		for _, scheme := range project.Schemes {
+			// SPM projects do not have an icon and do not need the export options.
+			if project.IsSPMProject {
+				configDescriptor := NewConfigDescriptor(
+					project.IsPodWorkspace,
+					project.CarthageCommand,
+					scheme.HasXCTests,
+					scheme.HasAppClip,
+					result.HasSPMDependencies,
+					project.IsSPMProject,
+					"",
+					scheme.Missing)
+				configDescriptors = append(configDescriptors, configDescriptor)
+
+				configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType), []string{})
+				schemeOption.AddOption(scheme.Name, configOption)
+
+				continue
+			}
+
 			exportMethodOption := models.NewOption(exportMethodInputTitle, exportMethodInputSummary, exportMethodEnvKey, models.TypeSelector)
 			schemeOption.AddOption(scheme.Name, exportMethodOption)
 
@@ -503,7 +528,14 @@ func GenerateOptions(projectType XcodeProjectType, result DetectResult) (models.
 
 			for _, exportMethod := range exportMethods {
 				// Whether app-clip export Step is added later depends on the used export method
-				configDescriptor := NewConfigDescriptor(project.IsPodWorkspace, project.CarthageCommand, scheme.HasXCTests, scheme.HasAppClip, result.HasSPMDependencies, exportMethod, scheme.Missing)
+				configDescriptor := NewConfigDescriptor(
+					project.IsPodWorkspace,
+					project.CarthageCommand,
+					scheme.HasXCTests,
+					scheme.HasAppClip,
+					result.HasSPMDependencies,
+					false,
+					exportMethod, scheme.Missing)
 				configDescriptors = append(configDescriptors, configDescriptor)
 				configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType), iconIDs)
 
@@ -562,6 +594,7 @@ func GenerateConfigBuilder(
 	hasTest,
 	hasAppClip,
 	hasSPMDependencies,
+	isSPMProject,
 	missingSharedSchemes bool,
 	carthageCommand,
 	exportMethod string,
@@ -582,7 +615,10 @@ func GenerateConfigBuilder(
 	}
 
 	createPrimaryWorkflow(params)
-	createDeployWorkflow(params)
+
+	if !isSPMProject {
+		createDeployWorkflow(params)
+	}
 
 	return *configBuilder
 }
@@ -612,6 +648,7 @@ func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDesc
 			descriptor.HasTest,
 			descriptor.HasAppClip,
 			descriptor.HasSPMDependencies,
+			descriptor.isSPMProject,
 			descriptor.MissingSharedSchemes,
 			descriptor.CarthageCommand,
 			descriptor.ExportMethod)
@@ -640,6 +677,7 @@ func GenerateDefaultConfig(projectType XcodeProjectType) (models.BitriseConfigMa
 		true,
 		false,
 		true,
+		false,
 		true,
 		"",
 		"")
