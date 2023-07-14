@@ -2,9 +2,10 @@ package ios
 
 import (
 	"encoding/json"
-	"github.com/bitrise-io/go-utils/command"
-	"os"
 	"path/filepath"
+
+	"github.com/bitrise-io/bitrise-init/utility"
+	"github.com/bitrise-io/go-utils/command"
 )
 
 const (
@@ -42,7 +43,7 @@ type spmProject struct {
 
 func ParseSPMProject(projectType XcodeProjectType, searchDir string) (DetectResult, error) {
 	packagePath := filepath.Join(searchDir, spmProjectFile)
-	if !fileExists(packagePath) {
+	if !utility.FileExists(packagePath) {
 		return DetectResult{}, nil
 	}
 
@@ -87,14 +88,6 @@ func ParseSPMProject(projectType XcodeProjectType, searchDir string) (DetectResu
 	}
 
 	return result, nil
-}
-
-func fileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !info.IsDir()
 }
 
 func supportsProjectType(projectType XcodeProjectType, platforms []spmPlatform) bool {

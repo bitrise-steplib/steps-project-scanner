@@ -33,11 +33,9 @@ type DetectionResult struct {
 var UnknownToolDetectors = []UnknownToolDetector{
 	toolDetector{toolName: "Tuist", primaryFile: "Project.swift"},
 	toolDetector{toolName: "Xcodegen", primaryFile: "project.yml"},
-	toolDetector{toolName: "Swift Package Manager", primaryFile: "Package.swift"},
 	toolDetector{toolName: "Bazel", primaryFile: "WORKSPACE", optionalFiles: []string{"WORKSPACE.bazel", "BUILD", "BUILD.bazel", ".bazelrc", ".bazelversion", ".bazelignore"}},
 	toolDetector{toolName: "Buck", primaryFile: "BUCK", optionalFiles: []string{".buckversion", ".buckconfig", ".buckjavaargs"}},
 	kotlinMultiplatformDetector{},
-	toolDetector{toolName: "Gradle Kotlin build script", primaryFile: "build.gradle.kts", optionalFiles: []string{"settings.gradle.kts"}},
 }
 
 var excludedDirs = []string{

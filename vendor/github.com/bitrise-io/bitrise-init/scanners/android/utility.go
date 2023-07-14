@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/bitrise-io/bitrise-init/analytics"
-
 	"github.com/bitrise-io/bitrise-init/models"
+	"github.com/bitrise-io/bitrise-init/utility"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 )
@@ -20,15 +20,16 @@ var filePathWalk = filepath.Walk
 
 // Project is an Android project on the filesystem
 type Project struct {
-	RelPath  string
-	Icons    models.Icons
-	Warnings models.Warnings
+	RelPath               string
+	UsesKotlinBuildScript bool
+	Icons                 models.Icons
+	Warnings              models.Warnings
 }
 
 func detect(searchDir string) ([]Project, error) {
 	projectFiles := fileGroups{
-		{"build.gradle", "build.gradle.kts"},
-		{"settings.gradle", "settings.gradle.kts"},
+		{"build.gradle", gradleKotlinBuildFile},
+		{"settings.gradle", gradleKotlinSettingsFile},
 	}
 	skipDirs := []string{".git", "CordovaLib", "node_modules"}
 
@@ -100,10 +101,12 @@ func parseProjects(searchDir string, projectRoots []string) ([]Project, error) {
 			analytics.LogInfo("android-icon-lookup", analytics.DetectorErrorData("android", err), "Failed to lookup android icon")
 		}
 
+		kotlinBuildScriptBased := usesKotlinBuildScripts(projectRoot)
 		projects = append(projects, Project{
-			RelPath:  relProjectRoot,
-			Icons:    icons,
-			Warnings: warnings,
+			RelPath:               relProjectRoot,
+			UsesKotlinBuildScript: kotlinBuildScriptBased,
+			Icons:                 icons,
+			Warnings:              warnings,
 		})
 	}
 
@@ -112,6 +115,10 @@ func parseProjects(searchDir string, projectRoots []string) ([]Project, error) {
 	}
 
 	return projects, nil
+}
+
+func usesKotlinBuildScripts(projectRoot string) bool {
+	return utility.FileExists(filepath.Join(projectRoot, gradleKotlinBuildFile)) && utility.FileExists(filepath.Join(projectRoot, gradleKotlinSettingsFile))
 }
 
 func walk(src string, fn func(path string, info os.FileInfo) error) error {
@@ -201,4 +208,37 @@ Using a Gradle Wrapper (gradlew) is required, as the wrapper is what makes sure
 that the right Gradle version is installed and used for the build. More info/guide: <a>https://docs.gradle.org/current/userguide/gradle_wrapper.html</a>`)
 	}
 	return nil
+}
+
+type configBuildingParams struct {
+	name            string
+	useKotlinScript bool
+}
+
+func configBuildingParameters(projects []Project) []configBuildingParams {
+	regularProjectCount := 0
+	kotlinBuildScriptProjectCount := 0
+
+	for _, project := range projects {
+		if project.UsesKotlinBuildScript {
+			kotlinBuildScriptProjectCount += 1
+		} else {
+			regularProjectCount += 1
+		}
+	}
+
+	var params []configBuildingParams
+	if 0 < regularProjectCount {
+		params = append(params, configBuildingParams{
+			name:            ConfigName,
+			useKotlinScript: false,
+		})
+	}
+	if 0 < kotlinBuildScriptProjectCount {
+		params = append(params, configBuildingParams{
+			name:            ConfigNameKotlinScript,
+			useKotlinScript: true,
+		})
+	}
+	return params
 }
