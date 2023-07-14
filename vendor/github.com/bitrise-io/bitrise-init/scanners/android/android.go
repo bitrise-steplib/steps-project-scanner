@@ -11,9 +11,11 @@ import (
 )
 
 const (
-	ScannerName       = "android"
-	ConfigName        = "android-config"
-	DefaultConfigName = "default-android-config"
+	ScannerName                   = "android"
+	ConfigName                    = "android-config"
+	ConfigNameKotlinScript        = "android-config-kts"
+	DefaultConfigName             = "default-android-config"
+	DefaultConfigNameKotlinScript = "default-android-config-kts"
 
 	testsWorkflowID         = "run_tests"
 	testsWorkflowSummary    = "Run your Android unit tests and get the test report."
@@ -40,10 +42,16 @@ const (
 	ModuleInputTitle   = "Module"
 	ModuleInputSummary = "Modules provide a container for your Android project's source code, resource files, and app level settings, such as the module-level build file and Android manifest file. Each module can be independently built, tested, and debugged. You can add new modules to your Bitrise builds at any time."
 
+	BuildScriptInputTitle   = "Does your app use Kotlin build scripts?"
+	BuildScriptInputSummary = "The workflow configuration slightly differs based on what language (Groovy or Kotlin) you used in your build scripts."
+
 	GradlewPathInputKey = "gradlew_path"
 
 	CacheLevelInputKey = "cache_level"
 	CacheLevelNone     = "none"
+
+	gradleKotlinBuildFile    = "build.gradle.kts"
+	gradleKotlinSettingsFile = "settings.gradle.kts"
 )
 
 // Scanner ...
@@ -90,7 +98,11 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 			iconIDs[i] = icon.Filename
 		}
 
-		configOption := models.NewConfigOption(ConfigName, iconIDs)
+		name := ConfigName
+		if project.UsesKotlinBuildScript {
+			name = ConfigNameKotlinScript
+		}
+		configOption := models.NewConfigOption(name, iconIDs)
 		moduleOption := models.NewOption(ModuleInputTitle, ModuleInputSummary, ModuleInputEnvKey, models.TypeUserInput)
 		variantOption := models.NewOption(VariantInputTitle, VariantInputSummary, VariantInputEnvKey, models.TypeOptionalUserInput)
 
@@ -107,54 +119,59 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputSummary, ProjectLocationInputEnvKey, models.TypeUserInput)
 	moduleOption := models.NewOption(ModuleInputTitle, ModuleInputSummary, ModuleInputEnvKey, models.TypeUserInput)
 	variantOption := models.NewOption(VariantInputTitle, VariantInputSummary, VariantInputEnvKey, models.TypeOptionalUserInput)
-	configOption := models.NewConfigOption(DefaultConfigName, nil)
+
+	buildScriptOption := models.NewOption(BuildScriptInputTitle, BuildScriptInputSummary, "", models.TypeSelector)
+	regularConfigOption := models.NewConfigOption(DefaultConfigName, nil)
+	kotlinScriptConfigOption := models.NewConfigOption(DefaultConfigNameKotlinScript, nil)
 
 	projectLocationOption.AddOption(models.UserInputOptionDefaultValue, moduleOption)
 	moduleOption.AddOption(models.UserInputOptionDefaultValue, variantOption)
-	variantOption.AddConfig("", configOption)
+	variantOption.AddOption(models.UserInputOptionDefaultValue, buildScriptOption)
+
+	buildScriptOption.AddConfig("yes", kotlinScriptConfigOption)
+	buildScriptOption.AddOption("no", regularConfigOption)
 
 	return *projectLocationOption
 }
 
 // Configs ...
 func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder(repoAccess)
-
-	config, err := configBuilder.Generate(ScannerName)
-	if err != nil {
-		return models.BitriseConfigMap{}, err
-	}
-
-	data, err := yaml.Marshal(config)
-	if err != nil {
-		return models.BitriseConfigMap{}, err
-	}
-
-	return models.BitriseConfigMap{
-		ConfigName: string(data),
-	}, nil
+	params := configBuildingParameters(scanner.Projects)
+	return scanner.generateConfigs(repoAccess, params)
 }
 
 // DefaultConfigs ...
 func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder(models.RepoAccessUnknown)
-
-	config, err := configBuilder.Generate(ScannerName)
-	if err != nil {
-		return models.BitriseConfigMap{}, err
+	params := []configBuildingParams{
+		{name: DefaultConfigName, useKotlinScript: false},
+		{name: DefaultConfigNameKotlinScript, useKotlinScript: true},
 	}
-
-	data, err := yaml.Marshal(config)
-	if err != nil {
-		return models.BitriseConfigMap{}, err
-	}
-
-	return models.BitriseConfigMap{
-		DefaultConfigName: string(data),
-	}, nil
+	return scanner.generateConfigs(models.RepoAccessUnknown, params)
 }
 
-func (scanner *Scanner) generateConfigBuilder(repoAccess models.RepoAccess) models.ConfigBuilderModel {
+func (scanner *Scanner) generateConfigs(repoAccess models.RepoAccess, params []configBuildingParams) (models.BitriseConfigMap, error) {
+	bitriseDataMap := models.BitriseConfigMap{}
+
+	for _, param := range params {
+		configBuilder := scanner.generateConfigBuilder(repoAccess, param.useKotlinScript)
+
+		config, err := configBuilder.Generate(ScannerName)
+		if err != nil {
+			return models.BitriseConfigMap{}, err
+		}
+
+		data, err := yaml.Marshal(config)
+		if err != nil {
+			return models.BitriseConfigMap{}, err
+		}
+
+		bitriseDataMap[param.name] = string(data)
+	}
+
+	return bitriseDataMap, nil
+}
+
+func (scanner *Scanner) generateConfigBuilder(repoAccess models.RepoAccess, useKotlinBuildScript bool) models.ConfigBuilderModel {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	projectLocationEnv, gradlewPath, moduleEnv, variantEnv := "$"+ProjectLocationInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew", "$"+ModuleInputEnvKey, "$"+VariantInputEnvKey
@@ -190,8 +207,13 @@ func (scanner *Scanner) generateConfigBuilder(repoAccess models.RepoAccess) mode
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
 	))
 
+	basePath := filepath.Join(projectLocationEnv, moduleEnv)
+	path := filepath.Join(basePath, "build.gradle")
+	if useKotlinBuildScript {
+		path = filepath.Join(basePath, gradleKotlinBuildFile)
+	}
 	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.ChangeAndroidVersionCodeAndVersionNameStepListItem(
-		envmanModels.EnvironmentItemModel{ModuleBuildGradlePathInputKey: filepath.Join(projectLocationEnv, moduleEnv, "build.gradle")},
+		envmanModels.EnvironmentItemModel{ModuleBuildGradlePathInputKey: path},
 	))
 
 	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.AndroidLintStepListItem(
