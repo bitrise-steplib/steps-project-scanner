@@ -15,24 +15,29 @@ const (
 	AutomaticCodeSigningValue             = "api-key"
 	CacheLevelKey                         = "cache_level"
 	CacheLevelNone                        = "none"
+
+	// test workflow
+	primaryWorkflowID = "primary"
+
+	testWorkflowID          = "run_tests"
+	testWorkflowSummary     = "Run your Xcode tests and get the test report."
+	testWorkflowDescription = "The workflow will first clone your Git repository, cache and install your project's dependencies if any, run your Xcode tests and save the test results."
+
+	buildWorkflowID          = "build"
+	buildWorkflowSummary     = "Build your Xcode project."
+	buildWorkflowDescription = "The workflow will first clone your Git repository, cache and install your project's dependencies if any and build your project."
+
+	// deploy workflow
+	deployWorkflowID = "deploy"
+
+	archiveAndExportWorkflowID = "archive_and_export_app"
+
+	archiveAndExportWorkflowWithTestsSummary     = "Run your Xcode tests and create an IPA file to install your app on a device or share it with your team."
+	archiveAndExportWorkflowWithTestsDescription = "The workflow will first clone your Git repository, cache and install your project's dependencies if any, run your Xcode tests, export an IPA file from the project and save it."
+
+	archiveAndExportWorkflowWithoutTestsSummary     = "Create an IPA file to install your app on a device or share it with your team."
+	archiveAndExportWorkflowWithoutTestsDescription = "The workflow will first clone your Git repository, cache and install your project's dependencies if any, export an IPA file from the project and save it."
 )
-
-const primaryTestDescription = `The workflow executes the tests. The *retry_on_failure* test repetition mode is enabled.`
-
-const primaryBuildOnlyDescription = `The workflow only builds the project because the project scanner could not find any tests.`
-
-const primaryCommonDescription = `Next steps:
-- Check out [Getting started with iOS apps](https://devcenter.bitrise.io/en/getting-started/getting-started-with-ios-apps.html).
-`
-
-const deployDescription = `The workflow tests, builds and deploys the app using *Deploy to bitrise.io* step.
-
-For testing the *retry_on_failure* test repetition mode is enabled.
-
-Next steps:
-- Set up [Connecting to an Apple service with API key](https://devcenter.bitrise.io/en/accounts/connecting-to-services/connecting-to-an-apple-service-with-api-key.html##).
-- Or further customise code signing following our [iOS code signing](https://devcenter.bitrise.io/en/code-signing/ios-code-signing.html) guide.
-`
 
 type workflowSetupParams struct {
 	projectType          XcodeProjectType
@@ -47,36 +52,83 @@ type workflowSetupParams struct {
 	exportMethod         string
 }
 
-func createPrimaryWorkflow(params workflowSetupParams) {
-	identifier := models.PrimaryWorkflowID
-	addSharedSetupSteps(identifier, params, false, true)
+func createVerificationWorkflow(params workflowSetupParams) {
+	id, summary, description := verificationWorkflowIDSummaryAndDescription(params.projectType, params.hasTests)
 
-	var description string
+	addSharedSetupSteps(models.WorkflowID(id), params, false, true)
 
 	if params.hasTests {
-		description = primaryTestDescription
-		addTestStep(identifier, params.configBuilder, params.projectType)
+		addTestStep(models.WorkflowID(id), params.configBuilder, params.projectType)
 	} else {
-		description = primaryBuildOnlyDescription
-		addBuildStep(identifier, params.configBuilder, params.projectType)
+		addBuildStep(models.WorkflowID(id), params.configBuilder, params.projectType)
 	}
 
-	addSharedTeardownSteps(identifier, params, true)
-	addDescription(params.projectType, identifier, params.configBuilder, description+"\n\n"+primaryCommonDescription)
+	addSharedTeardownSteps(models.WorkflowID(id), params, true)
+	addSummary(models.WorkflowID(id), params.configBuilder, summary)
+	addDescription(models.WorkflowID(id), params.configBuilder, description)
 }
 
 func createDeployWorkflow(params workflowSetupParams) {
-	identifier := models.DeployWorkflowID
+	id, summary, description := deployWorkflowIDSummaryAndDescription(params.projectType, params.hasTests)
+
 	includeCertificateAndProfileInstallStep := params.projectType == XcodeProjectTypeMacOS
-	addSharedSetupSteps(identifier, params, includeCertificateAndProfileInstallStep, false)
+	addSharedSetupSteps(models.WorkflowID(id), params, includeCertificateAndProfileInstallStep, false)
 
 	if params.hasTests {
-		addTestStep(identifier, params.configBuilder, params.projectType)
+		addTestStep(models.WorkflowID(id), params.configBuilder, params.projectType)
 	}
 
-	addArchiveStep(identifier, params.configBuilder, params.projectType, params.hasAppClip, params.exportMethod)
-	addSharedTeardownSteps(identifier, params, false) // No cache in deploy workflows
-	addDescription(params.projectType, identifier, params.configBuilder, deployDescription)
+	addArchiveStep(models.WorkflowID(id), params.configBuilder, params.projectType, params.hasAppClip, params.exportMethod)
+	addSharedTeardownSteps(models.WorkflowID(id), params, false) // No cache in deploy workflows
+	addSummary(models.WorkflowID(id), params.configBuilder, summary)
+	addDescription(models.WorkflowID(id), params.configBuilder, description)
+}
+
+func verificationWorkflowIDSummaryAndDescription(projectType XcodeProjectType, hasTests bool) (string, string, string) {
+	var id string
+	var summary string
+	var description string
+
+	if projectType == XcodeProjectTypeMacOS {
+		id = primaryWorkflowID
+		summary = ""
+		description = ""
+	} else {
+		if hasTests {
+			id = testWorkflowID
+			summary = testWorkflowSummary
+			description = testWorkflowDescription
+		} else {
+			id = buildWorkflowID
+			summary = buildWorkflowSummary
+			description = buildWorkflowDescription
+		}
+	}
+
+	return id, summary, description
+}
+
+func deployWorkflowIDSummaryAndDescription(projectType XcodeProjectType, hasTests bool) (string, string, string) {
+	var id string
+	var summary string
+	var description string
+
+	if projectType == XcodeProjectTypeMacOS {
+		id = deployWorkflowID
+		summary = ""
+		description = ""
+	} else {
+		id = archiveAndExportWorkflowID
+		if hasTests {
+			summary = archiveAndExportWorkflowWithTestsSummary
+			description = archiveAndExportWorkflowWithTestsDescription
+		} else {
+			summary = archiveAndExportWorkflowWithoutTestsSummary
+			description = archiveAndExportWorkflowWithoutTestsDescription
+		}
+	}
+
+	return id, summary, description
 }
 
 // Add steps
@@ -167,12 +219,12 @@ func addSharedTeardownSteps(workflow models.WorkflowID, params workflowSetupPara
 	params.configBuilder.AppendStepListItemsTo(workflow, steps.DefaultDeployStepList()...)
 }
 
-func addDescription(projectType XcodeProjectType, workflow models.WorkflowID, configBuilder *models.ConfigBuilderModel, description string) {
-	if projectType != XcodeProjectTypeIOS {
-		return
-	}
-
+func addDescription(workflow models.WorkflowID, configBuilder *models.ConfigBuilderModel, description string) {
 	configBuilder.SetWorkflowDescriptionTo(workflow, description)
+}
+
+func addSummary(workflow models.WorkflowID, configBuilder *models.ConfigBuilderModel, summary string) {
+	configBuilder.SetWorkflowSummaryTo(workflow, summary)
 }
 
 // Helpers
