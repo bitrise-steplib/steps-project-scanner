@@ -24,7 +24,7 @@ func NewScanner() *Scanner {
 }
 
 // Name ...
-func (Scanner) Name() string {
+func (scanner *Scanner) Name() string {
 	return string(XcodeProjectTypeIOS)
 }
 
@@ -48,7 +48,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 }
 
 // ExcludedScannerNames ...
-func (Scanner) ExcludedScannerNames() []string {
+func (scanner *Scanner) ExcludedScannerNames() []string {
 	return []string{}
 }
 
@@ -65,7 +65,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 }
 
 // DefaultOptions ...
-func (Scanner) DefaultOptions() models.OptionNode {
+func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	return GenerateDefaultOptions(XcodeProjectTypeIOS)
 }
 
@@ -74,11 +74,11 @@ func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseCon
 }
 
 // DefaultConfigs ...
-func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	return GenerateDefaultConfig(XcodeProjectTypeIOS)
 }
 
 // GetProjectType returns the project_type property used in a bitrise config
-func (Scanner) GetProjectType() string {
+func (scanner *Scanner) GetProjectType() string {
 	return string(XcodeProjectTypeIOS)
 }

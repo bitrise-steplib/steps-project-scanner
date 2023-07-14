@@ -50,8 +50,8 @@ func newGenericDetail(errorMsg string) errormapper.DetailedError {
 
 func newNoPlatformDetectedGenericDetail() errormapper.DetailedError {
 	return errormapper.DetailedError{
-		Title:       "We couldn’t recognize your platform.",
-		Description: fmt.Sprintf("Our auto-configurator supports %s projects. If you’re adding something else, skip this step and configure your Workflow manually.", strings.Join(availableScanners(), ", ")),
+		Title:       "We couldn't recognize your platform.",
+		Description: fmt.Sprintf("Our auto-configurator supports %s projects. If you're adding something else, skip this step and configure your Workflow manually.", strings.Join(availableScanners(), ", ")),
 	}
 }
 
@@ -77,7 +77,7 @@ func newDetectPlatformFailedMatcher() *errormapper.PatternErrorMatcher {
 
 func newDetectPlatformFailedGenericDetail(errorMsg string) errormapper.DetailedError {
 	return errormapper.DetailedError{
-		Title:       "We couldn’t parse your project files.",
+		Title:       "We couldn't parse your project files.",
 		Description: fmt.Sprintf("You can fix the problem and try again, or skip auto-configuration and set up your project manually. Our auto-configurator returned the following error:\n%s", errorMsg),
 	}
 }
@@ -98,7 +98,7 @@ var newOptionsFailedGenericDetail = newDetectPlatformFailedGenericDetail
 
 func newGradlewNotFoundDetail(errorMsg string, params ...string) errormapper.DetailedError {
 	return errormapper.DetailedError{
-		Title:       "We couldn’t find your Gradle Wrapper. Please make sure there is a gradlew file in your project’s root directory.",
+		Title:       "We couldn't find your Gradle Wrapper. Please make sure there is a gradlew file in your project's root directory.",
 		Description: `The Gradle Wrapper ensures that the right Gradle version is installed and used for the build. You can find out more about <a target="_blank" href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">the Gradle Wrapper in the Gradle docs</a>.`,
 	}
 }
@@ -107,7 +107,7 @@ func newAppJSONIssueDetail(errorMsg string, params ...string) errormapper.Detail
 	appJSONPath := params[0]
 	entryName := params[1]
 	return errormapper.DetailedError{
-		Title: fmt.Sprintf("Your app.json file (%s) doesn’t have a %s field.", appJSONPath, entryName),
+		Title: fmt.Sprintf("Your app.json file (%s) doesn't have a %s field.", appJSONPath, entryName),
 		Description: `The app.json file needs to contain the following entries:
 - name
 - displayName`,
@@ -118,7 +118,7 @@ func newExpoAppJSONIssueDetail(errorMsg string, params ...string) errormapper.De
 	appJSONPath := params[0]
 	entryName := params[1]
 	return errormapper.DetailedError{
-		Title: fmt.Sprintf("Your app.json file (%s) doesn’t have a %s field.", appJSONPath, entryName),
+		Title: fmt.Sprintf("Your app.json file (%s) doesn't have a %s field.", appJSONPath, entryName),
 		Description: `If your project uses Expo Kit, the app.json file needs to contain the following entries:
 - expo/name
 - expo/ios/bundleIdentifier
@@ -128,7 +128,7 @@ func newExpoAppJSONIssueDetail(errorMsg string, params ...string) errormapper.De
 
 func newIonicCapacitorNotSupportedIssueDetail(errorMsg string, params ...string) errormapper.DetailedError {
 	return errormapper.DetailedError{
-		Title:       "We couldn’t find your cordova.xml file.",
-		Description: `Our auto-configurator only supports Ionic projects with Cordova at the moment. If you’re trying to add a project with Ionic Capacitor, or something else, some Steps in your automatically generated Workflow might fail. To fix this, replace the failing Steps with script Steps in the Workflow editor later.`,
+		Title:       "We couldn't find your cordova.xml file.",
+		Description: `Our auto-configurator only supports Ionic projects with Cordova at the moment. If you're trying to add a project with Ionic Capacitor, or something else, some Steps in your automatically generated Workflow might fail. To fix this, replace the failing Steps with script Steps in the Workflow editor later.`,
 	}
 }
