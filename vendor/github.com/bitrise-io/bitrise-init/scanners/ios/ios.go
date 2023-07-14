@@ -35,6 +35,13 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		return false, err
 	}
 
+	if len(result.Projects) == 0 {
+		result, err = ParseSPMProject(XcodeProjectTypeIOS, searchDir)
+		if err != nil {
+			return false, err
+		}
+	}
+
 	scanner.DetectResult = result
 	detected := len(result.Projects) > 0
 	return detected, nil
