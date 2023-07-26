@@ -197,8 +197,8 @@ func main() {
 		failf("failed to expand path (%s), error: %s", cfg.ScanDirectory, err)
 	}
 
-	isPrivateRepo := cfg.SSHRsaPrivateKey != ""
-	result, platformsDetected := scanner.GenerateScanResult(searchDir, isPrivateRepo)
+	hasSSHKey := cfg.SSHRsaPrivateKey != ""
+	result, platformsDetected := scanner.GenerateScanResult(searchDir, hasSSHKey)
 
 	// Upload results
 	if resultClient != nil {
