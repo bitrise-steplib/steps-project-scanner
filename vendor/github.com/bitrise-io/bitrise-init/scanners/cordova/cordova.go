@@ -281,10 +281,10 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 	return *workDirOption
 }
 
-func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		RepoAccess: repoAccess,
+		SSHKeyActivation: sshKeyActivation,
 	})...)
 
 	workdirEnvList := []envmanModels.EnvironmentItemModel{}
@@ -309,7 +309,7 @@ func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseCon
 
 		// CD
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-			RepoAccess: repoAccess,
+			SSHKeyActivation: sshKeyActivation,
 		})...)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 
@@ -384,7 +384,7 @@ func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseCon
 func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		RepoAccess: models.RepoAccessUnknown,
+		SSHKeyActivation: models.SSHKeyActivationConditional,
 	})...)
 
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())

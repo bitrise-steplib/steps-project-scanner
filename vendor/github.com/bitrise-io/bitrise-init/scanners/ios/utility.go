@@ -589,7 +589,7 @@ func GenerateDefaultOptions(projectType XcodeProjectType) models.OptionNode {
 
 func GenerateConfigBuilder(
 	projectType XcodeProjectType,
-	repoAccess models.RepoAccess,
+	sshKeyActivation models.SSHKeyActivation,
 	hasPodfile,
 	hasTest,
 	hasAppClip,
@@ -604,7 +604,7 @@ func GenerateConfigBuilder(
 	params := workflowSetupParams{
 		projectType:          projectType,
 		configBuilder:        configBuilder,
-		repoAccess:           repoAccess,
+		sshKeyActivation:     sshKeyActivation,
 		missingSharedSchemes: missingSharedSchemes,
 		hasTests:             hasTest,
 		hasAppClip:           hasAppClip,
@@ -638,12 +638,12 @@ func RemoveDuplicatedConfigDescriptors(configDescriptors []ConfigDescriptor, pro
 	return descriptors
 }
 
-func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDescriptor, repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
+func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDescriptor, sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
 	bitriseDataMap := models.BitriseConfigMap{}
 	for _, descriptor := range configDescriptors {
 		configBuilder := GenerateConfigBuilder(
 			projectType,
-			repoAccess,
+			sshKeyActivation,
 			descriptor.HasPodfile,
 			descriptor.HasTest,
 			descriptor.HasAppClip,
@@ -672,7 +672,7 @@ func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDesc
 func GenerateDefaultConfig(projectType XcodeProjectType) (models.BitriseConfigMap, error) {
 	configBuilder := GenerateConfigBuilder(
 		projectType,
-		models.RepoAccessUnknown,
+		models.SSHKeyActivationConditional,
 		true,
 		true,
 		false,

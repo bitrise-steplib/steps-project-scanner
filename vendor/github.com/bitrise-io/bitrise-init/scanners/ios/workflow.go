@@ -42,7 +42,7 @@ const (
 type workflowSetupParams struct {
 	projectType          XcodeProjectType
 	configBuilder        *models.ConfigBuilderModel
-	repoAccess           models.RepoAccess
+	sshKeyActivation     models.SSHKeyActivation
 	missingSharedSchemes bool
 	hasTests             bool
 	hasAppClip           bool
@@ -167,7 +167,7 @@ func addArchiveStep(workflow models.WorkflowID, configBuilder *models.ConfigBuil
 
 func addSharedSetupSteps(workflow models.WorkflowID, params workflowSetupParams, includeCertificateAndProfileInstallStep, includeCache bool) {
 	params.configBuilder.AppendStepListItemsTo(workflow, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		RepoAccess: params.repoAccess,
+		SSHKeyActivation: params.sshKeyActivation,
 	})...)
 
 	if includeCache {

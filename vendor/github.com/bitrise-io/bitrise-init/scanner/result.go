@@ -16,8 +16,8 @@ import (
 )
 
 // GenerateScanResult runs the scanner, returns the results and if any platform was detected.
-func GenerateScanResult(searchDir string, isPrivateRepository bool) (models.ScanResultModel, bool) {
-	scanResult := Config(searchDir, isPrivateRepository)
+func GenerateScanResult(searchDir string, hasSSHKey bool) (models.ScanResultModel, bool) {
+	scanResult := Config(searchDir, hasSSHKey)
 
 	logUnknownTools(searchDir)
 

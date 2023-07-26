@@ -69,8 +69,8 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	return GenerateDefaultOptions(XcodeProjectTypeIOS)
 }
 
-func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
-	return GenerateConfig(XcodeProjectTypeIOS, scanner.ConfigDescriptors, repoAccess)
+func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
+	return GenerateConfig(XcodeProjectTypeIOS, scanner.ConfigDescriptors, sshKeyActivation)
 }
 
 // DefaultConfigs ...

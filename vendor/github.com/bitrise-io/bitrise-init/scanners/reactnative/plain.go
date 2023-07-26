@@ -175,7 +175,7 @@ func (scanner *Scanner) defaultOptions() models.OptionNode {
 	return *androidOptions
 }
 
-func (scanner *Scanner) configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
 	configMap := models.BitriseConfigMap{}
 
 	if len(scanner.configDescriptors) == 0 {
@@ -194,7 +194,7 @@ func (scanner *Scanner) configs(repoAccess models.RepoAccess) (models.BitriseCon
 
 		configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryDescription)
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-			RepoAccess: repoAccess,
+			SSHKeyActivation: sshKeyActivation,
 		})...)
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, testSteps...)
@@ -204,7 +204,7 @@ func (scanner *Scanner) configs(repoAccess models.RepoAccess) (models.BitriseCon
 		// cd
 		configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-			RepoAccess: repoAccess,
+			SSHKeyActivation: sshKeyActivation,
 		})...)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, testSteps...)
 
@@ -273,7 +273,7 @@ func (scanner *Scanner) defaultConfigs() (models.BitriseConfigMap, error) {
 	// primary
 	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryWorkflowDescription)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		RepoAccess: models.RepoAccessUnknown,
+		SSHKeyActivation: models.SSHKeyActivationConditional,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 	// Assuming project uses yarn and has tests
@@ -284,7 +284,7 @@ func (scanner *Scanner) defaultConfigs() (models.BitriseConfigMap, error) {
 	// deploy
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		RepoAccess: models.RepoAccessUnknown,
+		SSHKeyActivation: models.SSHKeyActivationConditional,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, getTestSteps("", true, true)...)
 

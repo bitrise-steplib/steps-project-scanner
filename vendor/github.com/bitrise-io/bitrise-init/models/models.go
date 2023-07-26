@@ -36,13 +36,12 @@ type ScanResultModel struct {
 	Icons                                []Icon                               `json:"-" yaml:"-"`
 }
 
-type RepoAccess int
+type SSHKeyActivation int
 
 const (
-	// RepoAccessUnknown should be used in generating default configs where the access is unknown
-	RepoAccessUnknown = iota
-	RepoAccessPublic
-	RepoAccessPrivate
+	SSHKeyActivationNone = iota
+	SSHKeyActivationMandatory
+	SSHKeyActivationConditional
 )
 
 func (result *ScanResultModel) AddErrorWithRecommendation(platform string, recommendation ErrorWithRecommendations) {
