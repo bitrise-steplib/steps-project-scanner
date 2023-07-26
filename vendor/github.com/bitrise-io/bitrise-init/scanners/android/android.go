@@ -135,9 +135,9 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
 	params := configBuildingParameters(scanner.Projects)
-	return scanner.generateConfigs(repoAccess, params)
+	return scanner.generateConfigs(sshKeyActivation, params)
 }
 
 // DefaultConfigs ...
@@ -146,14 +146,14 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		{name: DefaultConfigName, useKotlinScript: false},
 		{name: DefaultConfigNameKotlinScript, useKotlinScript: true},
 	}
-	return scanner.generateConfigs(models.RepoAccessUnknown, params)
+	return scanner.generateConfigs(models.SSHKeyActivationConditional, params)
 }
 
-func (scanner *Scanner) generateConfigs(repoAccess models.RepoAccess, params []configBuildingParams) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) generateConfigs(sshKeyActivation models.SSHKeyActivation, params []configBuildingParams) (models.BitriseConfigMap, error) {
 	bitriseDataMap := models.BitriseConfigMap{}
 
 	for _, param := range params {
-		configBuilder := scanner.generateConfigBuilder(repoAccess, param.useKotlinScript)
+		configBuilder := scanner.generateConfigBuilder(sshKeyActivation, param.useKotlinScript)
 
 		config, err := configBuilder.Generate(ScannerName)
 		if err != nil {
@@ -171,14 +171,14 @@ func (scanner *Scanner) generateConfigs(repoAccess models.RepoAccess, params []c
 	return bitriseDataMap, nil
 }
 
-func (scanner *Scanner) generateConfigBuilder(repoAccess models.RepoAccess, useKotlinBuildScript bool) models.ConfigBuilderModel {
+func (scanner *Scanner) generateConfigBuilder(sshKeyActivation models.SSHKeyActivation, useKotlinBuildScript bool) models.ConfigBuilderModel {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	projectLocationEnv, gradlewPath, moduleEnv, variantEnv := "$"+ProjectLocationInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew", "$"+ModuleInputEnvKey, "$"+VariantInputEnvKey
 
 	//-- test
 	configBuilder.AppendStepListItemsTo(testsWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		RepoAccess: repoAccess})...)
+		SSHKeyActivation: sshKeyActivation})...)
 	configBuilder.AppendStepListItemsTo(testsWorkflowID, steps.RestoreGradleCache())
 	configBuilder.AppendStepListItemsTo(testsWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
@@ -201,7 +201,7 @@ func (scanner *Scanner) generateConfigBuilder(repoAccess models.RepoAccess, useK
 
 	//-- build
 	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
-		RepoAccess: repoAccess,
+		SSHKeyActivation: sshKeyActivation,
 	})...)
 	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},

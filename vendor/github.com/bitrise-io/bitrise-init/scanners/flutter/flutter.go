@@ -189,11 +189,11 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	return *flutterProjectLocationOption
 }
 
-func (scanner *Scanner) Configs(repoAccess models.RepoAccess) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
 	configs := models.BitriseConfigMap{}
 
 	for _, proj := range scanner.projects {
-		config, err := generateConfig(repoAccess, proj)
+		config, err := generateConfig(sshKeyActivation, proj)
 		if err != nil {
 			return nil, err
 		}
@@ -210,7 +210,7 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	for i, proj := range defaultProjects {
 		proj.id = i
 
-		config, err := generateConfig(models.RepoAccessUnknown, proj)
+		config, err := generateConfig(models.SSHKeyActivationConditional, proj)
 		if err != nil {
 			return nil, err
 		}
@@ -243,11 +243,11 @@ func findProjectLocations(searchDir string) ([]string, error) {
 	return paths, nil
 }
 
-func generateConfig(repoAccess models.RepoAccess, proj project) (string, error) {
+func generateConfig(sshKeyActivation models.SSHKeyActivation, proj project) (string, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	// Common steps to all workflows
-	prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{RepoAccess: repoAccess})
+	prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKeyActivation})
 	flutterInstallStep := steps.FlutterInstallStepListItem(proj.flutterVersionToUse, false)
 	deploySteps := steps.DefaultDeployStepList()
 

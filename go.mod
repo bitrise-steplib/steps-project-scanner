@@ -3,7 +3,7 @@ module github.com/bitrise-steplib/steps-project-scanner
 go 1.17
 
 require (
-	github.com/bitrise-io/bitrise-init v0.0.0-20230714143523-dcb2c6b4985a
+	github.com/bitrise-io/bitrise-init v0.0.0-20230726090615-94c350647616
 	github.com/bitrise-io/go-steputils v1.0.5
 	github.com/bitrise-io/go-utils v1.0.1
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.18
