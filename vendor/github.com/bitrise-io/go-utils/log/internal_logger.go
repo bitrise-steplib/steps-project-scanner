@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	analyticsServerURL = "https://step-analytics.bitrise.io"
+	analyticsServerURL = "https://bitrise-step-analytics.herokuapp.com"
 	httpClient         = http.Client{
 		Timeout: time.Second * 5,
 	}

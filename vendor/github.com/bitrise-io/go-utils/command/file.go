@@ -2,27 +2,11 @@ package command
 
 import (
 	"errors"
-	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/bitrise-io/go-utils/pathutil"
 )
-
-func runCommand(name string, args ...string) error {
-	cmd := exec.Command(name, args...)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		printableCmd := PrintableCommandArgs(false, append([]string{name}, args...))
-
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), printableCmd, errors.New(string(out)))
-		}
-		return fmt.Errorf("executing command failed (%s): %w", printableCmd, err)
-	}
-	return nil
-}
 
 // CopyFile ...
 func CopyFile(src, dst string) error {
@@ -33,10 +17,10 @@ func CopyFile(src, dst string) error {
 		return err
 	}
 	if isDir {
-		return errors.New("source is a directory: " + src)
+		return errors.New("Source is a directory: " + src)
 	}
 	args := []string{src, dst}
-	return runCommand("rsync", args...)
+	return RunCommand("rsync", args...)
 }
 
 // CopyDir ...
@@ -45,7 +29,7 @@ func CopyDir(src, dst string, isOnlyContent bool) error {
 		src = src + "/"
 	}
 	args := []string{"-ar", src, dst}
-	return runCommand("rsync", args...)
+	return RunCommand("rsync", args...)
 }
 
 // RemoveDir ...

@@ -44,8 +44,9 @@ func (downloader FileDownloader) GetWithFallback(destination, source string, fal
 	for _, source := range sources {
 		err := downloader.Get(destination, source)
 		if err != nil {
-			log.Warnf("Could not download file (%s): %s", source, err)
+			log.Errorf("Could not download file from: %s", err)
 		} else {
+			log.Infof("URL used to download file: %s", source)
 			return nil
 		}
 	}
