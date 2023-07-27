@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/bitrise-io/bitrise-init v0.0.0-20230726090615-94c350647616
 	github.com/bitrise-io/go-steputils v1.0.5
-	github.com/bitrise-io/go-utils v1.0.1
+	github.com/bitrise-io/go-utils v1.0.9
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.18
 	github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203
 	github.com/bitrise-steplib/steps-git-clone v0.0.0-20230619101604-67b0d018398a

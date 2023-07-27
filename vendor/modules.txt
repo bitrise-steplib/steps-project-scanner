@@ -47,7 +47,7 @@ github.com/bitrise-io/go-steputils/tools
 # github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.15
 ## explicit; go 1.17
 github.com/bitrise-io/go-steputils/v2/export
-# github.com/bitrise-io/go-utils v1.0.1
+# github.com/bitrise-io/go-utils v1.0.9
 ## explicit; go 1.13
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
