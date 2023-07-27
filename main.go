@@ -101,7 +101,11 @@ func cloneRepo(cfg repoConfig) error {
 			SSHKeySavePath:          path.Join(pathutil.UserHomeDir(), ".ssh", "steplib_ssh_step_id_rsa"),
 			IsRemoveOtherIdentities: false,
 		}); err != nil {
-			return err
+			return newStepError(
+				"activate_ssh_key_failed",
+				err,
+				fmt.Sprintf("Activating SSH key for %s failed", cfg.RepositoryURL),
+			)
 		}
 	}
 
@@ -111,29 +115,40 @@ func cloneRepo(cfg repoConfig) error {
 		HTTPUsername: string(cfg.GitHTTPUsername),
 		HTTPPassword: string(cfg.GitHTTPPassword),
 	}); err != nil {
-		return err
+		return newStepError(
+			"activate_git_http_credentials_failed",
+			err,
+			fmt.Sprintf("Activating Git HTTP credentials for %s failed", cfg.RepositoryURL),
+		)
 	}
 
 	// Git clone
 	logger := logv2.NewLogger()
 	envRepo := env.NewRepository()
 
-	tracker := tracker.NewStepTracker(envRepo, logger)
+	stepTracker := tracker.NewStepTracker(envRepo, logger)
 	cmdFactory := cmdv2.NewFactory(envRepo)
 	// patchSource and mergeRefChecker used for merging only
-	// build URL and build api token doesn't apply here
+	// build URL and build api token don't apply here
 	patchSource := bitriseapi.NewPatchSource("", "")
-	mergeRefChecker := bitriseapi.NewMergeRefChecker("", "", retry.NewHTTPClient(), logger, tracker)
-	gitcloner := gitclone.NewGitCloner(logger, tracker, cmdFactory, patchSource, mergeRefChecker)
+	mergeRefChecker := bitriseapi.NewMergeRefChecker("", "", retry.NewHTTPClient(), logger, stepTracker)
+	gitcloner := gitclone.NewGitCloner(logger, stepTracker, cmdFactory, patchSource, mergeRefChecker)
 	config := gitclone.Config{
 		RepositoryURL: cfg.RepositoryURL,
-		CloneIntoDir:  cfg.CloneIntoDir, // Using same directory later to run scan
+		CloneIntoDir:  cfg.CloneIntoDir, // Using the same directory later to run scan
 		Branch:        cfg.Branch,
 
 		UpdateSubmodules: true,
 	}
 	if _, err := gitcloner.CheckoutState(config); err != nil {
-		return err
+		hasSSH := len(cfg.SSHRsaPrivateKey) > 0
+		hasUser := len(cfg.GitHTTPUsername) > 0
+		hasPass := len(cfg.GitHTTPPassword) > 0
+		return newStepError(
+			"git_clone_failed",
+			err,
+			fmt.Sprintf("Git clone for %s - %s branch failed (ssh: %t, user: %t, pass: %t)", cfg.RepositoryURL, cfg.Branch, hasSSH, hasUser, hasPass),
+		)
 	}
 
 	return nil
