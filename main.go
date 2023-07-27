@@ -141,6 +141,10 @@ func cloneRepo(cfg repoConfig) error {
 		UpdateSubmodules: true,
 	}
 	if _, err := gitcloner.CheckoutState(config); err != nil {
+		if _, ok := err.(*step.Error); ok {
+			return err
+		}
+
 		hasSSH := len(cfg.SSHRsaPrivateKey) > 0
 		hasUser := len(cfg.GitHTTPUsername) > 0
 		hasPass := len(cfg.GitHTTPPassword) > 0
