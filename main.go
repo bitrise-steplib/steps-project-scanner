@@ -94,6 +94,8 @@ func cloneRepo(cfg repoConfig) error {
 		)
 	}
 
+	redactedURL := redactURL(cfg.RepositoryURL)
+
 	// Activate SSH key is optional
 	if cfg.SSHRsaPrivateKey != "" {
 		if err := activatesshkey.Execute(activatesshkey.Config{
@@ -104,7 +106,7 @@ func cloneRepo(cfg repoConfig) error {
 			return newStepError(
 				"activate_ssh_key_failed",
 				err,
-				fmt.Sprintf("Activating SSH key for %s failed", cfg.RepositoryURL),
+				fmt.Sprintf("Activating SSH key for %s failed", redactedURL),
 			)
 		}
 	}
@@ -118,7 +120,7 @@ func cloneRepo(cfg repoConfig) error {
 		return newStepError(
 			"activate_git_http_credentials_failed",
 			err,
-			fmt.Sprintf("Activating Git HTTP credentials for %s failed", cfg.RepositoryURL),
+			fmt.Sprintf("Activating Git HTTP credentials for %s failed", redactedURL),
 		)
 	}
 
@@ -151,7 +153,7 @@ func cloneRepo(cfg repoConfig) error {
 		return newStepError(
 			"git_clone_failed",
 			err,
-			fmt.Sprintf("Git clone for %s - %s branch failed (ssh: %t, user: %t, pass: %t)", cfg.RepositoryURL, cfg.Branch, hasSSH, hasUser, hasPass),
+			fmt.Sprintf("Git clone for %s - %s branch failed (ssh: %t, user: %t, pass: %t)", redactedURL, cfg.Branch, hasSSH, hasUser, hasPass),
 		)
 	}
 
