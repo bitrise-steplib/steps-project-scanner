@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/bitrise-io/go-utils/log"
 )
 
 // Semver represents a semantic version
@@ -152,6 +154,7 @@ func latestMatchingStepVersion(constraint VersionConstraint, stepVersions StepGr
 			for fullVersion, step := range stepVersions.Versions {
 				stepVersion, err := parseSemver(fullVersion)
 				if err != nil {
+					log.Warnf("Invalid step (%s) version: %s", step.Source, fullVersion)
 					continue
 				}
 				if stepVersion.Major != constraint.Version.Major ||
@@ -181,6 +184,7 @@ func latestMatchingStepVersion(constraint VersionConstraint, stepVersions StepGr
 			for fullVersion, step := range stepVersions.Versions {
 				stepVersion, err := parseSemver(fullVersion)
 				if err != nil {
+					log.Warnf("Invalid step (%s) version: %s", step.Source, fullVersion)
 					continue
 				}
 				if stepVersion.Major != constraint.Version.Major {
