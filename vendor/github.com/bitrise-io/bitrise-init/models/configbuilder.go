@@ -15,7 +15,7 @@ const (
 	DeployWorkflowID WorkflowID = "deploy"
 
 	// FormatVersion ...
-	FormatVersion = bitriseModels.Version
+	FormatVersion = bitriseModels.FormatVersion
 
 	defaultSteplibSource = "https://github.com/bitrise-io/bitrise-steplib.git"
 )
