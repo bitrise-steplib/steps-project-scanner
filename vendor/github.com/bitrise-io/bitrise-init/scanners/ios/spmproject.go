@@ -66,7 +66,6 @@ func ParseSPMProject(projectType XcodeProjectType, searchDir string) (DetectResu
 
 	scheme := Scheme{
 		Name:       schemeName(proj),
-		Missing:    false,
 		HasXCTests: hasTests(proj.Targets),
 		HasAppClip: false,
 		Icons:      nil,

@@ -40,16 +40,15 @@ const (
 )
 
 type workflowSetupParams struct {
-	projectType          XcodeProjectType
-	configBuilder        *models.ConfigBuilderModel
-	sshKeyActivation     models.SSHKeyActivation
-	missingSharedSchemes bool
-	hasTests             bool
-	hasAppClip           bool
-	hasPodfile           bool
-	hasSPMDependencies   bool
-	carthageCommand      string
-	exportMethod         string
+	projectType        XcodeProjectType
+	configBuilder      *models.ConfigBuilderModel
+	sshKeyActivation   models.SSHKeyActivation
+	hasTests           bool
+	hasAppClip         bool
+	hasPodfile         bool
+	hasSPMDependencies bool
+	carthageCommand    string
+	exportMethod       string
 }
 
 func createVerificationWorkflow(params workflowSetupParams) {
@@ -184,12 +183,6 @@ func addSharedSetupSteps(workflow models.WorkflowID, params workflowSetupParams,
 
 	if includeCertificateAndProfileInstallStep {
 		params.configBuilder.AppendStepListItemsTo(workflow, steps.CertificateAndProfileInstallerStepListItem())
-	}
-
-	if params.missingSharedSchemes {
-		params.configBuilder.AppendStepListItemsTo(workflow, steps.RecreateUserSchemesStepListItem(
-			envmanModels.EnvironmentItemModel{ProjectPathInputKey: "$" + ProjectPathInputEnvKey},
-		))
 	}
 
 	if params.hasPodfile {

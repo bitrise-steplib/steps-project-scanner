@@ -94,13 +94,8 @@ const (
 )
 
 const (
-	RecreateUserSchemesID      = "recreate-user-schemes"
-	RecreateUserSchemesVersion = "1"
-)
-
-const (
 	XcodeArchiveID      = "xcode-archive"
-	XcodeArchiveVersion = "4"
+	XcodeArchiveVersion = "5"
 )
 
 const (
@@ -110,7 +105,7 @@ const (
 
 const (
 	XcodeBuildForTestID      = "xcode-build-for-test"
-	XcodeBuildForTestVersion = "1"
+	XcodeBuildForTestVersion = "3"
 )
 
 const (

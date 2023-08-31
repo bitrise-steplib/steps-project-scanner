@@ -139,11 +139,6 @@ func CarthageStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseMo
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
-func RecreateUserSchemesStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(RecreateUserSchemesID, RecreateUserSchemesVersion)
-	return stepListItem(stepIDComposite, "", "", inputs...)
-}
-
 func XcodeArchiveStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(XcodeArchiveID, XcodeArchiveVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
