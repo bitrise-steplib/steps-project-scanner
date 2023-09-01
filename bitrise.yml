@@ -10,6 +10,18 @@ app:
 workflows:
   # ----------------------------------------------------------------
   # --- workflow to Step Test
+  sample:
+    envs:
+    # Define your local project's root directory here
+    - PROJECT_DIR: "<local_project_dir>"
+    steps:
+    - path::./:
+        title: Step Test
+        inputs:
+        - scan_dir: $PROJECT_DIR
+        - scan_result_submit_url: "path::./_scan_result/scan_result.json"
+        - scan_result_submit_api_token: ""
+
   test:
     before_run:
     - audit-this-step

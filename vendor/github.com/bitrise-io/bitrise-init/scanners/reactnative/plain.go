@@ -33,9 +33,6 @@ func (d configDescriptor) configName() string {
 	}
 	if d.hasIOS {
 		name += "-ios"
-		if d.ios.MissingSharedSchemes {
-			name += "-missing-shared-schemes"
-		}
 		if d.ios.HasPodfile {
 			name += "-pod"
 		}
@@ -78,8 +75,7 @@ func generateIOSOptions(result ios.DetectResult, hasAndroid, hasTests, hasYarnLo
 					scheme.HasAppClip,
 					result.HasSPMDependencies,
 					false,
-					exportMethod,
-					scheme.Missing)
+					exportMethod)
 				descriptor := configDescriptor{
 					hasIOS:          true,
 					hasAndroid:      hasAndroid,
@@ -224,12 +220,6 @@ func (scanner *Scanner) configs(sshKeyActivation models.SSHKeyActivation) (model
 
 		// ios cd
 		if descriptor.hasIOS {
-			if descriptor.ios.MissingSharedSchemes {
-				configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RecreateUserSchemesStepListItem(
-					envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
-				))
-			}
-
 			if descriptor.ios.HasPodfile {
 				configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CocoapodsInstallStepListItem())
 			}

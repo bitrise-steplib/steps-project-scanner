@@ -134,16 +134,3 @@ func (w workspaceContainer) projects() ([]xcodeproject.XcodeProj, []string, erro
 func (w workspaceContainer) projectPaths() ([]string, error) {
 	return w.workspace.ProjectFileLocations()
 }
-
-func numberOfSharedSchemes(containerToSchemes map[string][]xcscheme.Scheme) int {
-	var count int
-	for _, schemes := range containerToSchemes {
-		for _, scheme := range schemes {
-			if scheme.IsShared {
-				count++
-			}
-		}
-	}
-
-	return count
-}

@@ -3,13 +3,11 @@ package ios
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
-	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
@@ -81,7 +79,6 @@ var AllowCartfileBaseFilter = pathutil.BaseFilter(cartfileBase, true)
 // Scheme is an Xcode project scheme or target
 type Scheme struct {
 	Name       string
-	Missing    bool
 	HasXCTests bool
 	HasAppClip bool
 
@@ -119,26 +116,24 @@ type containers struct {
 }
 
 type ConfigDescriptor struct {
-	HasPodfile           bool
-	CarthageCommand      string
-	HasTest              bool
-	HasAppClip           bool
-	HasSPMDependencies   bool
-	isSPMProject         bool
-	ExportMethod         string
-	MissingSharedSchemes bool
+	HasPodfile         bool
+	CarthageCommand    string
+	HasTest            bool
+	HasAppClip         bool
+	HasSPMDependencies bool
+	isSPMProject       bool
+	ExportMethod       string
 }
 
-func NewConfigDescriptor(hasPodfile bool, carthageCommand string, hasXCTest, hasAppClip, hasSPMDependencies, isSPMProject bool, exportMethod string, missingSharedSchemes bool) ConfigDescriptor {
+func NewConfigDescriptor(hasPodfile bool, carthageCommand string, hasXCTest, hasAppClip, hasSPMDependencies, isSPMProject bool, exportMethod string) ConfigDescriptor {
 	return ConfigDescriptor{
-		HasPodfile:           hasPodfile,
-		CarthageCommand:      carthageCommand,
-		HasTest:              hasXCTest,
-		HasAppClip:           hasAppClip,
-		HasSPMDependencies:   hasSPMDependencies,
-		isSPMProject:         isSPMProject,
-		ExportMethod:         exportMethod,
-		MissingSharedSchemes: missingSharedSchemes,
+		HasPodfile:         hasPodfile,
+		CarthageCommand:    carthageCommand,
+		HasTest:            hasXCTest,
+		HasAppClip:         hasAppClip,
+		HasSPMDependencies: hasSPMDependencies,
+		isSPMProject:       isSPMProject,
+		ExportMethod:       exportMethod,
 	}
 }
 
@@ -162,9 +157,6 @@ func (descriptor ConfigDescriptor) ConfigName(projectType XcodeProjectType) stri
 	if descriptor.HasAppClip {
 		qualifiers += fmt.Sprintf("-app-clip-%s", descriptor.ExportMethod)
 	}
-	if descriptor.MissingSharedSchemes {
-		qualifiers += "-missing-shared-schemes"
-	}
 	return fmt.Sprintf(configNameFormat, string(projectType), qualifiers)
 }
 
@@ -186,51 +178,6 @@ func HasCartfileResolvedInDirectoryOf(pth string) bool {
 		return false
 	}
 	return exist
-}
-
-func fileContains(pth, str string) (bool, error) {
-	content, err := fileutil.ReadStringFromFile(pth)
-	if err != nil {
-		return false, err
-	}
-
-	return strings.Contains(content, str), nil
-}
-
-func printMissingSharedSchemesAndGenerateWarning(projectRelPth, defaultGitignorePth string) string {
-	isXcshareddataGitignored := false
-	if exist, err := pathutil.IsPathExists(defaultGitignorePth); err != nil {
-		log.TWarnf("Failed to check if .gitignore file exists at: %s, error: %s", defaultGitignorePth, err)
-	} else if exist {
-		isGitignored, err := fileContains(defaultGitignorePth, "xcshareddata")
-		if err != nil {
-			log.TWarnf("Failed to check if xcshareddata gitignored, error: %s", err)
-		} else {
-			isXcshareddataGitignored = isGitignored
-		}
-	}
-
-	log.TPrintf("")
-	log.TErrorf("No shared schemes found, adding recreate-user-schemes Step...")
-	log.TErrorf("The newly generated schemes may differ from the ones in your project.")
-
-	message := `No shared schemes found for project: ` + projectRelPth + `.` + "\n"
-
-	if isXcshareddataGitignored {
-		log.TErrorf("Your gitignore file (%s) contains 'xcshareddata', maybe shared schemes are gitignored?", defaultGitignorePth)
-		log.TErrorf("If not, make sure to share your schemes, to have the expected behaviour.")
-
-		message += `Your gitignore file (` + defaultGitignorePth + `) contains 'xcshareddata', maybe shared schemes are gitignored?` + "\n"
-	} else {
-		log.TErrorf("Make sure to share your schemes, to have the expected behaviour.")
-	}
-
-	message += `Automatically generated schemes may differ from the ones in your project.
-Make sure to <a href="https://support.bitrise.io/hc/en-us/articles/4405779956625">share your schemes</a> for the expected behaviour.`
-
-	log.TPrintf("")
-
-	return message
 }
 
 func detectCarthageCommand(projectPth string) (string, string) {
@@ -368,8 +315,6 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 		log.TPrintf("- %s", relPathForLog(searchDir, file))
 	}
 
-	defaultGitignorePth := filepath.Join(searchDir, ".gitignore")
-
 	for _, container := range append(detectedContainers.standaloneProjects, detectedContainers.workspaces...) {
 		var (
 			projectWarnings []string
@@ -393,10 +338,6 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 			return DetectResult{}, fmt.Errorf("failed to read Schemes: %s", err)
 		}
 
-		numSharedShemes := numberOfSharedSchemes(projectToSchemes)
-		log.TPrintf("%d shared schemes detected", numSharedShemes)
-		shouldRecreateSchemes := numSharedShemes == 0
-
 		containerProjects, missingProjects, err := container.projects()
 		if err != nil {
 			return DetectResult{}, fmt.Errorf("%s", err)
@@ -406,23 +347,12 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 			log.Warnf("Skipping Project (%s), as it is not present", relPathForLog(searchDir, missingProject))
 		}
 
-		if shouldRecreateSchemes {
-			message := printMissingSharedSchemesAndGenerateWarning(containerRelPath, defaultGitignorePth)
-			if message != "" {
-				projectWarnings = append(projectWarnings, message)
-			}
-		}
-
 		for _, project := range containerProjects {
 			var sharedSchemes []xcscheme.Scheme
 			for _, s := range projectToSchemes[project.Path] {
 				if s.IsShared {
 					sharedSchemes = append(sharedSchemes, s)
 				}
-			}
-
-			if shouldRecreateSchemes {
-				sharedSchemes = project.ReCreateSchemes()
 			}
 
 			for _, scheme := range sharedSchemes {
@@ -438,7 +368,6 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 
 				detectedSchemes = append(detectedSchemes, Scheme{
 					Name:       scheme.Name,
-					Missing:    shouldRecreateSchemes,
 					HasXCTests: scheme.IsTestable(),
 					HasAppClip: schemeHasAppClipTarget(project, scheme),
 					Icons:      icons,
@@ -506,8 +435,7 @@ func GenerateOptions(projectType XcodeProjectType, result DetectResult) (models.
 					scheme.HasAppClip,
 					result.HasSPMDependencies,
 					project.IsSPMProject,
-					"",
-					scheme.Missing)
+					"")
 				configDescriptors = append(configDescriptors, configDescriptor)
 
 				configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType), []string{})
@@ -535,7 +463,7 @@ func GenerateOptions(projectType XcodeProjectType, result DetectResult) (models.
 					scheme.HasAppClip,
 					result.HasSPMDependencies,
 					false,
-					exportMethod, scheme.Missing)
+					exportMethod)
 				configDescriptors = append(configDescriptors, configDescriptor)
 				configOption := models.NewConfigOption(configDescriptor.ConfigName(projectType), iconIDs)
 
@@ -594,24 +522,22 @@ func GenerateConfigBuilder(
 	hasTest,
 	hasAppClip,
 	hasSPMDependencies,
-	isSPMProject,
-	missingSharedSchemes bool,
+	isSPMProject bool,
 	carthageCommand,
 	exportMethod string,
 ) models.ConfigBuilderModel {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	params := workflowSetupParams{
-		projectType:          projectType,
-		configBuilder:        configBuilder,
-		sshKeyActivation:     sshKeyActivation,
-		missingSharedSchemes: missingSharedSchemes,
-		hasTests:             hasTest,
-		hasAppClip:           hasAppClip,
-		hasPodfile:           hasPodfile,
-		hasSPMDependencies:   hasSPMDependencies,
-		carthageCommand:      carthageCommand,
-		exportMethod:         exportMethod,
+		projectType:        projectType,
+		configBuilder:      configBuilder,
+		sshKeyActivation:   sshKeyActivation,
+		hasTests:           hasTest,
+		hasAppClip:         hasAppClip,
+		hasPodfile:         hasPodfile,
+		hasSPMDependencies: hasSPMDependencies,
+		carthageCommand:    carthageCommand,
+		exportMethod:       exportMethod,
 	}
 
 	createVerificationWorkflow(params)
@@ -649,7 +575,7 @@ func GenerateConfig(projectType XcodeProjectType, configDescriptors []ConfigDesc
 			descriptor.HasAppClip,
 			descriptor.HasSPMDependencies,
 			descriptor.isSPMProject,
-			descriptor.MissingSharedSchemes,
+
 			descriptor.CarthageCommand,
 			descriptor.ExportMethod)
 
@@ -678,7 +604,6 @@ func GenerateDefaultConfig(projectType XcodeProjectType) (models.BitriseConfigMa
 		false,
 		true,
 		false,
-		true,
 		"",
 		"")
 
