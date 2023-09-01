@@ -91,7 +91,7 @@ func (c *resultClient) uploadErrorResult(stepID string, err error) error {
 	return c.uploadResults(resultBytes)
 }
 
-func (c *resultClient) uploadResults( /*result models.ScanResultModel, */ bytes []byte) error {
+func (c *resultClient) uploadResults(bytes []byte) error {
 	if err := retry.Times(1).Wait(5 * time.Second).Try(func(attempt uint) error {
 		if attempt != 0 {
 			log.TWarnf("%d query attempt failed", attempt)

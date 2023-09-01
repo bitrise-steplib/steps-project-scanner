@@ -12,6 +12,7 @@ workflows:
   # --- workflow to Step Test
   sample:
     envs:
+    # Define your local project's root directory here
     - PROJECT_DIR: "<local_project_dir>"
     steps:
     - path::./:
