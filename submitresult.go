@@ -84,15 +84,14 @@ func buildErrorScanResultModel(stepID string, err error) models.ScanResultModel 
 
 func (c *resultClient) uploadErrorResult(stepID string, err error) error {
 	result := buildErrorScanResultModel(stepID, err)
-	return c.uploadResults(result)
+	resultBytes, err := json.MarshalIndent(result, "", "\t")
+	if err != nil {
+		failf("failed to marshal results: %v", err)
+	}
+	return c.uploadResults(resultBytes)
 }
 
-func (c *resultClient) uploadResults(result models.ScanResultModel) error {
-	bytes, err := json.MarshalIndent(result, "", "\t")
-	if err != nil {
-		return fmt.Errorf("failed to marshal results: %v", err)
-	}
-
+func (c *resultClient) uploadResults( /*result models.ScanResultModel, */ bytes []byte) error {
 	if err := retry.Times(1).Wait(5 * time.Second).Try(func(attempt uint) error {
 		if attempt != 0 {
 			log.TWarnf("%d query attempt failed", attempt)

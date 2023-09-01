@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -169,7 +170,7 @@ func main() {
 	log.SetEnableDebugLog(cfg.DebugLog)
 
 	var resultClient *resultClient
-	if strings.TrimSpace(cfg.ResultSubmitURL) != "" {
+	if strings.TrimSpace(cfg.ResultSubmitURL) != "" && !strings.HasPrefix(cfg.ResultSubmitURL, "path::") {
 		if strings.TrimSpace(string(cfg.ResultSubmitAPIToken)) == "" {
 			log.TWarnf("Build trigger token is empty.")
 		}
@@ -222,13 +223,30 @@ func main() {
 	result, platformsDetected := scanner.GenerateScanResult(searchDir, hasSSHKey)
 
 	// Upload results
-	if resultClient != nil {
-		log.TInfof("Submitting results...")
-		if err := resultClient.uploadResults(result); err != nil {
-			failf("Could not send back results: %s", err)
+	var resultBytes []byte
+	shouldStoreResult := resultClient != nil || strings.HasPrefix(cfg.ResultSubmitURL, "path::")
+	if shouldStoreResult {
+		resultBytes, err = json.MarshalIndent(result, "", "\t")
+		if err != nil {
+			failf("failed to marshal results: %v", err)
 		}
 
-		log.TDonef("Submitted.")
+		if resultClient != nil || !strings.HasPrefix(cfg.ResultSubmitURL, "path::") {
+			log.TInfof("Submitting results...")
+			if err := resultClient.uploadResults(resultBytes); err != nil {
+				failf("Could not send results: %s", err)
+			}
+
+			log.TDonef("Results submitted.")
+		} else if strings.HasPrefix(cfg.ResultSubmitURL, "path::") {
+			resultPth := strings.TrimPrefix(cfg.ResultSubmitURL, "path::")
+			log.TInfof("Writing results: %s...", resultPth)
+			if err := os.WriteFile(resultPth, resultBytes, os.ModePerm); err != nil {
+				failf("Could not write results: %s", err)
+			}
+
+			log.TDonef("Results file created.")
+		}
 	}
 
 	// Upload icons
