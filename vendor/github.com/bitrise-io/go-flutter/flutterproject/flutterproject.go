@@ -13,9 +13,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type SDKVersionFinder interface {
+	FindLatestReleaseFor(platform fluttersdk.Platform, architecture fluttersdk.Architecture, channel fluttersdk.Channel, query fluttersdk.SDKQuery) (*fluttersdk.Release, error)
+}
+
 type FlutterAndDartSDKVersions struct {
 	FVMFlutterVersion         *semver.Version
+	FVMFlutterChannel         string
 	ASDFFlutterVersion        *semver.Version
+	ASDFFlutterChannel        string
 	PubspecFlutterVersion     *sdk.VersionConstraint
 	PubspecDartVersion        *sdk.VersionConstraint
 	PubspecLockFlutterVersion *sdk.VersionConstraint
@@ -31,11 +37,12 @@ type Project struct {
 	pubspecPth string
 	pubspec    Pubspec
 
-	fileManager fileutil.FileManager
-	pathChecker pathutil.PathChecker
+	fileManager      fileutil.FileManager
+	pathChecker      pathutil.PathChecker
+	sdkVersionFinder SDKVersionFinder
 }
 
-func New(rootDir string, fileManager fileutil.FileManager, pathChecker pathutil.PathChecker) (*Project, error) {
+func New(rootDir string, fileManager fileutil.FileManager, pathChecker pathutil.PathChecker, sdkVersionFinder SDKVersionFinder) (*Project, error) {
 	pubspecPth := filepath.Join(rootDir, sdk.PubspecRelPath)
 	pubspecFile, err := fileManager.Open(pubspecPth)
 	if err != nil {
@@ -48,11 +55,12 @@ func New(rootDir string, fileManager fileutil.FileManager, pathChecker pathutil.
 	}
 
 	return &Project{
-		rootDir:     rootDir,
-		pubspecPth:  pubspecPth,
-		fileManager: fileManager,
-		pathChecker: pathChecker,
-		pubspec:     pubspec,
+		rootDir:          rootDir,
+		pubspecPth:       pubspecPth,
+		pubspec:          pubspec,
+		fileManager:      fileManager,
+		pathChecker:      pathChecker,
+		sdkVersionFinder: sdkVersionFinder,
 	}, nil
 }
 
@@ -132,18 +140,20 @@ func (p *Project) AndroidProjectPth() string {
 func (p *Project) FlutterAndDartSDKVersions() (FlutterAndDartSDKVersions, error) {
 	sdkVersions := FlutterAndDartSDKVersions{}
 
-	fvmFlutterVersion, err := sdk.NewFVMVersionReader(p.fileManager).ReadSDKVersion(p.rootDir)
+	fvmFlutterVersion, fvmFlutterChannel, err := sdk.NewFVMVersionReader(p.fileManager).ReadSDKVersion(p.rootDir)
 	if err != nil {
 		return FlutterAndDartSDKVersions{}, err
 	} else {
 		sdkVersions.FVMFlutterVersion = fvmFlutterVersion
+		sdkVersions.FVMFlutterChannel = fvmFlutterChannel
 	}
 
-	asdfFlutterVersion, err := sdk.NewASDFVersionReader(p.fileManager).ReadSDKVersions(p.rootDir)
+	asdfFlutterVersion, asdfFlutterChannel, err := sdk.NewASDFVersionReader(p.fileManager).ReadSDKVersions(p.rootDir)
 	if err != nil {
 		return FlutterAndDartSDKVersions{}, err
 	} else {
 		sdkVersions.ASDFFlutterVersion = asdfFlutterVersion
+		sdkVersions.ASDFFlutterChannel = asdfFlutterChannel
 	}
 
 	pubspecLockFlutterVersion, pubspecLockDartVersion, err := sdk.NewPubspecLockVersionReader(p.fileManager).ReadSDKVersions(p.rootDir)
@@ -165,29 +175,36 @@ func (p *Project) FlutterAndDartSDKVersions() (FlutterAndDartSDKVersions, error)
 	return sdkVersions, nil
 }
 
-func (p *Project) FlutterSDKVersionToUse() (string, error) {
+func (p *Project) FlutterSDKVersionToUse() (string, string, error) {
 	sdkVersions, err := p.FlutterAndDartSDKVersions()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	sdkQuery := createSDKQuery(sdkVersions)
-	release, err := fluttersdk.FindLatestRelease(fluttersdk.MacOS, fluttersdk.ARM64, fluttersdk.Stable, sdkQuery)
+	sdkQuery, flutterChannel := createSDKQuery(sdkVersions)
+	release, err := p.sdkVersionFinder.FindLatestReleaseFor(fluttersdk.MacOS, fluttersdk.ARM64, fluttersdk.Channel(flutterChannel), sdkQuery)
 	if err != nil {
-		return "", err
+		return "", "", err
+	}
+	if release == nil {
+		return "", "", nil
 	}
 
-	return release.Version, nil
+	return release.Version, release.Channel, nil
 }
 
-func createSDKQuery(sdkVersions FlutterAndDartSDKVersions) fluttersdk.SDKQuery {
+func createSDKQuery(sdkVersions FlutterAndDartSDKVersions) (fluttersdk.SDKQuery, string) {
 	var flutterVersion *semver.Version
 	var flutterVersionConstraint *semver.Constraints
+	flutterChannel := ""
+
 	switch {
 	case sdkVersions.FVMFlutterVersion != nil:
 		flutterVersion = sdkVersions.FVMFlutterVersion
+		flutterChannel = sdkVersions.FVMFlutterChannel
 	case sdkVersions.ASDFFlutterVersion != nil:
 		flutterVersion = sdkVersions.ASDFFlutterVersion
+		flutterChannel = sdkVersions.ASDFFlutterChannel
 	case sdkVersions.PubspecLockFlutterVersion != nil && sdkVersions.PubspecLockFlutterVersion.Version != nil:
 		flutterVersion = sdkVersions.PubspecLockFlutterVersion.Version
 	case sdkVersions.PubspecLockFlutterVersion != nil && sdkVersions.PubspecLockFlutterVersion.Constraint != nil:
@@ -200,6 +217,7 @@ func createSDKQuery(sdkVersions FlutterAndDartSDKVersions) fluttersdk.SDKQuery {
 
 	var dartVersion *semver.Version
 	var dartVersionConstraint *semver.Constraints
+
 	switch {
 	case sdkVersions.PubspecLockDartVersion != nil && sdkVersions.PubspecLockDartVersion.Version != nil:
 		dartVersion = sdkVersions.PubspecLockDartVersion.Version
@@ -216,5 +234,5 @@ func createSDKQuery(sdkVersions FlutterAndDartSDKVersions) fluttersdk.SDKQuery {
 		FlutterVersionConstraint: flutterVersionConstraint,
 		DartVersion:              dartVersion,
 		DartVersionConstraint:    dartVersionConstraint,
-	}
+	}, flutterChannel
 }

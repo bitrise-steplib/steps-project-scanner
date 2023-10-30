@@ -10,6 +10,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/steps"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-flutter/flutterproject"
+	"github.com/bitrise-io/go-flutter/fluttersdk"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/v2/fileutil"
@@ -105,7 +106,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 
 	currentID := -1
 	for _, projectLocation := range projectLocations {
-		flutterProj, err := flutterproject.New(projectLocation, fileutil.NewFileManager(), pathutilv2.NewPathChecker())
+		flutterProj, err := flutterproject.New(projectLocation, fileutil.NewFileManager(), pathutilv2.NewPathChecker(), fluttersdk.NewSDKVersionFinder())
 		if err != nil {
 			log.TErrorf(err.Error())
 			continue
@@ -117,7 +118,10 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		hasIosProject := flutterProj.IOSProjectPth() != ""
 		hasAndroidProject := flutterProj.AndroidProjectPth() != ""
 
-		flutterVersion, err := flutterProj.FlutterSDKVersionToUse()
+		// TODO: The second return value (flutterChannel) is omitted,
+		//  because the Flutter Installer step is not able to install a Flutter SDK version from a specific channel.
+		//  This is not a hugh issue, because just a few SDK version is available on multiple channels (like 2.2.2).
+		flutterVersion, _, err := flutterProj.FlutterSDKVersionToUse()
 		if err != nil {
 			log.Warnf(err.Error())
 		}

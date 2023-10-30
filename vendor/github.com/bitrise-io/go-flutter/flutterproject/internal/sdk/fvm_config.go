@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"path/filepath"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 )
@@ -20,29 +21,34 @@ func NewFVMVersionReader(fileOpener FileOpener) FVMVersionReader {
 	}
 }
 
-func (r FVMVersionReader) ReadSDKVersion(projectRootDir string) (*semver.Version, error) {
+func (r FVMVersionReader) ReadSDKVersion(projectRootDir string) (*semver.Version, string, error) {
 	fvmConfigPth := filepath.Join(projectRootDir, fvmConfigRelPath)
 	f, err := r.fileOpener.OpenReaderIfExists(fvmConfigPth)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	if f == nil {
-		return nil, nil
+		return nil, "", nil
 	}
 
-	versionStr, err := parseFVMFlutterVersion(f)
+	versionStr, channel, err := parseFVMFlutterVersion(f)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if versionStr == "" {
-		return nil, nil
+		return nil, "", nil
 	}
 
-	return semver.NewVersion(versionStr)
+	version, err := semver.NewVersion(versionStr)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return version, channel, nil
 }
 
-func parseFVMFlutterVersion(fvmConfigReader io.Reader) (string, error) {
+func parseFVMFlutterVersion(fvmConfigReader io.Reader) (string, string, error) {
 	type fvmConfig struct {
 		FlutterSdkVersion string `json:"flutterSdkVersion"`
 	}
@@ -50,8 +56,16 @@ func parseFVMFlutterVersion(fvmConfigReader io.Reader) (string, error) {
 	var config fvmConfig
 	d := json.NewDecoder(fvmConfigReader)
 	if err := d.Decode(&config); err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return config.FlutterSdkVersion, nil
+	version := config.FlutterSdkVersion
+	channel := ""
+	s := strings.Split(config.FlutterSdkVersion, "@")
+	if len(s) > 1 {
+		version = s[0]
+		channel = strings.Join(s[1:], "@")
+	}
+
+	return version, channel, nil
 }

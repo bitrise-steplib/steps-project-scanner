@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"sort"
 	"time"
 
@@ -61,12 +62,40 @@ type SDKQuery struct {
 	DartVersionConstraint    *semver.Constraints
 }
 
-func FindLatestRelease(platform Platform, architecture Architecture, channel Channel, query SDKQuery) (*Release, error) {
-	releases, err := listReleasesOnChannel(platform, architecture, channel)
+type SDKVersionFinder struct {
+	SDKVersionLister SDKVersionLister
+}
+
+func NewSDKVersionFinder() SDKVersionFinder {
+	return SDKVersionFinder{SDKVersionLister: NewSDKVersionLister()}
+}
+
+func (f SDKVersionFinder) FindLatestReleaseFor(platform Platform, architecture Architecture, channel Channel, query SDKQuery) (*Release, error) {
+	releasesByChannel, err := f.SDKVersionLister.ListReleasesByChannel(platform, architecture)
 	if err != nil {
 		return nil, err
 	}
 
+	if channel != "" {
+		releases := releasesByChannel[string(channel)]
+		return findLatestReleaseFor(releases, query)
+	}
+
+	for _, c := range []Channel{Stable, Beta, Dev} {
+		releases := releasesByChannel[string(c)]
+		release, err := findLatestReleaseFor(releases, query)
+		if err != nil {
+			return nil, err
+		}
+		if release != nil {
+			return release, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func findLatestReleaseFor(releases []Release, query SDKQuery) (*Release, error) {
 	var sortErr error
 	// sorted in descending version order
 	sort.Slice(releases, func(i, j int) bool {
@@ -88,8 +117,11 @@ func FindLatestRelease(platform Platform, architecture Architecture, channel Cha
 		return releaseVersionJ.LessThan(releaseVersionI)
 	})
 	if sortErr != nil {
-		return nil, err
+		return nil, sortErr
 	}
+
+	// Used for parsing the version number from Dart SDK versions like: "2.17.0 (build 2.17.0-266.1.beta)"
+	dartSDKWithBuildVersionExp := regexp.MustCompile(`(.+) \(build (.+)\)`)
 
 	for _, release := range releases {
 		releaseFlutterVersion, err := semver.NewVersion(release.Version)
@@ -97,7 +129,13 @@ func FindLatestRelease(platform Platform, architecture Architecture, channel Cha
 			return nil, err
 		}
 
-		releaseDartVersion, err := semver.NewVersion(release.DartSdkVersion)
+		dartSDKVersion := release.DartSdkVersion
+		matches := dartSDKWithBuildVersionExp.FindStringSubmatch(dartSDKVersion)
+		if len(matches) == 3 {
+			dartSDKVersion = matches[1]
+		}
+
+		releaseDartVersion, err := semver.NewVersion(dartSDKVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -129,31 +167,43 @@ func FindLatestRelease(platform Platform, architecture Architecture, channel Cha
 	return nil, nil
 }
 
-func listReleasesOnChannel(platform Platform, architecture Architecture, channel Channel) ([]Release, error) {
-	allReleasesResp, err := listAllReleases(platform)
+type SDKVersionLister interface {
+	ListReleasesByChannel(platform Platform, architecture Architecture) (map[string][]Release, error)
+}
+
+type defaultSDKVersionLister struct {
+	baseURLFormat string
+}
+
+func NewSDKVersionLister() SDKVersionLister {
+	return defaultSDKVersionLister{baseURLFormat: flutterInfraReleasesURLFormat}
+}
+
+const flutterInfraReleasesURLFormat = "https://storage.googleapis.com/flutter_infra_release/releases/releases_%s.json"
+
+func (l defaultSDKVersionLister) ListReleasesByChannel(platform Platform, architecture Architecture) (map[string][]Release, error) {
+	allReleasesResp, err := l.listAllReleases(platform)
 	if err != nil {
 		return nil, err
 	}
 
-	var releases []Release
+	releasesByChannel := map[string][]Release{}
 
 	for _, release := range allReleasesResp.Releases {
 		if platform == MacOS && release.DartSdkArch != string(architecture) {
 			continue
 		}
 
-		if release.Channel != string(channel) {
-			continue
-		}
-
+		releases := releasesByChannel[release.Channel]
 		releases = append(releases, release)
+		releasesByChannel[release.Channel] = releases
 	}
 
-	return releases, nil
+	return releasesByChannel, nil
 }
 
-func listAllReleases(platform Platform) (*ReleasesResp, error) {
-	flutterReleaseURL := fmt.Sprintf("https://storage.googleapis.com/flutter_infra_release/releases/releases_%s.json", platform)
+func (l defaultSDKVersionLister) listAllReleases(platform Platform) (*ReleasesResp, error) {
+	flutterReleaseURL := fmt.Sprintf(l.baseURLFormat, platform)
 	client := http.DefaultClient
 	resp, err := client.Get(flutterReleaseURL)
 	if err != nil {

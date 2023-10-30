@@ -9,6 +9,12 @@ import (
 	"github.com/Masterminds/semver/v3"
 )
 
+const (
+	stableChannel = "stable"
+	betaChannel   = "beta"
+	masterChannel = "dev"
+)
+
 const asdfConfigRelPath = ".tool-versions"
 
 type ASDFVersionReader struct {
@@ -21,43 +27,57 @@ func NewASDFVersionReader(fileOpener FileOpener) ASDFVersionReader {
 	}
 }
 
-func (r ASDFVersionReader) ReadSDKVersions(projectRootDir string) (*semver.Version, error) {
+func (r ASDFVersionReader) ReadSDKVersions(projectRootDir string) (*semver.Version, string, error) {
 	asdfConfigPth := filepath.Join(projectRootDir, asdfConfigRelPath)
 	f, err := r.fileOpener.OpenReaderIfExists(asdfConfigPth)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	if f == nil {
-		return nil, nil
+		return nil, "", nil
 	}
 
-	versionStr, err := parseASDFFlutterVersion(f)
+	versionStr, channel, err := parseASDFFlutterVersion(f)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if versionStr == "" {
-		return nil, nil
+		return nil, "", nil
 	}
 
-	return semver.NewVersion(versionStr)
+	version, err := semver.NewVersion(versionStr)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return version, channel, nil
 }
 
-func parseASDFFlutterVersion(asdfConfigReader io.Reader) (string, error) {
+func parseASDFFlutterVersion(asdfConfigReader io.Reader) (string, string, error) {
+	versionStr := ""
+	channel := ""
+
 	scanner := bufio.NewScanner(asdfConfigReader)
 	scanner.Split(bufio.ScanLines)
-	versionStr := ""
 	for scanner.Scan() {
 		line := scanner.Text()
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "flutter ") {
 			versionStr = strings.TrimPrefix(line, "flutter ")
+			for _, c := range []string{stableChannel, betaChannel, masterChannel} {
+				channelSuffix := "-" + c
+				if strings.HasSuffix(versionStr, channelSuffix) {
+					versionStr = strings.TrimSuffix(versionStr, channelSuffix)
+					channel = c
+				}
+			}
 			break
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return versionStr, nil
+	return versionStr, channel, nil
 }
