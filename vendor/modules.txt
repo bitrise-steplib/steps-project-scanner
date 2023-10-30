@@ -45,7 +45,7 @@ github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.19
+# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.21
 ## explicit; go 1.17
 github.com/bitrise-io/go-steputils/v2/export
 # github.com/bitrise-io/go-utils v1.0.9
@@ -91,16 +91,16 @@ github.com/bitrise-io/stepman/models
 # github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203
 ## explicit; go 1.16
 github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey
-# github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230216105320-8cb845d52e28
+# github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230711084209-91fcd09b2017
 ## explicit; go 1.17
 github.com/bitrise-steplib/steps-authenticate-host-with-netrc/netrcutil
-# github.com/bitrise-steplib/steps-git-clone v0.0.0-20230619101604-67b0d018398a
+# github.com/bitrise-steplib/steps-git-clone v0.0.0-20230711114616-b37dd5bbbfb1
 ## explicit; go 1.17
 github.com/bitrise-steplib/steps-git-clone/gitclone
 github.com/bitrise-steplib/steps-git-clone/gitclone/bitriseapi
 github.com/bitrise-steplib/steps-git-clone/gitclone/tracker
 github.com/bitrise-steplib/steps-git-clone/transport
-# github.com/gofrs/uuid v4.3.1+incompatible
+# github.com/gofrs/uuid v4.4.0+incompatible
 ## explicit
 github.com/gofrs/uuid
 # github.com/hashicorp/go-cleanhttp v0.5.2

@@ -8,7 +8,7 @@ require (
 	github.com/bitrise-io/go-utils v1.0.9
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.19
 	github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203
-	github.com/bitrise-steplib/steps-git-clone v0.0.0-20230619101604-67b0d018398a
+	github.com/bitrise-steplib/steps-git-clone v0.0.0-20230711114616-b37dd5bbbfb1
 )
 
 require (
@@ -18,12 +18,12 @@ require (
 	github.com/bitrise-io/envman v0.0.0-20230802102824-1300c57d49c4 // indirect
 	github.com/bitrise-io/go-flutter v0.1.1 // indirect
 	github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10 // indirect
-	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.19 // indirect
+	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.21 // indirect
 	github.com/bitrise-io/go-xcode v1.0.18 // indirect
 	github.com/bitrise-io/goinp v0.0.0-20221102135900-f70828d4ba74 // indirect
 	github.com/bitrise-io/stepman v0.0.0-20230728094915-939f0fe5c19a // indirect
-	github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230216105320-8cb845d52e28 // indirect
-	github.com/gofrs/uuid v4.3.1+incompatible // indirect
+	github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230711084209-91fcd09b2017 // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.4 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
