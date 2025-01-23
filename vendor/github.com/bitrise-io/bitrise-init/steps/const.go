@@ -100,7 +100,7 @@ const (
 
 const (
 	XcodeTestID      = "xcode-test"
-	XcodeTestVersion = "5"
+	XcodeTestVersion = "6"
 )
 
 const (

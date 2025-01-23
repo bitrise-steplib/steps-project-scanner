@@ -27,11 +27,10 @@ func GenerateScanResult(searchDir string, hasSSHKey bool) (models.ScanResultMode
 	}
 
 	if len(platforms) == 0 {
-		errorMessage := "No known platform detected"
-		analytics.LogError(noPlatformDetectedTag, nil, errorMessage)
+		analytics.LogError(noPlatformDetectedTag, nil, "No known platform detected")
 
 		scanResult.AddErrorWithRecommendation("general", models.ErrorWithRecommendations{
-			Error: errorMessage,
+			Error: "No known platform detected",
 			Recommendations: step.Recommendation{
 				"NoPlatformDetected":            true,
 				errormapper.DetailedErrorRecKey: newNoPlatformDetectedGenericDetail(),

@@ -2,7 +2,7 @@ package scanner
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/bitrise-io/bitrise-init/models"
@@ -25,12 +25,12 @@ func copyIconsToDir(icons models.Icons, outputDir string) error {
 }
 
 func copyFile(src string, dst string) (err error) {
-	data, err := ioutil.ReadFile(src)
+	data, err := os.ReadFile(src)
 	if err != nil {
 		return err
 	}
 
-	if err = ioutil.WriteFile(dst, data, 0644); err != nil {
+	if err = os.WriteFile(dst, data, 0644); err != nil {
 		return err
 	}
 
