@@ -109,7 +109,7 @@ inputs:
 - app_slug: $BITRISE_APP_SLUG
   opts:
     title: Unique Identifier (slug) of the Bitrise app
-    description: "Used for analytics purposes"
+    description: Used for analytics purposes
     is_dont_change_value: true
 
 - repository_url: $GIT_REPOSITORY_URL
