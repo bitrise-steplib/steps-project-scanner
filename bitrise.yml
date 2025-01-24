@@ -13,13 +13,13 @@ workflows:
   sample:
     envs:
     # Define your local project's root directory here
-    - PROJECT_DIR: "<local_project_dir>"
+    - PROJECT_DIR: <local_project_dir>
     steps:
     - path::./:
         title: Step Test
         inputs:
         - scan_dir: $PROJECT_DIR
-        - scan_result_submit_url: "path::./_scan_result/scan_result.json"
+        - scan_result_submit_url: path::./_scan_result/scan_result.json
         - scan_result_submit_api_token: ""
 
   test:
@@ -139,8 +139,8 @@ workflows:
 
   test_repo_clone:
     envs:
-        - CLONE_INTO_DIR: _tmp
-        - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
+    - CLONE_INTO_DIR: _tmp
+    - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
     steps:
     - script:
         title: "Scan test built in repo clone"
@@ -166,4 +166,4 @@ workflows:
 
   generate_readme:
     steps:
-      - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: {}
+    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: { }

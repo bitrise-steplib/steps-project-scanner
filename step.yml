@@ -1,4 +1,4 @@
-title: "Project scanner"
+title: Project scanner
 summary: Scans repository for iOS, macOS, Android, Fastlane, Cordova, Ionic, React Native and Flutter projects
 description: |-
   This Step scans your repository to determine your project's type.
@@ -34,12 +34,11 @@ description: |-
 
   * [Creating your own project scanner](https://devcenter.bitrise.io/en/steps-and-workflows/developing-your-own-bitrise-step/creating-your-own-bitrise-project-scanner.html)
 
-
 website: https://github.com/bitrise-steplib/steps-project-scanner
 source_code_url: https://github.com/bitrise-steplib/steps-project-scanner
 support_url: https://github.com/bitrise-steplib/steps-project-scanner/issues
 type_tags:
-  - utility
+- utility
 is_requires_admin_user: false
 is_always_run: false
 is_skippable: false
@@ -49,32 +48,32 @@ toolkit:
 inputs:
   - scan_dir: $BITRISE_SOURCE_DIR
     opts:
-      title: "Directory to scan."
-      description: "The Step will look for the projects in this directory."
+      title: Directory to scan.
+      description: The Step will look for the projects in this directory.
       is_required: true
-  - scan_result_submit_url: "$BITRISE_SCAN_RESULT_POST_URL"
+  - scan_result_submit_url: $BITRISE_SCAN_RESULT_POST_URL
     opts:
-      title: "POST url to send the scan results to"
+      title: POST url to send the scan results to
       description: |
          If provided, the scan results will be sent to the given
          URL, with a POST request.
       is_dont_change_value: true
-  - scan_result_submit_api_token: "$BITRISE_APP_API_TOKEN"
+  - scan_result_submit_api_token: $BITRISE_APP_API_TOKEN
     opts:
-      title: "API Token for scan result submission"
+      title: API Token for scan result submission
       description: |
          If provided and `scan_result_submit_url` also provided,
          this API Token will be used for sending the Scan Results.
       is_dont_change_value: true
       is_sensitive: true
-  - icon_candidates_url: "$BITRISE_AVATAR_CANDIDATES_POST_URL"
+  - icon_candidates_url: $BITRISE_AVATAR_CANDIDATES_POST_URL
     opts:
-      title: "URL to get app icon candidates upload URLs"
+      title: URL to get app icon candidates upload URLs
       description: |
         If provided, the app icons will be uploaded.
   - verbose_log: "false"
     opts:
-      title: "Verbose log option"
+      title: Verbose log option
       description: |
         You can enable the verbose log for easier debugging.
       value_options:
@@ -82,16 +81,16 @@ inputs:
         - "false"
   - enable_repo_clone: "no"
     opts:
-      title: "Activate SSH key and clone git repo inside the Step"
+      title: Activate SSH key and clone git repo inside the Step
       description: |
         If set to yes then it will setup the SSH key (or HTTP credentials) and will clone the repo with the provided url and branch name.
       value_options:
         - "yes"
         - "no"
-  - ssh_rsa_private_key: "$SSH_RSA_PRIVATE_KEY"
+  - ssh_rsa_private_key: $SSH_RSA_PRIVATE_KEY
     opts:
-      title: "SSH private key in RSA format"
-      description: "SSH key to be used for the git clone."
+      title: SSH private key in RSA format
+      description: SSH key to be used for the git clone.
       is_expand: true
       is_dont_change_value: true
       is_sensitive: true
@@ -113,14 +112,14 @@ inputs:
       description: "Used for analytics purposes"
       is_dont_change_value: true
 
-  - repository_url: "$GIT_REPOSITORY_URL"
+  - repository_url: $GIT_REPOSITORY_URL
     opts:
-      title: "Git repository URL"
-      description: "Url to be used for the git clone."
+      title: Git repository URL
+      description: Url to be used for the git clone.
       is_dont_change_value: true
-  - branch: "$BITRISE_GIT_BRANCH"
+  - branch: $BITRISE_GIT_BRANCH
     opts:
       category: Clone Config
-      title: "Git Branch to clone"
-      description: "Branch to be used for the git clone."
+      title: Git Branch to clone
+      description: Branch to be used for the git clone.
       is_dont_change_value: true
