@@ -2,7 +2,7 @@ package scanner
 
 import (
 	"io/fs"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -114,7 +114,7 @@ func (d kotlinMultiplatformDetector) DetectToolIn(rootPath string) (DetectionRes
 
 	detected := false
 	for _, path := range potentialFilePaths {
-		bytes, err := ioutil.ReadFile(path)
+		bytes, err := os.ReadFile(path)
 		if err != nil {
 			log.Warnf(err.Error())
 			continue

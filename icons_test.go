@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"image"
 	"image/png"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strconv"
 	"testing"
@@ -28,7 +29,7 @@ func Test_uploadIcons(t *testing.T) {
 			return
 		}
 
-		bytes, err := ioutil.ReadAll(r.Body)
+		bytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			t.Errorf("httptest: failed to read request, error: %s", err)
 			return
@@ -58,7 +59,7 @@ func Test_uploadIcons(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		bytes, err := ioutil.ReadAll(r.Body)
+		bytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			t.Errorf("httptest: failed to read body: %s", err)
 		}
@@ -93,7 +94,7 @@ func Test_uploadIcons(t *testing.T) {
 	}))
 
 	for i := 0; i < 10; i++ {
-		file, err := ioutil.TempFile("", "")
+		file, err := os.CreateTemp("", "")
 		if err != nil {
 			t.Errorf("setup: failed to create file, error: %s", err)
 		}

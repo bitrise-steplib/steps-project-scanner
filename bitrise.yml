@@ -13,18 +13,17 @@ workflows:
   sample:
     envs:
     # Define your local project's root directory here
-    - PROJECT_DIR: "<local_project_dir>"
+    - PROJECT_DIR: <local_project_dir>
     steps:
     - path::./:
         title: Step Test
         inputs:
         - scan_dir: $PROJECT_DIR
-        - scan_result_submit_url: "path::./_scan_result/scan_result.json"
+        - scan_result_submit_url: path::./_scan_result/scan_result.json
         - scan_result_submit_api_token: ""
 
   test:
-    before_run:
-    - audit-this-step
+    after_run:
     - test_repo_clone
     title: Bitrise Init Test
     description: Bitrise Init Test
@@ -32,10 +31,9 @@ workflows:
     - CLONE_INTO_DIR: _tmp
     - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
     steps:
-    - go-list:
-    - golint:
-    - errcheck:
-    - go-test:
+    - git::https://github.com/bitrise-steplib/steps-check.git: { }
+    - go-list: { }
+    - go-test: { }
     - script:
         title: "Scan test: ios-no-shared-schemes"
         inputs:
@@ -141,11 +139,11 @@ workflows:
 
   test_repo_clone:
     envs:
-        - CLONE_INTO_DIR: _tmp
-        - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
+    - CLONE_INTO_DIR: _tmp
+    - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
     steps:
     - script:
-        title: "Scan test built in repo clone"
+        title: Scan test built in repo clone
         inputs:
         - content: |-
             #!/bin/bash
@@ -168,15 +166,4 @@ workflows:
 
   generate_readme:
     steps:
-      - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: {}
-
-  # ----------------------------------------------------------------
-  # --- workflows to Share this step into a Step Library
-  audit-this-step:
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            stepman audit --step-yml ./step.yml
+    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: { }

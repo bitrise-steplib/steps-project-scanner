@@ -33,6 +33,9 @@ func (podfileParser podfileParser) getTargetDefinitionProjectMap(cocoapodsVersio
 gem 'cocoapods'%s
 gem 'cocoapods-core'
 gem 'json'
+# warning: bigdecimal was loaded from the standard library, but will no longer be part of the default gems starting from Ruby 3.4.0.
+gem 'bigdecimal'
+gem 'mutex_m'
 `, gemfileCocoapodsVersion)
 
 	// returns target - project map, if xcodeproj defined in the Podfile
@@ -83,7 +86,7 @@ end
 
 	var targetDefinitionOutput targetDefinitionOutputModel
 	if err := json.Unmarshal([]byte(out), &targetDefinitionOutput); err != nil {
-		return map[string]string{}, fmt.Errorf("failed to parse target definition output: %s", err)
+		return map[string]string{}, fmt.Errorf("failed to parse target definition output: %s, output: %s", err, out)
 	}
 
 	if podfileParser.shouldRaiseReadDefinitionError(targetDefinitionOutput.Error) {
