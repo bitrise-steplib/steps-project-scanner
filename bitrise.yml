@@ -143,7 +143,7 @@ workflows:
     - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
     steps:
     - script:
-        title: "Scan test built in repo clone"
+        title: Scan test built in repo clone
         inputs:
         - content: |-
             #!/bin/bash
