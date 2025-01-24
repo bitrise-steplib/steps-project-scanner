@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"image/png"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -112,7 +112,7 @@ func getUploadURLs(query iconCandidateQuery, appIcons []appIconCandidateURL) ([]
 			}
 		}()
 
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("failed to read response body, error: %s", err)
 		}
@@ -152,7 +152,7 @@ func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 	// That does not seem apply to a stream (as it has no defined lenght).
 	// The Content-lenght header is signed by S3, so has to match to the filesize sent
 	// in the getUploadURL() function.
-	data, err := ioutil.ReadAll(file)
+	data, err := io.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf("can not read file, error: %s", err)
 	}
@@ -189,7 +189,7 @@ func uploadIcon(filePath string, iconCandidate appIconCandidateURL) error {
 			}
 		}()
 
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("failed to read respnse body, error: %s", err)
 		}
