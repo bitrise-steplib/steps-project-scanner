@@ -8,7 +8,7 @@ github.com/beevik/etree
 ## explicit; go 1.17
 github.com/bitrise-io/bitrise/exitcode
 github.com/bitrise-io/bitrise/models
-# github.com/bitrise-io/bitrise-init v0.0.0-20250123161052-b2b6162e915a
+# github.com/bitrise-io/bitrise-init v0.0.0-20250324140905-04806415f0b3
 ## explicit; go 1.21
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/errormapper
@@ -23,6 +23,7 @@ github.com/bitrise-io/bitrise-init/scanners/flutter
 github.com/bitrise-io/bitrise-init/scanners/ionic
 github.com/bitrise-io/bitrise-init/scanners/ios
 github.com/bitrise-io/bitrise-init/scanners/macos
+github.com/bitrise-io/bitrise-init/scanners/nodejs
 github.com/bitrise-io/bitrise-init/scanners/reactnative
 github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/toolscanner

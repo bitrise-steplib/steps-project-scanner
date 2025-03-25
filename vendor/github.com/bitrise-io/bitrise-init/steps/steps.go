@@ -194,6 +194,16 @@ func KarmaJasmineTestRunnerStepListItem(inputs ...envmanModels.EnvironmentItemMo
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
+func NvmStepListItem(nodeVersion string) bitriseModels.StepListItemModel {
+	var inputs []envmanModels.EnvironmentItemModel
+	if nodeVersion != "" {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{"node_version": nodeVersion})
+	}
+
+	stepIDComposite := stepIDComposite(NvmID, NvmVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
 func NpmStepListItem(command, workdir string) bitriseModels.StepListItemModel {
 	var inputs []envmanModels.EnvironmentItemModel
 	if workdir != "" {

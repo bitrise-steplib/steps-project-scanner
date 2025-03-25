@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bitrise-io/bitrise-init/scanners/nodejs"
+
 	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/models"
@@ -109,6 +111,7 @@ func (Scanner) ExcludedScannerNames() []string {
 		string(ios.XcodeProjectTypeMacOS),
 		cordova.ScannerName,
 		android.ScannerName,
+		nodejs.ScannerName,
 	}
 }
 

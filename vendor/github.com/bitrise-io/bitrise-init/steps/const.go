@@ -149,6 +149,11 @@ const (
 )
 
 const (
+	NvmID      = "nvm"
+	NvmVersion = "1"
+)
+
+const (
 	NpmID      = "npm"
 	NpmVersion = "1"
 )
