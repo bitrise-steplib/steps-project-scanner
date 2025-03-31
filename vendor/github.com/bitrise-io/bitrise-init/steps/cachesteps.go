@@ -1,6 +1,6 @@
 package steps
 
-import bitriseModels "github.com/bitrise-io/bitrise/models"
+import bitriseModels "github.com/bitrise-io/bitrise/v2/models"
 
 func RestoreGradleCache() bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(CacheRestoreGradleID, CacheRestoreGradleVersion)

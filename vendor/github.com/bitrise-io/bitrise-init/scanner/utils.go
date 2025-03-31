@@ -9,8 +9,8 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/models"
-	bitriseModels "github.com/bitrise-io/bitrise/models"
-	envmanModels "github.com/bitrise-io/envman/models"
+	bitriseModels "github.com/bitrise-io/bitrise/v2/models"
+	envmanModels "github.com/bitrise-io/envman/v2/models"
 	"github.com/bitrise-io/goinp/goinp"
 )
 

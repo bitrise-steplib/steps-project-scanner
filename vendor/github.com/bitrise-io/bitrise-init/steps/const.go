@@ -27,7 +27,7 @@ const (
 
 const (
 	CacheRestoreGradleID         = "restore-gradle-cache"
-	CacheRestoreGradleVersion    = "1"
+	CacheRestoreGradleVersion    = "2"
 	CacheRestoreCocoapodsID      = "restore-cocoapods-cache"
 	CacheRestoreCocoapodsVersion = "1"
 	CacheRestoreCarthageID       = "restore-carthage-cache"
@@ -183,4 +183,34 @@ const (
 const (
 	FlutterBuildID      = "flutter-build"
 	FlutterBuildVersion = "0"
+)
+
+const (
+	XcodeTestShardCalculationID      = "xcode-test-shard-calculation"
+	XcodeTestShardCalculationVersion = "0"
+)
+
+const (
+	PullIntermediateFilesID      = "pull-intermediate-files"
+	PullIntermediateFilesVersion = "1"
+)
+
+const (
+	XcodeTestWithoutBuildingID      = "xcode-test-without-building"
+	XcodeTestWithoutBuildingVersion = "0"
+)
+
+const (
+	AvdManagerID      = "avd-manager"
+	AvdManagerVersion = "2"
+)
+
+const (
+	WaitForAndroidEmulatorID      = "wait-for-android-emulator"
+	WaitForAndroidEmulatorVersion = "1"
+)
+
+const (
+	GradleRunnerID      = "gradle-runner"
+	GradleRunnerVersion = "3"
 )
