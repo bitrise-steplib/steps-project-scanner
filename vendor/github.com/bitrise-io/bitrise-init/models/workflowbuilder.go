@@ -1,6 +1,6 @@
 package models
 
-import bitriseModels "github.com/bitrise-io/bitrise/models"
+import bitriseModels "github.com/bitrise-io/bitrise/v2/models"
 
 type workflowBuilderModel struct {
 	Steps       []bitriseModels.StepListItemModel

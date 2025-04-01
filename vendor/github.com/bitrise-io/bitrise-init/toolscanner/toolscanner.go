@@ -2,7 +2,7 @@ package toolscanner
 
 import (
 	"github.com/bitrise-io/bitrise-init/models"
-	bitriseModels "github.com/bitrise-io/bitrise/models"
+	bitriseModels "github.com/bitrise-io/bitrise/v2/models"
 )
 
 // ProjectTypeEnvKey is the name of the enviroment variable used to substitute the project type for
