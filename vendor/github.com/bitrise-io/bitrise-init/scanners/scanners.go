@@ -9,6 +9,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/ionic"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
 	"github.com/bitrise-io/bitrise-init/scanners/macos"
+	"github.com/bitrise-io/bitrise-init/scanners/nodejs"
 	"github.com/bitrise-io/bitrise-init/scanners/reactnative"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"gopkg.in/yaml.v2"
@@ -25,7 +26,7 @@ type ScannerInterface interface {
 	Name() string
 
 	// Should implement as minimal logic as possible to determine if searchDir contains the - in question - platform or not.
-	// Inouts:
+	// Inputs:
 	// - searchDir: the directory where the project to scan exists.
 	// Returns:
 	// - platform detected
@@ -35,7 +36,7 @@ type ScannerInterface interface {
 	// ExcludedScannerNames is used to mark, which scanners should be excluded, if the current scanner detects platform.
 	ExcludedScannerNames() []string
 
-	// OptionNode is the model, an n-ary tree, used to store the available configuration combintaions.
+	// OptionNode is the model, an n-ary tree, used to store the available configuration combinations.
 	// It defines an option decision tree whose every branch maps to a bitrise configuration.
 	// Each branch should define a complete and valid options to build the final bitrise config model.
 	// Every leaf node has to be the key of the workflow (in the BitriseConfigMap), which will be fulfilled with the selected options.
@@ -77,6 +78,7 @@ func ProjectScanners() []ScannerInterface {
 		ios.NewScanner(),
 		macos.NewScanner(),
 		android.NewScanner(),
+		nodejs.NewScanner(),
 	}
 }
 
