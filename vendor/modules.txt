@@ -4,9 +4,10 @@ github.com/Masterminds/semver/v3
 # github.com/beevik/etree v1.2.0
 ## explicit; go 1.13
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise-init v0.0.0-20250328140845-0fdc2f389785
+# github.com/bitrise-io/bitrise-init v0.0.0-20250401142907-cbc5e8ec9b8a
 ## explicit; go 1.22.0
 github.com/bitrise-io/bitrise-init/analytics
+github.com/bitrise-io/bitrise-init/direntry
 github.com/bitrise-io/bitrise-init/errormapper
 github.com/bitrise-io/bitrise-init/models
 github.com/bitrise-io/bitrise-init/output
@@ -16,8 +17,10 @@ github.com/bitrise-io/bitrise-init/scanners/android
 github.com/bitrise-io/bitrise-init/scanners/cordova
 github.com/bitrise-io/bitrise-init/scanners/fastlane
 github.com/bitrise-io/bitrise-init/scanners/flutter
+github.com/bitrise-io/bitrise-init/scanners/gradle
 github.com/bitrise-io/bitrise-init/scanners/ionic
 github.com/bitrise-io/bitrise-init/scanners/ios
+github.com/bitrise-io/bitrise-init/scanners/kmp
 github.com/bitrise-io/bitrise-init/scanners/macos
 github.com/bitrise-io/bitrise-init/scanners/reactnative
 github.com/bitrise-io/bitrise-init/steps
