@@ -194,6 +194,19 @@ func KarmaJasmineTestRunnerStepListItem(inputs ...envmanModels.EnvironmentItemMo
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
+func NvmStepListItem(nodeVersion, workdir string) bitriseModels.StepListItemModel {
+	var inputs []envmanModels.EnvironmentItemModel
+	if nodeVersion != "" {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{"node_version": nodeVersion})
+	}
+	if workdir != "" {
+		inputs = append(inputs, envmanModels.EnvironmentItemModel{"working_dir": workdir})
+	}
+
+	stepIDComposite := stepIDComposite(NvmID, NvmVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
 func NpmStepListItem(command, workdir string) bitriseModels.StepListItemModel {
 	var inputs []envmanModels.EnvironmentItemModel
 	if workdir != "" {
@@ -204,7 +217,7 @@ func NpmStepListItem(command, workdir string) bitriseModels.StepListItemModel {
 	}
 
 	stepIDComposite := stepIDComposite(NpmID, NpmVersion)
-	return stepListItem(stepIDComposite, "", "", inputs...)
+	return stepListItem(stepIDComposite, "npm "+command, "", inputs...)
 }
 
 func RunEASBuildStepListItem(workdir, platform string) bitriseModels.StepListItemModel {
@@ -229,7 +242,7 @@ func YarnStepListItem(command, workdir string) bitriseModels.StepListItemModel {
 	}
 
 	stepIDComposite := stepIDComposite(YarnID, YarnVersion)
-	return stepListItem(stepIDComposite, "", "", inputs...)
+	return stepListItem(stepIDComposite, "yarn "+command, "", inputs...)
 }
 
 func FlutterInstallStepListItem(version string, isUpdate bool) bitriseModels.StepListItemModel {
