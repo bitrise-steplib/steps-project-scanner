@@ -8,6 +8,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/flutter"
 	"github.com/bitrise-io/bitrise-init/scanners/ionic"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
+	"github.com/bitrise-io/bitrise-init/scanners/kmp"
 	"github.com/bitrise-io/bitrise-init/scanners/macos"
 	"github.com/bitrise-io/bitrise-init/scanners/reactnative"
 	"github.com/bitrise-io/bitrise-init/steps"
@@ -70,6 +71,7 @@ type AutomationToolScanner interface {
 // ProjectScanners ...
 func ProjectScanners() []ScannerInterface {
 	return []ScannerInterface{
+		kmp.NewScanner(),
 		reactnative.NewScanner(),
 		flutter.NewScanner(),
 		ionic.NewScanner(),
