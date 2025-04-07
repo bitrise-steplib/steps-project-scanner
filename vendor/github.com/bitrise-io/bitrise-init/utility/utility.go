@@ -34,6 +34,25 @@ func ParsePackagesJSON(packagesJSONPth string) (PackagesModel, error) {
 	return parsePackagesJSONContent(content)
 }
 
+// CollectPackageJSONFiles ...
+func CollectPackageJSONFiles(searchDir string) ([]string, error) {
+	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, false)
+	if err != nil {
+		return nil, err
+	}
+
+	filters := []pathutil.FilterFunc{
+		pathutil.BaseFilter("package.json", true),
+		pathutil.ComponentFilter("node_modules", false),
+	}
+	packageFileList, err := pathutil.FilterPaths(fileList, filters...)
+	if err != nil {
+		return nil, err
+	}
+
+	return packageFileList, nil
+}
+
 // RelPath ...
 func RelPath(basePth, pth string) (string, error) {
 	absBasePth, err := pathutil.AbsPath(basePth)

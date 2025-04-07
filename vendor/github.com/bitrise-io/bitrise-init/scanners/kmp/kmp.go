@@ -3,9 +3,9 @@ package kmp
 import (
 	"gopkg.in/yaml.v2"
 
+	"github.com/bitrise-io/bitrise-init/detectors/gradle"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/scanners/android"
-	"github.com/bitrise-io/bitrise-init/scanners/gradle"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"github.com/bitrise-io/go-utils/log"
@@ -25,7 +25,6 @@ const (
 	configName        = "kotlin-multiplatform-config"
 	defaultConfigName = "default-kotlin-multiplatform-config"
 	testWorkflowID    = "run_tests"
-	gradleTestTask    = "test"
 
 	gradlewPathInputEnvKey  = "GRADLEW_PATH"
 	gradlewPathInputTitle   = "The project's Gradle Wrapper script (gradlew) path."
@@ -124,7 +123,10 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 		steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKeyActivation})...,
 	)
 	configBuilder.AppendStepListItemsTo(testWorkflowID,
-		steps.GradleRunnerStepListItem(gradlewPath, gradleTestTask),
+		steps.GradleUnitTestStepListItem(gradlewPath),
+	)
+	configBuilder.AppendStepListItemsTo(testWorkflowID,
+		steps.DefaultDeployStepList()...,
 	)
 
 	config, err := configBuilder.Generate(projectType)
@@ -152,7 +154,10 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: models.SSHKeyActivationConditional})...,
 	)
 	configBuilder.AppendStepListItemsTo(testWorkflowID,
-		steps.GradleRunnerStepListItem(gradlewPath, gradleTestTask),
+		steps.GradleUnitTestStepListItem(gradlewPath),
+	)
+	configBuilder.AppendStepListItemsTo(testWorkflowID,
+		steps.DefaultDeployStepList()...,
 	)
 
 	config, err := configBuilder.Generate(projectType)
