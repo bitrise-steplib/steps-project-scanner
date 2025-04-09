@@ -61,7 +61,6 @@ func printGradleProject(gradleProject gradle.Project) {
 			log.TPrintf("- %s: %s", includedProject.Name, includedProject.BuildScriptFileEntry.RelPath)
 		}
 	}
-
 }
 
 func (s *Scanner) DetectPlatform(searchDir string) (bool, error) {

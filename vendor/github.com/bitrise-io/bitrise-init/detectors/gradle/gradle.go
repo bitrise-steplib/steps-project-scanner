@@ -1,12 +1,13 @@
 package gradle
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/bitrise-io/bitrise-init/direntry"
+	"github.com/bitrise-io/bitrise-init/detectors/gradle/direntry"
 	"github.com/bitrise-io/go-utils/log"
 )
 
@@ -40,7 +41,7 @@ type Project struct {
 }
 
 func ScanProject(searchDir string) (*Project, error) {
-	rootEntry, err := direntry.ListEntries(searchDir, 4)
+	rootEntry, err := direntry.WalkDir(searchDir, 6)
 	if err != nil {
 		return nil, err
 	}
@@ -157,39 +158,35 @@ type gradleProjectRootEntry struct {
 	settingsGradleFileEntry *direntry.DirEntry
 }
 
-func detectGradleProjectRoot(rootEntry direntry.DirEntry) (*gradleProjectRootEntry, error) {
-	gradlewFileEntry := rootEntry.FindEntryByName("gradlew", false)
+func detectGradleProjectRoot(searchDir direntry.DirEntry) (*gradleProjectRootEntry, error) {
+	gradlewFileEntry := searchDir.FindFirstEntryByName("gradlew", false)
 	if gradlewFileEntry == nil {
-		if len(rootEntry.Entries) == 0 {
-			return nil, nil
-		}
-
-		for _, entry := range rootEntry.Entries {
-			if entry.IsDir {
-				return detectGradleProjectRoot(entry)
-			}
-		}
 		return nil, nil
 	}
 
+	projectRootDirEntry := gradlewFileEntry.Parent()
+	if projectRootDirEntry == nil {
+		return nil, fmt.Errorf("unable to detect gradle project root")
+	}
+
 	projectRoot := gradleProjectRootEntry{
-		rootDirEntry:     rootEntry,
+		rootDirEntry:     *projectRootDirEntry,
 		gradlewFileEntry: *gradlewFileEntry,
 	}
 
-	configDirEntry := rootEntry.FindEntryByName("gradle", true)
+	configDirEntry := projectRootDirEntry.FindImmediateChildByName("gradle", true)
 	if configDirEntry != nil {
 		projectRoot.configDirEntry = configDirEntry
 
-		versionCatalogFileEntry := configDirEntry.FindEntryByName("libs.versions.toml", false)
+		versionCatalogFileEntry := configDirEntry.FindImmediateChildByName("libs.versions.toml", false)
 		if versionCatalogFileEntry != nil {
 			projectRoot.versionCatalogFileEntry = versionCatalogFileEntry
 		}
 	}
 
-	settingsFileEntry := rootEntry.FindEntryByName("settings.gradle", false)
+	settingsFileEntry := projectRootDirEntry.FindImmediateChildByName("settings.gradle", false)
 	if settingsFileEntry == nil {
-		settingsFileEntry = rootEntry.FindEntryByName("settings.gradle.kts", false)
+		settingsFileEntry = projectRootDirEntry.FindImmediateChildByName("settings.gradle.kts", false)
 	}
 	if settingsFileEntry != nil {
 		projectRoot.settingsGradleFileEntry = settingsFileEntry
@@ -235,7 +232,7 @@ func detectIncludedProjects(projectRootEntry gradleProjectRootEntry) (*includedP
 				components = append(components, includeComponent)
 			}
 
-			projectBuildScript := projectRootEntry.rootDirEntry.FindEntryByPath(false, append(components, "build.gradle")...)
+			projectBuildScript := projectRootEntry.rootDirEntry.FindEntryByPathComponents(false, append(components, "build.gradle")...)
 			if projectBuildScript != nil {
 				subprojects = append(subprojects, SubProject{
 					Name:                 include,
@@ -244,7 +241,7 @@ func detectIncludedProjects(projectRootEntry gradleProjectRootEntry) (*includedP
 				continue
 			}
 
-			projectBuildScript = projectRootEntry.rootDirEntry.FindEntryByPath(false, append(components, "build.gradle.kts")...)
+			projectBuildScript = projectRootEntry.rootDirEntry.FindEntryByPathComponents(false, append(components, "build.gradle.kts")...)
 			if projectBuildScript != nil {
 				subprojects = append(subprojects, SubProject{
 					Name:                 include,
