@@ -92,23 +92,6 @@ func AndroidBuildStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitri
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
-func GradleRunnerStepListItem(gradlewPath, gradleTask string, additionalInputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(GradleRunnerID, GradleRunnerVersion)
-	return stepListItem(stepIDComposite, "", "",
-		append([]envmanModels.EnvironmentItemModel{
-			{"gradlew_path": gradlewPath},
-			{"gradle_task": gradleTask}},
-			additionalInputs...)...)
-}
-
-func GradleUnitTestStepListItem(gradlewPath string, additionalInputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(GradleUnitTestID, GradleUnitTestVersion)
-	return stepListItem(stepIDComposite, "", "",
-		append([]envmanModels.EnvironmentItemModel{
-			{"gradlew_path": gradlewPath},
-		}, additionalInputs...)...)
-}
-
 func GitCloneStepListItem() bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(GitCloneID, GitCloneVersion)
 	return stepListItem(stepIDComposite, "", "")
@@ -211,16 +194,34 @@ func KarmaJasmineTestRunnerStepListItem(inputs ...envmanModels.EnvironmentItemMo
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
-func NvmStepListItem(nodeVersion, workdir string) bitriseModels.StepListItemModel {
-	var inputs []envmanModels.EnvironmentItemModel
-	if nodeVersion != "" {
-		inputs = append(inputs, envmanModels.EnvironmentItemModel{"node_version": nodeVersion})
-	}
-	if workdir != "" {
-		inputs = append(inputs, envmanModels.EnvironmentItemModel{"working_dir": workdir})
-	}
+const (
+	asdfInstallScriptStepTitle   = "Install Node.js"
+	asdfInstallScriptStepContent = `#!/usr/bin/env bash
+set -euxo pipefail
 
-	stepIDComposite := stepIDComposite(NvmID, NvmVersion)
+export ASDF_NODEJS_LEGACY_FILE_DYNAMIC_STRATEGY=latest_installed
+envman add --key ASDF_NODEJS_LEGACY_FILE_DYNAMIC_STRATEGY --value latest_installed
+
+pushd "${NODEJS_PROJECT_DIR:-.}" > /dev/null
+
+# Bitrise stacks come with asdf pre-installed to help auto-switch between various software versions
+# asdf looks for the Node.js version in these files: .tool-versions, .nvmrc, .node-version
+# so it should work out-of-the-box even if the project uses another Node.js manager
+# See: https://github.com/asdf-vm/asdf-nodejs
+asdf install nodejs
+
+popd > /dev/null
+`
+)
+
+func ScriptStepListItem() bitriseModels.StepListItemModel {
+	var inputs []envmanModels.EnvironmentItemModel
+	inputs = append(inputs,
+		envmanModels.EnvironmentItemModel{"title": asdfInstallScriptStepTitle},
+		envmanModels.EnvironmentItemModel{"content": asdfInstallScriptStepContent},
+	)
+
+	stepIDComposite := stepIDComposite(ScriptID, ScriptVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
@@ -320,5 +321,10 @@ func AvdManagerStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitrise
 
 func WaitForAndroidEmulatorStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(WaitForAndroidEmulatorID, WaitForAndroidEmulatorVersion)
+	return stepListItem(stepIDComposite, "", "", inputs...)
+}
+
+func GradleRunnerStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(GradleRunnerID, GradleRunnerVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }

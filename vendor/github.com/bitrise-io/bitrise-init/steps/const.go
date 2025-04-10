@@ -21,16 +21,6 @@ const (
 )
 
 const (
-	GradleRunnerID      = "gradle-runner"
-	GradleRunnerVersion = "3"
-)
-
-const (
-	GradleUnitTestID      = "gradle-unit-test"
-	GradleUnitTestVersion = "1"
-)
-
-const (
 	GitCloneID      = "git-clone"
 	GitCloneVersion = "8"
 )
@@ -159,8 +149,8 @@ const (
 )
 
 const (
-	NvmID      = "nvm"
-	NvmVersion = "1"
+	ScriptID      = "script"
+	ScriptVersion = "1"
 )
 
 const (
@@ -223,4 +213,9 @@ const (
 const (
 	WaitForAndroidEmulatorID      = "wait-for-android-emulator"
 	WaitForAndroidEmulatorVersion = "1"
+)
+
+const (
+	GradleRunnerID      = "gradle-runner"
+	GradleRunnerVersion = "3"
 )

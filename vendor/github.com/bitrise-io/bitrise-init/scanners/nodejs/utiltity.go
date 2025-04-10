@@ -4,75 +4,18 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
-	"strings"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"github.com/bitrise-io/bitrise-init/utility"
-	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 )
-
-type nodeVersionResult struct {
-	version string
-	file    string
-}
 
 type checkScriptResult struct {
 	scripts                    []string
 	hasBuild, hasLint, hasTest bool
-}
-
-// Detection
-var nodeVersionFiles = []string{".nvmrc", ".node-version", ".tool-versions"}
-
-func checkNodeVersion(searchDir string) nodeVersionResult {
-	log.TPrintf("Checking Node version")
-
-	for _, fileName := range nodeVersionFiles {
-		versionFilePath := filepath.Join(searchDir, fileName)
-		hasVersionFile := utility.FileExists(versionFilePath)
-
-		if !hasVersionFile {
-			log.TPrintf("- %s - not found", fileName)
-			continue
-		}
-
-		log.TPrintf("- %s - found", fileName)
-		fileContent, err := fileutil.ReadStringFromFile(versionFilePath)
-		if err != nil {
-			log.TWarnf("Failed to read node version from %s", fileName)
-			continue
-		}
-
-		nodeVersion := strings.TrimSpace(fileContent)
-		if fileName == ".tool-versions" {
-			nodeVersion = getNodeVersionFromToolVersions(fileContent)
-		}
-
-		log.TPrintf("Node version: %s", nodeVersion)
-
-		return nodeVersionResult{
-			version: nodeVersion,
-			file:    fileName,
-		}
-	}
-
-	return nodeVersionResult{}
-}
-
-func getNodeVersionFromToolVersions(fileContent string) string {
-	lines := strings.Split(fileContent, "\n")
-	for _, line := range lines {
-		fields := strings.Fields(line)
-		if len(fields) == 2 && fields[0] == "nodejs" {
-			return fields[1]
-		}
-	}
-
-	return ""
 }
 
 func checkPackageManager(searchDir string) string {
@@ -108,7 +51,7 @@ func checkPackageScripts(packageJsonPath string) (checkScriptResult, error) {
 		return result, err
 	}
 
-	for name, _ := range packages.Scripts {
+	for name := range packages.Scripts {
 		log.TDebugf("- %s", name)
 		result.scripts = append(result.scripts, name)
 	}
@@ -139,34 +82,27 @@ func checkPackageScripts(packageJsonPath string) (checkScriptResult, error) {
 
 // Options & Configs
 type configDescriptor struct {
-	workdir     string
-	pkgManager  string
-	nodeVersion string
-	hasBuild    bool
-	hasLint     bool
-	hasTest     bool
-	isDefault   bool
+	workdir    string
+	pkgManager string
+	hasBuild   bool
+	hasLint    bool
+	hasTest    bool
+	isDefault  bool
 }
 
 func createConfigDescriptor(project project, isDefault bool) configDescriptor {
 	descriptor := configDescriptor{
-		workdir:     "$" + projectDirInputEnvKey,
-		nodeVersion: "$" + nodeVersionInputEnvKey,
-		pkgManager:  project.packageManager,
-		hasBuild:    project.hasBuild,
-		hasLint:     project.hasLint,
-		hasTest:     project.hasTest,
-		isDefault:   isDefault,
+		workdir:    "$" + projectDirInputEnvKey,
+		pkgManager: project.packageManager,
+		hasBuild:   project.hasBuild,
+		hasLint:    project.hasLint,
+		hasTest:    project.hasTest,
+		isDefault:  isDefault,
 	}
 
 	// package.json placed in the search dir, no need to change-dir
 	if project.projectRelDir == "." {
 		descriptor.workdir = ""
-	}
-
-	// Don't pin the Node version if the project uses .nvmrc
-	if project.usesNvmrc {
-		descriptor.nodeVersion = ""
 	}
 
 	return descriptor
@@ -175,9 +111,7 @@ func createConfigDescriptor(project project, isDefault bool) configDescriptor {
 func createDefaultConfigDescriptor(packageManager string) configDescriptor {
 	return createConfigDescriptor(project{
 		projectRelDir:  "$" + projectDirInputEnvKey,
-		nodeVersion:    "$" + nodeVersionInputEnvKey,
 		packageManager: packageManager,
-		usesNvmrc:      false,
 		hasBuild:       true,
 		hasLint:        true,
 		hasTest:        true,
@@ -197,10 +131,6 @@ func configName(params configDescriptor) string {
 
 	if params.workdir == "" {
 		name = name + "-root"
-	}
-
-	if params.nodeVersion == "" {
-		name = name + "-nvm"
 	}
 
 	if params.hasBuild {
@@ -235,13 +165,6 @@ func generateOptions(projects []project) (models.OptionNode, models.Warnings, mo
 func generateProjectOption(project project) models.OptionNode {
 	descriptor := createConfigDescriptor(project, false)
 
-	var nodeVersionOption *models.OptionNode
-	if project.nodeVersion != "" {
-		nodeVersionOption = models.NewOption(nodeVersionInputTitle, nodeVersionInputSummary, nodeVersionInputEnvKey, models.TypeSelector)
-	} else {
-		nodeVersionOption = models.NewOption(nodeVersionInputTitle, nodeVersionInputSummary, nodeVersionInputEnvKey, models.TypeOptionalUserInput)
-	}
-
 	packageManagerOption := models.NewOption(packageManagerInputTitle, packageManagerInputSummary, "", models.TypeSelector)
 	if project.packageManager != "" {
 		configOption := models.NewConfigOption(configName(descriptor), nil)
@@ -254,9 +177,7 @@ func generateProjectOption(project project) models.OptionNode {
 		}
 	}
 
-	nodeVersionOption.AddOption(project.nodeVersion, packageManagerOption)
-
-	return *nodeVersionOption
+	return *packageManagerOption
 }
 
 func generateConfigs(projects []project, sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
@@ -295,7 +216,7 @@ func generateConfigBasedOn(descriptor configDescriptor, sshKey models.SSHKeyActi
 	prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKey})
 	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, prepareSteps...)
 
-	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.NvmStepListItem(descriptor.nodeVersion, descriptor.workdir))
+	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.ScriptStepListItem())
 	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.RestoreNPMCache())
 
 	switch descriptor.pkgManager {
@@ -313,7 +234,6 @@ func generateConfigBasedOn(descriptor configDescriptor, sshKey models.SSHKeyActi
 		configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.NpmStepListItem("install", descriptor.workdir))
 		if descriptor.hasLint {
 			configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.NpmStepListItem("run lint", descriptor.workdir))
-
 		}
 		if descriptor.hasTest {
 			configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.NpmStepListItem("run test", descriptor.workdir))
