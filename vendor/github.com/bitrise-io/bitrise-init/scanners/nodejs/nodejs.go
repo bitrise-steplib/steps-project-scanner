@@ -18,10 +18,6 @@ const (
 	projectDirInputSummary = "The directory containing the package.json file"
 	projectDirInputEnvKey  = "NODEJS_PROJECT_DIR"
 
-	nodeVersionInputTitle   = "Node Version"
-	nodeVersionInputSummary = "The version of Node.js used in the project. Leave it empty to use the latest Node version"
-	nodeVersionInputEnvKey  = "NODEJS_VERSION"
-
 	packageManagerInputTitle   = "Package Manager"
 	packageManagerInputSummary = "The package manager used in the project"
 )
@@ -38,8 +34,6 @@ var pkgManagers = []packageManager{
 
 type project struct {
 	projectRelDir  string
-	nodeVersion    string
-	usesNvmrc      bool
 	packageManager string
 	scripts        []string
 	hasTest        bool
@@ -77,7 +71,6 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		// determine workdir
 		pkgJsonDir := filepath.Dir(packageJsonPath)
 
-		node := checkNodeVersion(pkgJsonDir)
 		pkgMgr := checkPackageManager(pkgJsonDir)
 		results, err := checkPackageScripts(packageJsonPath)
 		if err != nil {
@@ -94,8 +87,6 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		project := project{
 			projectRelDir:  projectRelDir,
 			packageManager: pkgMgr,
-			nodeVersion:    node.version,
-			usesNvmrc:      node.file == ".nvmrc",
 			scripts:        results.scripts,
 			hasTest:        results.hasTest,
 			hasLint:        results.hasLint,
@@ -131,7 +122,6 @@ func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (model
 // DefaultOptions returns the default options for the scanner
 func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	projectRootOption := models.NewOption(projectDirInputTitle, projectDirInputSummary, projectDirInputEnvKey, models.TypeUserInput)
-	nodeVersionOption := models.NewOption(nodeVersionInputTitle, nodeVersionInputSummary, nodeVersionInputEnvKey, models.TypeOptionalUserInput)
 	packageManagerOption := models.NewOption(packageManagerInputTitle, packageManagerInputSummary, "", models.TypeSelector)
 
 	for _, pkgMgr := range pkgManagers {
@@ -140,8 +130,7 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 		packageManagerOption.AddConfig(pkgMgr.name, configOption)
 	}
 
-	projectRootOption.AddOption(models.UserInputOptionDefaultValue, nodeVersionOption)
-	nodeVersionOption.AddOption(models.UserInputOptionDefaultValue, packageManagerOption)
+	projectRootOption.AddOption(models.UserInputOptionDefaultValue, packageManagerOption)
 
 	return *projectRootOption
 }
