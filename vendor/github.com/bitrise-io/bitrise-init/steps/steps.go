@@ -92,6 +92,23 @@ func AndroidBuildStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitri
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
+func GradleRunnerStepListItem(gradlewPath, gradleTask string, additionalInputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(GradleRunnerID, GradleRunnerVersion)
+	return stepListItem(stepIDComposite, "", "",
+		append([]envmanModels.EnvironmentItemModel{
+			{"gradlew_path": gradlewPath},
+			{"gradle_task": gradleTask}},
+			additionalInputs...)...)
+}
+
+func GradleUnitTestStepListItem(gradlewPath string, additionalInputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(GradleUnitTestID, GradleUnitTestVersion)
+	return stepListItem(stepIDComposite, "", "",
+		append([]envmanModels.EnvironmentItemModel{
+			{"gradlew_path": gradlewPath},
+		}, additionalInputs...)...)
+}
+
 func GitCloneStepListItem() bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(GitCloneID, GitCloneVersion)
 	return stepListItem(stepIDComposite, "", "")
@@ -216,13 +233,13 @@ popd > /dev/null
 
 func ScriptStepListItem() bitriseModels.StepListItemModel {
 	var inputs []envmanModels.EnvironmentItemModel
+
 	inputs = append(inputs,
-		envmanModels.EnvironmentItemModel{"title": asdfInstallScriptStepTitle},
 		envmanModels.EnvironmentItemModel{"content": asdfInstallScriptStepContent},
 	)
 
 	stepIDComposite := stepIDComposite(ScriptID, ScriptVersion)
-	return stepListItem(stepIDComposite, "", "", inputs...)
+	return stepListItem(stepIDComposite, asdfInstallScriptStepTitle, "", inputs...)
 }
 
 func NpmStepListItem(command, workdir string) bitriseModels.StepListItemModel {
@@ -321,10 +338,5 @@ func AvdManagerStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitrise
 
 func WaitForAndroidEmulatorStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(WaitForAndroidEmulatorID, WaitForAndroidEmulatorVersion)
-	return stepListItem(stepIDComposite, "", "", inputs...)
-}
-
-func GradleRunnerStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
-	stepIDComposite := stepIDComposite(GradleRunnerID, GradleRunnerVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
