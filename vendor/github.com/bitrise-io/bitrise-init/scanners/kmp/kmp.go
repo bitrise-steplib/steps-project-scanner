@@ -16,8 +16,6 @@ Relevant Gradle dependencies:
 	plugins:
 		org.jetbrains.kotlin.multiplatform -> kotlin("multiplatform")
 			This plugin is used to enable Kotlin Multiplatform projects, allowing you to share code between different platforms (e.g., JVM, JS, Native).
-		org.jetbrains.kotlin.plugin.compose -> kotlin("plugin.compose")
-			This plugin is used to add support for Jetpack Compose in Kotlin Multiplatform projects. It allows you to use Compose UI components across multiple platforms.
 */
 
 const (
@@ -81,9 +79,7 @@ func (s *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	log.TInfof("Searching for Kotlin Multiplatform dependencies...")
 	kotlinMultiplatformDetected, err := gradleProject.DetectAnyDependencies([]string{
 		"org.jetbrains.kotlin.multiplatform",
-		"org.jetbrains.kotlin.plugin.compose",
 		`kotlin("multiplatform")`,
-		`kotlin("plugin.compose")`,
 	})
 	if err != nil {
 		return false, err

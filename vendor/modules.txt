@@ -4,7 +4,7 @@ github.com/Masterminds/semver/v3
 # github.com/beevik/etree v1.2.0
 ## explicit; go 1.13
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise-init v0.0.0-20250411065858-1ac1a1c13466
+# github.com/bitrise-io/bitrise-init v0.0.0-20250425151033-e56c86db60db
 ## explicit; go 1.22.0
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/detectors/gradle
