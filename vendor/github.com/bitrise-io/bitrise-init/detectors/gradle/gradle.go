@@ -40,13 +40,8 @@ type Project struct {
 	AllBuildScriptFileEntries []direntry.DirEntry
 }
 
-func ScanProject(searchDir string) (*Project, error) {
-	rootEntry, err := direntry.WalkDir(searchDir, 6)
-	if err != nil {
-		return nil, err
-	}
-
-	projectRoot, err := detectGradleProjectRoot(*rootEntry)
+func ScanProject(projectRootDirEntry direntry.DirEntry) (*Project, error) {
+	projectRoot, err := detectGradleProjectRoot(projectRootDirEntry)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +154,7 @@ type gradleProjectRootEntry struct {
 }
 
 func detectGradleProjectRoot(searchDir direntry.DirEntry) (*gradleProjectRootEntry, error) {
-	gradlewFileEntry := searchDir.FindFirstEntryByName("gradlew", false)
+	gradlewFileEntry := searchDir.FindImmediateChildByName("gradlew", false)
 	if gradlewFileEntry == nil {
 		return nil, nil
 	}
@@ -250,9 +245,9 @@ func detectIncludedProjects(projectRootEntry gradleProjectRootEntry) (*includedP
 			} else {
 				log.TWarnf("Unable to find build script for %s", include)
 			}
-
-			projects.includedProjects = subprojects
 		}
+
+		projects.includedProjects = subprojects
 	}
 
 	return &projects, nil
