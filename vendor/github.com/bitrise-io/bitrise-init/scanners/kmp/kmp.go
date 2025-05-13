@@ -1,9 +1,12 @@
 package kmp
 
 import (
+	"fmt"
+
 	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/detectors/gradle"
+	"github.com/bitrise-io/bitrise-init/detectors/gradle/direntry"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/scanners/android"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
@@ -64,14 +67,28 @@ func printGradleProject(gradleProject gradle.Project) {
 func (s *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	log.TInfof("Searching for Gradle project files...")
 
-	gradleProject, err := gradle.ScanProject(searchDir)
+	rootEntry, err := direntry.WalkDir(searchDir, 6)
 	if err != nil {
 		return false, err
 	}
 
-	log.TDonef("Gradle project found: %v", gradleProject != nil)
-	if gradleProject == nil {
+	gradleWrapperScripts := rootEntry.FindAllEntriesByName("gradlew", false)
+
+	log.TDonef("%d Gradle project(s) found", len(gradleWrapperScripts))
+	if len(gradleWrapperScripts) == 0 {
 		return false, nil
+	}
+	gradleWrapperScript := gradleWrapperScripts[0]
+
+	log.TInfof("Scanning project with Gradle wrapper script: %s", gradleWrapperScript.AbsPath)
+
+	projectRootDir := gradleWrapperScript.Parent()
+	if projectRootDir == nil {
+		return false, fmt.Errorf("failed to get parent directory of %s", gradleWrapperScript.AbsPath)
+	}
+	gradleProject, err := gradle.ScanProject(*projectRootDir)
+	if err != nil {
+		return false, err
 	}
 
 	printGradleProject(*gradleProject)

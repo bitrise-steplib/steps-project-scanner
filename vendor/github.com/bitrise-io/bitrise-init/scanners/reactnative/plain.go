@@ -102,32 +102,26 @@ func (scanner *Scanner) options(project project) (models.OptionNode, models.Warn
 	)
 
 	// Android
-	if len(project.androidProjects) > 0 {
+	if project.androidProject != nil {
 		androidOptions := models.NewOption(android.ProjectLocationInputTitle, android.ProjectLocationInputSummary, android.ProjectLocationInputEnvKey, models.TypeSelector)
 		rootOption = *androidOptions
 
-		for _, androidProject := range project.androidProjects {
-			warnings = append(warnings, androidProject.Warnings...)
+		moduleOption := models.NewOption(android.ModuleInputTitle, android.ModuleInputSummary, android.ModuleInputEnvKey, models.TypeUserInput)
+		variantOption := models.NewOption(android.VariantInputTitle, android.VariantInputSummary, android.VariantInputEnvKey, models.TypeOptionalUserInput)
 
-			moduleOption := models.NewOption(android.ModuleInputTitle, android.ModuleInputSummary, android.ModuleInputEnvKey, models.TypeUserInput)
-			variantOption := models.NewOption(android.VariantInputTitle, android.VariantInputSummary, android.VariantInputEnvKey, models.TypeOptionalUserInput)
+		androidOptions.AddOption(project.androidProject.RootDirEntry.RelPath, moduleOption)
+		moduleOption.AddOption(defaultModule, variantOption)
 
-			androidOptions.AddOption(androidProject.RelPath, moduleOption)
-			moduleOption.AddOption(defaultModule, variantOption)
-
-			if len(project.iosProjects.Projects) == 0 {
-				descriptor := configDescriptor{
-					hasAndroid:      true,
-					hasTest:         project.hasTest,
-					hasYarnLockFile: project.hasYarnLockFile,
-				}
-				allDescriptors = append(allDescriptors, descriptor)
-
-				variantOption.AddConfig(defaultVariant, models.NewConfigOption(descriptor.configName(), nil))
-
-				continue
+		if len(project.iosProjects.Projects) == 0 {
+			descriptor := configDescriptor{
+				hasAndroid:      true,
+				hasTest:         project.hasTest,
+				hasYarnLockFile: project.hasYarnLockFile,
 			}
+			allDescriptors = append(allDescriptors, descriptor)
 
+			variantOption.AddConfig(defaultVariant, models.NewConfigOption(descriptor.configName(), nil))
+		} else {
 			iosOptions, iosWarnings, descriptors := generateIOSOptions(project.iosProjects, true, project.hasTest, project.hasYarnLockFile)
 			warnings = append(warnings, iosWarnings...)
 			allDescriptors = append(allDescriptors, descriptors...)

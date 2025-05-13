@@ -14,6 +14,15 @@ import (
 	"github.com/bitrise-io/go-utils/sliceutil"
 )
 
+// LookupIcons returns the largest resolution for all potential android icons.
+func LookupIcons(projectDir string, basepath string) (models.Icons, error) {
+	iconPaths, err := lookupIcons(projectDir)
+	if err != nil {
+		return nil, err
+	}
+	return utility.CreateIconDescriptors(iconPaths, basepath)
+}
+
 type icon struct {
 	prefix       string
 	fileNameBase string
@@ -74,7 +83,7 @@ func lookupIconPaths(resPth string, icon icon) ([]string, error) {
 	return nil, nil
 }
 
-func lookupIcons(projectDir string, basepath string) ([]string, error) {
+func lookupIcons(projectDir string) ([]string, error) {
 	variantPaths := filepath.Join(regexp.QuoteMeta(projectDir), "*", "src", "*")
 	manifestPaths, err := filepath.Glob(filepath.Join(variantPaths, "AndroidManifest.xml"))
 	if err != nil {
@@ -118,13 +127,4 @@ func lookupIcons(projectDir string, basepath string) ([]string, error) {
 		}
 	}
 	return sliceutil.UniqueStringSlice(iconPaths), nil
-}
-
-// LookupIcons returns the largest resolution for all potential android icons.
-func LookupIcons(projectDir string, basepath string) (models.Icons, error) {
-	iconPaths, err := lookupIcons(projectDir, basepath)
-	if err != nil {
-		return nil, err
-	}
-	return utility.CreateIconDescriptors(iconPaths, basepath)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/bitrise-io/bitrise-init/detectors/gradle"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/scanners/android"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
@@ -31,8 +32,8 @@ type project struct {
 	hasYarnLockFile bool
 
 	// non-Expo; native projects
-	iosProjects     ios.DetectResult
-	androidProjects []android.Project
+	iosProjects    ios.DetectResult
+	androidProject *gradle.Project
 }
 
 // Scanner implements the project scanner for plain React Native and Expo based projects.
@@ -94,7 +95,7 @@ func hasNativeIOSProject(projectDir string, iosScanner *ios.Scanner) (bool, ios.
 	return detected, iosScanner.DetectResult, err
 }
 
-func hasNativeAndroidProject(projectDir string, androidScanner *android.Scanner) (bool, []android.Project, error) {
+func hasNativeAndroidProject(projectDir string, androidScanner *android.Scanner) (bool, *gradle.Project, error) {
 	absProjectDir, err := pathutil.AbsPath(projectDir)
 	if err != nil {
 		return false, nil, err
@@ -108,11 +109,14 @@ func hasNativeAndroidProject(projectDir string, androidScanner *android.Scanner)
 	if detected, err := androidScanner.DetectPlatform(projectDir); err != nil || !detected {
 		return false, nil, err
 	}
+	if len(androidScanner.Results) == 0 {
+		return false, nil, err
+	}
 
-	return true, androidScanner.Projects, nil
+	return true, &(androidScanner.Results[0].GradleProject), nil
 }
 
-func getNativeProjects(packageJSONPth, relPackageJSONDir string) (ios.DetectResult, []android.Project) {
+func getNativeProjects(packageJSONPth, relPackageJSONDir string) (ios.DetectResult, *gradle.Project) {
 	var (
 		iosScanner     = ios.NewScanner()
 		androidScanner = android.NewScanner()
@@ -127,7 +131,7 @@ func getNativeProjects(packageJSONPth, relPackageJSONDir string) (ios.DetectResu
 	}
 	log.TPrintf("Found native ios project: %v", isIOSProject)
 
-	isAndroidProject, androidProjects, err := hasNativeAndroidProject(projectDir, androidScanner)
+	isAndroidProject, androidProject, err := hasNativeAndroidProject(projectDir, androidScanner)
 	if err != nil {
 		log.TWarnf("failed to check native Android projects: %s", err)
 	}
@@ -141,14 +145,9 @@ func getNativeProjects(packageJSONPth, relPackageJSONDir string) (ios.DetectResu
 	}
 	iosProjects.Projects = newIosProjects
 
-	var newAndroidProjects []android.Project
-	for _, p := range androidProjects {
-		p.RelPath = filepath.Join(relPackageJSONDir, p.RelPath)
-		newAndroidProjects = append(newAndroidProjects, p)
-	}
-	androidProjects = newAndroidProjects
+	androidProject.RootDirEntry.RelPath = filepath.Join(relPackageJSONDir, androidProject.RootDirEntry.RelPath)
 
-	return iosProjects, androidProjects
+	return iosProjects, androidProject
 }
 
 // DetectPlatform implements ScannerInterface.DetectPlatform function.
@@ -184,12 +183,12 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		}
 
 		var (
-			iosProjects     ios.DetectResult
-			androidProjects []android.Project
+			iosProjects    ios.DetectResult
+			androidProject *gradle.Project
 		)
 		if !isExpoBased {
-			iosProjects, androidProjects = getNativeProjects(packageJSONPth, relPackageJSONDir)
-			if len(iosProjects.Projects) == 0 && len(androidProjects) == 0 {
+			iosProjects, androidProject = getNativeProjects(packageJSONPth, relPackageJSONDir)
+			if len(iosProjects.Projects) == 0 && androidProject == nil {
 				continue
 			}
 		}
@@ -214,7 +213,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 			hasTest:         hasTests,
 			hasYarnLockFile: hasYarnLockFile,
 			iosProjects:     iosProjects,
-			androidProjects: androidProjects,
+			androidProject:  androidProject,
 		}
 
 		if isExpoBased {
