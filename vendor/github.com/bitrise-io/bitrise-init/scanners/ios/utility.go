@@ -4,16 +4,14 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
+	envmanModels "github.com/bitrise-io/envman/v2/models"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/go-xcode/xcodeproject/xcscheme"
-
-	envmanModels "github.com/bitrise-io/envman/v2/models"
+	"gopkg.in/yaml.v2"
 )
 
 const (

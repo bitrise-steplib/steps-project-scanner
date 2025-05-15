@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bitrise-io/bitrise-init/detectors/gradle/direntry"
+	"github.com/bitrise-io/bitrise-init/detectors/direntry"
 	"github.com/bitrise-io/go-utils/log"
 )
 

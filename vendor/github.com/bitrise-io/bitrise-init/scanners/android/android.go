@@ -10,9 +10,10 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/analytics"
+	"github.com/bitrise-io/bitrise-init/detectors/direntry"
 	"github.com/bitrise-io/bitrise-init/detectors/gradle"
-	"github.com/bitrise-io/bitrise-init/detectors/gradle/direntry"
 	"github.com/bitrise-io/bitrise-init/models"
+	"github.com/bitrise-io/bitrise-init/scanners/java"
 	"github.com/bitrise-io/bitrise-init/steps"
 	bitriseModels "github.com/bitrise-io/bitrise/v2/models"
 	envmanModels "github.com/bitrise-io/envman/v2/models"
@@ -102,7 +103,7 @@ func (scanner *Scanner) Name() string {
 
 // ExcludedScannerNames ...
 func (scanner *Scanner) ExcludedScannerNames() []string {
-	return nil
+	return []string{java.ProjectType}
 }
 
 type DetectResult struct {
@@ -122,7 +123,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 
 	gradleWrapperScripts := rootEntry.FindAllEntriesByName("gradlew", false)
 
-	log.TDonef("%d Gradle project(s) found", len(gradleWrapperScripts))
+	log.TDonef("%d Gradle wrapper script(s) found", len(gradleWrapperScripts))
 	if len(gradleWrapperScripts) == 0 {
 		return false, nil
 	}
@@ -141,6 +142,10 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 		gradleProject, err := gradle.ScanProject(*projectRootDir)
 		if err != nil {
 			return false, err
+		}
+		if gradleProject == nil {
+			log.TWarnf("No Gradle project found in %s", projectRootDir.AbsPath)
+			continue
 		}
 
 		printGradleProject(*gradleProject)

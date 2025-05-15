@@ -13,6 +13,26 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
+const (
+	asdfInstallScriptStepTitle   = "Install Node.js"
+	asdfInstallScriptStepContent = `#!/usr/bin/env bash
+set -euxo pipefail
+
+export ASDF_NODEJS_LEGACY_FILE_DYNAMIC_STRATEGY=latest_installed
+envman add --key ASDF_NODEJS_LEGACY_FILE_DYNAMIC_STRATEGY --value latest_installed
+
+pushd "${NODEJS_PROJECT_DIR:-.}" > /dev/null
+
+# Bitrise stacks come with asdf pre-installed to help auto-switch between various software versions
+# asdf looks for the Node.js version in these files: .tool-versions, .nvmrc, .node-version
+# so it should work out-of-the-box even if the project uses another Node.js manager
+# See: https://github.com/asdf-vm/asdf-nodejs
+asdf install nodejs
+
+popd > /dev/null
+`
+)
+
 type checkScriptResult struct {
 	scripts                    []string
 	hasBuild, hasLint, hasTest bool
@@ -216,7 +236,7 @@ func generateConfigBasedOn(descriptor configDescriptor, sshKey models.SSHKeyActi
 	prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKey})
 	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, prepareSteps...)
 
-	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.ScriptStepListItem())
+	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.ScriptStepListItem(asdfInstallScriptStepTitle, asdfInstallScriptStepContent))
 	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.RestoreNPMCache())
 
 	switch descriptor.pkgManager {
