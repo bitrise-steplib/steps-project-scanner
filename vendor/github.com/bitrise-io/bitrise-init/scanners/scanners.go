@@ -8,6 +8,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/flutter"
 	"github.com/bitrise-io/bitrise-init/scanners/ionic"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
+	"github.com/bitrise-io/bitrise-init/scanners/java"
 	"github.com/bitrise-io/bitrise-init/scanners/kmp"
 	"github.com/bitrise-io/bitrise-init/scanners/macos"
 	"github.com/bitrise-io/bitrise-init/scanners/nodejs"
@@ -81,6 +82,7 @@ func ProjectScanners() []ScannerInterface {
 		macos.NewScanner(),
 		android.NewScanner(),
 		nodejs.NewScanner(),
+		java.NewScanner(),
 	}
 }
 
