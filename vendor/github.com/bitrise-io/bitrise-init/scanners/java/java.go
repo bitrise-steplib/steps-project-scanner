@@ -44,7 +44,7 @@ set -o pipefail
 # debug log
 set -x
 
-./mvn test
+./mvnw test
 `
 )
 
