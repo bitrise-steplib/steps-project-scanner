@@ -47,7 +47,7 @@ func (builder *ConfigBuilderModel) AppendStepListItemsTo(workflow WorkflowID, it
 	workflowBuilder.appendStepListItems(items...)
 }
 
-// AppendStepListItemTo ...
+// SetGraphPipelineWorkflowTo ...
 func (builder *ConfigBuilderModel) SetGraphPipelineWorkflowTo(pipeline PipelineID, workflow WorkflowID, item bitriseModels.GraphPipelineWorkflowModel) {
 	pipelineBuilder := builder.pipelineBuilderMap[pipeline]
 	if pipelineBuilder == nil {

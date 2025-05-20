@@ -5,11 +5,12 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/bitrise-io/bitrise-init/detectors/direntry"
 	"github.com/bitrise-io/bitrise-init/detectors/gradle"
-	"github.com/bitrise-io/bitrise-init/detectors/gradle/direntry"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/scanners/android"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
+	"github.com/bitrise-io/bitrise-init/scanners/java"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"github.com/bitrise-io/go-utils/log"
 )
@@ -27,9 +28,9 @@ const (
 	defaultConfigName = "default-kotlin-multiplatform-config"
 	testWorkflowID    = "run_tests"
 
-	gradlewPathInputEnvKey  = "GRADLEW_PATH"
-	gradlewPathInputTitle   = "The project's Gradle Wrapper script (gradlew) path."
-	gradlewPathInputSummary = "The project's Gradle Wrapper script (gradlew) path."
+	gradleProjectRootDirInputEnvKey  = "PROJECT_ROOT_DIR"
+	gradleProjectRootDirInputTitle   = "The root directory of the Gradle project."
+	gradleProjectRootDirInputSummary = "The root directory of the Gradle project, which contains all source files from your project, as well as Gradle files, including the Gradle Wrapper (`gradlew`) file."
 )
 
 type Scanner struct {
@@ -74,7 +75,7 @@ func (s *Scanner) DetectPlatform(searchDir string) (bool, error) {
 
 	gradleWrapperScripts := rootEntry.FindAllEntriesByName("gradlew", false)
 
-	log.TDonef("%d Gradle project(s) found", len(gradleWrapperScripts))
+	log.TDonef("%d Gradle wrapper script(s) found", len(gradleWrapperScripts))
 	if len(gradleWrapperScripts) == 0 {
 		return false, nil
 	}
@@ -89,6 +90,10 @@ func (s *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	gradleProject, err := gradle.ScanProject(*projectRootDir)
 	if err != nil {
 		return false, err
+	}
+	if gradleProject == nil {
+		log.TWarnf("No Gradle project found in %s", projectRootDir.AbsPath)
+		return false, nil
 	}
 
 	printGradleProject(*gradleProject)
@@ -109,33 +114,36 @@ func (s *Scanner) DetectPlatform(searchDir string) (bool, error) {
 }
 
 func (s *Scanner) ExcludedScannerNames() []string {
-	return []string{android.ScannerName, string(ios.XcodeProjectTypeIOS)}
+	return []string{
+		android.ScannerName,
+		string(ios.XcodeProjectTypeIOS),
+		java.ProjectType,
+	}
 }
 
 func (s *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
-	gradlewPathOption := models.NewOption(gradlewPathInputTitle, gradlewPathInputSummary, gradlewPathInputEnvKey, models.TypeSelector)
+	gradleProjectRootDirOption := models.NewOption(gradleProjectRootDirInputTitle, gradleProjectRootDirInputSummary, gradleProjectRootDirInputEnvKey, models.TypeSelector)
 	configOption := models.NewConfigOption(configName, nil)
-	gradlewPathOption.AddConfig(s.gradleProject.GradlewFileEntry.RelPath, configOption)
-	return *gradlewPathOption, nil, nil, nil
+	gradleProjectRootDirOption.AddConfig(s.gradleProject.RootDirEntry.RelPath, configOption)
+	return *gradleProjectRootDirOption, nil, nil, nil
 }
 
 func (s *Scanner) DefaultOptions() models.OptionNode {
-	gradlewPathOption := models.NewOption(gradlewPathInputTitle, gradlewPathInputSummary, gradlewPathInputEnvKey, models.TypeUserInput)
+	gradleProjectRootDirOption := models.NewOption(gradleProjectRootDirInputTitle, gradleProjectRootDirInputSummary, gradleProjectRootDirInputEnvKey, models.TypeUserInput)
 	configOption := models.NewConfigOption(defaultConfigName, nil)
-	gradlewPathOption.AddConfig(models.UserInputOptionDefaultValue, configOption)
-	return *gradlewPathOption
+	gradleProjectRootDirOption.AddConfig(models.UserInputOptionDefaultValue, configOption)
+	return *gradleProjectRootDirOption
 }
 
 func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 
-	gradlewPath := "$" + gradlewPathInputEnvKey
-
+	gradleProjectRootDir := "$" + gradleProjectRootDirInputEnvKey
 	configBuilder.AppendStepListItemsTo(testWorkflowID,
 		steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKeyActivation})...,
 	)
 	configBuilder.AppendStepListItemsTo(testWorkflowID,
-		steps.GradleUnitTestStepListItem(gradlewPath),
+		steps.GradleUnitTestStepListItem(gradleProjectRootDir),
 	)
 	configBuilder.AppendStepListItemsTo(testWorkflowID,
 		steps.DefaultDeployStepList()...,
@@ -160,13 +168,12 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 
-	gradlewPath := "$" + gradlewPathInputEnvKey
-
+	gradleProjectRootDir := "$" + gradleProjectRootDirInputEnvKey
 	configBuilder.AppendStepListItemsTo(testWorkflowID,
 		steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: models.SSHKeyActivationConditional})...,
 	)
 	configBuilder.AppendStepListItemsTo(testWorkflowID,
-		steps.GradleUnitTestStepListItem(gradlewPath),
+		steps.GradleUnitTestStepListItem(gradleProjectRootDir),
 	)
 	configBuilder.AppendStepListItemsTo(testWorkflowID,
 		steps.DefaultDeployStepList()...,
