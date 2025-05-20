@@ -27,7 +27,7 @@ const (
 
 const (
 	GradleUnitTestID      = "gradle-unit-test"
-	GradleUnitTestVersion = "1"
+	GradleUnitTestVersion = "2"
 )
 
 const (

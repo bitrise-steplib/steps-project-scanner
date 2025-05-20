@@ -24,19 +24,19 @@ const (
 
 	testWorkflowID = "run_tests"
 
-	gradleConfigName        = "java-gradle-config"
-	defaultGradleConfigName = "default-java-gradle-config"
-	gradlewPathInputEnvKey  = "GRADLEW_PATH"
-	gradlewPathInputTitle   = "The project's Gradle Wrapper script (gradlew) path."
-	gradlewPathInputSummary = "The project's Gradle Wrapper script (gradlew) path."
+	gradleConfigName                 = "java-gradle-config"
+	defaultGradleConfigName          = "default-java-gradle-config"
+	gradleProjectRootDirInputEnvKey  = "PROJECT_ROOT_DIR"
+	gradleProjectRootDirInputTitle   = "The root directory of the Gradle project."
+	gradleProjectRootDirInputSummary = "The root directory of the Gradle project, which contains all source files from your project, as well as Gradle files, including the Gradle Wrapper (`gradlew`) file."
 
-	mavenConfigName              = "java-maven-config"
-	defaultMavenConfigName       = "default-java-maven-config"
-	mavenWrapperPathInputEnvKey  = "MAVEN_WRAPPER_PATH"
-	mavenWrapperPathInputTitle   = "The project's Maven Wrapper script (mvnw) path."
-	mavenWrapperPathInputSummary = "The project's Maven Wrapper script (mvnw) path."
-	mavenTestScriptTitle         = `Run Maven tests`
-	mavenTestScriptContent       = `#!/usr/bin/env bash
+	mavenConfigName                 = "java-maven-config"
+	defaultMavenConfigName          = "default-java-maven-config"
+	mavenProjectRootDirInputEnvKey  = "PROJECT_ROOT_DIR"
+	mavenProjectRootDirInputTitle   = "The root directory of the Maven project."
+	mavenProjectRootDirInputSummary = "The root directory of the Maven project, which contains all source files from your project, as well as Maven files, including the Maven Wrapper (`mvn`) file."
+	mavenTestScriptTitle            = `Run Maven tests`
+	mavenTestScriptContent          = `#!/usr/bin/env bash
 # fail if any commands fails
 set -e
 # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
@@ -44,7 +44,7 @@ set -o pipefail
 # debug log
 set -x
 
-$MAVEN_WRAPPER_PATH test
+./mvn test
 `
 )
 
@@ -132,17 +132,17 @@ func (s *Scanner) ExcludedScannerNames() []string {
 
 func (s *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
 	if s.gradleProject != nil {
-		gradlewPathOption := models.NewOption(gradlewPathInputTitle, gradlewPathInputSummary, gradlewPathInputEnvKey, models.TypeSelector)
+		gradleProjectRootDirOption := models.NewOption(gradleProjectRootDirInputTitle, gradleProjectRootDirInputSummary, gradleProjectRootDirInputEnvKey, models.TypeSelector)
 		configOption := models.NewConfigOption(gradleConfigName, nil)
-		gradlewPathOption.AddConfig(s.gradleProject.GradlewFileEntry.RelPath, configOption)
-		return *gradlewPathOption, nil, nil, nil
+		gradleProjectRootDirOption.AddConfig(s.gradleProject.RootDirEntry.RelPath, configOption)
+		return *gradleProjectRootDirOption, nil, nil, nil
 	}
 
 	if s.mavenProject != nil {
-		mavenWrapperPathOption := models.NewOption(mavenWrapperPathInputTitle, mavenWrapperPathInputSummary, mavenWrapperPathInputEnvKey, models.TypeSelector)
+		mavenProjectRootDirOption := models.NewOption(mavenProjectRootDirInputTitle, mavenProjectRootDirInputSummary, mavenProjectRootDirInputEnvKey, models.TypeSelector)
 		configOption := models.NewConfigOption(mavenConfigName, nil)
-		mavenWrapperPathOption.AddConfig(s.mavenProject.MavenWrapperFileEntry.RelPath, configOption)
-		return *mavenWrapperPathOption, nil, nil, nil
+		mavenProjectRootDirOption.AddConfig(s.mavenProject.RootDirEntry.RelPath, configOption)
+		return *mavenProjectRootDirOption, nil, nil, nil
 	}
 
 	return models.OptionNode{}, nil, nil, nil
@@ -151,17 +151,17 @@ func (s *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, e
 func (s *Scanner) DefaultOptions() models.OptionNode {
 	buildToolOption := models.NewOption(buildToolInputTitle, buildToolInputSummary, "", models.TypeSelector)
 
-	gradlewPathOption := models.NewOption(gradlewPathInputTitle, gradlewPathInputSummary, gradlewPathInputEnvKey, models.TypeUserInput)
-	buildToolOption.AddOption(buildToolGradle, gradlewPathOption)
+	gradleProjectRootDirOption := models.NewOption(gradleProjectRootDirInputTitle, gradleProjectRootDirInputSummary, gradleProjectRootDirInputEnvKey, models.TypeUserInput)
+	buildToolOption.AddOption(buildToolGradle, gradleProjectRootDirOption)
 
 	gradleConfigOption := models.NewConfigOption(defaultGradleConfigName, nil)
-	gradlewPathOption.AddConfig("", gradleConfigOption)
+	gradleProjectRootDirOption.AddConfig(models.UserInputOptionDefaultValue, gradleConfigOption)
 
-	mavenWrapperPathOption := models.NewOption(mavenWrapperPathInputTitle, mavenWrapperPathInputSummary, mavenWrapperPathInputEnvKey, models.TypeUserInput)
-	buildToolOption.AddOption(buildToolMaven, mavenWrapperPathOption)
+	mavenProjectRootDirOption := models.NewOption(mavenProjectRootDirInputTitle, mavenProjectRootDirInputSummary, mavenProjectRootDirInputEnvKey, models.TypeUserInput)
+	buildToolOption.AddOption(buildToolMaven, mavenProjectRootDirOption)
 
 	mavenConfigOption := models.NewConfigOption(defaultMavenConfigName, nil)
-	mavenWrapperPathOption.AddConfig("", mavenConfigOption)
+	mavenProjectRootDirOption.AddConfig(models.UserInputOptionDefaultValue, mavenConfigOption)
 
 	return *buildToolOption
 }
@@ -171,12 +171,12 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 	bitriseDataMap := models.BitriseConfigMap{}
 
 	if s.gradleProject != nil {
-		gradlewPath := "$" + gradlewPathInputEnvKey
+		gradleProjectRootDir := "$" + gradleProjectRootDirInputEnvKey
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
 			steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKeyActivation})...,
 		)
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
-			steps.GradleUnitTestStepListItem(gradlewPath),
+			steps.GradleUnitTestStepListItem(gradleProjectRootDir),
 		)
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
 			steps.DefaultDeployStepList()...,
@@ -196,12 +196,13 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 	}
 
 	if s.mavenProject != nil {
+		mavenProjectRootDir := "$" + mavenProjectRootDirInputEnvKey
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
 			steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKeyActivation})...,
 		)
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
 			steps.ScriptStepListItem(mavenTestScriptTitle, mavenTestScriptContent, envmanModels.EnvironmentItemModel{
-				"working_dir": s.mavenProject.RootDirEntry.RelPath,
+				"working_dir": mavenProjectRootDir,
 			}),
 		)
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
@@ -228,12 +229,12 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	{
 		configBuilder := models.NewDefaultConfigBuilder()
 
-		gradlewPath := "$" + gradlewPathInputEnvKey
+		gradleProjectRootDir := "$" + gradleProjectRootDirInputEnvKey
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
 			steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: models.SSHKeyActivationConditional})...,
 		)
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
-			steps.GradleUnitTestStepListItem(gradlewPath),
+			steps.GradleUnitTestStepListItem(gradleProjectRootDir),
 		)
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
 			steps.DefaultDeployStepList()...,
@@ -253,11 +254,14 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	{
 		configBuilder := models.NewDefaultConfigBuilder()
 
+		mavenProjectRootDir := "$" + mavenProjectRootDirInputEnvKey
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
 			steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: models.SSHKeyActivationConditional})...,
 		)
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
-			steps.ScriptStepListItem(mavenTestScriptTitle, mavenTestScriptContent),
+			steps.ScriptStepListItem(mavenTestScriptTitle, mavenTestScriptContent, envmanModels.EnvironmentItemModel{
+				"working_dir": mavenProjectRootDir,
+			}),
 		)
 		configBuilder.AppendStepListItemsTo(testWorkflowID,
 			steps.DefaultDeployStepList()...,
