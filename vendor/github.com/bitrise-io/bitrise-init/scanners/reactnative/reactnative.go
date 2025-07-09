@@ -146,7 +146,9 @@ func getNativeProjects(packageJSONPth, relPackageJSONDir string) (ios.DetectResu
 	}
 	iosProjects.Projects = newIosProjects
 
-	androidProject.RootDirEntry.RelPath = filepath.Join(relPackageJSONDir, androidProject.RootDirEntry.RelPath)
+	if androidProject != nil {
+		androidProject.RootDirEntry.RelPath = filepath.Join(relPackageJSONDir, androidProject.RootDirEntry.RelPath)
+	}
 
 	return iosProjects, androidProject
 }
