@@ -92,11 +92,11 @@ func AndroidBuildStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitri
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
-func GradleRunnerStepListItem(gradlewPath, gradleTask string, additionalInputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+func GradleRunnerStepListItem(buildDir, gradleTask string, additionalInputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(GradleRunnerID, GradleRunnerVersion)
 	return stepListItem(stepIDComposite, "", "",
 		append([]envmanModels.EnvironmentItemModel{
-			{"gradlew_path": gradlewPath},
+			{"build_root_directory": buildDir},
 			{"gradle_task": gradleTask}},
 			additionalInputs...)...)
 }

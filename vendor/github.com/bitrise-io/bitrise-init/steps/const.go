@@ -22,7 +22,7 @@ const (
 
 const (
 	GradleRunnerID      = "gradle-runner"
-	GradleRunnerVersion = "3"
+	GradleRunnerVersion = "4"
 )
 
 const (
