@@ -394,7 +394,7 @@ func (scanner *Scanner) generateConfigBuilder(sshKeyActivation models.SSHKeyActi
 	configBuilder.AppendStepListItemsTo(runInstrumentedTestsWorkflowID, steps.AvdManagerStepListItem())
 	configBuilder.AppendStepListItemsTo(runInstrumentedTestsWorkflowID, steps.WaitForAndroidEmulatorStepListItem())
 	configBuilder.AppendStepListItemsTo(runInstrumentedTestsWorkflowID, steps.GradleRunnerStepListItem(
-		gradlewPath,
+		projectLocationEnv,
 		fmt.Sprintf("connectedAndroidTest \\\n  -Pandroid.testInstrumentationRunnerArguments.numShards=$%s \\\n  -Pandroid.testInstrumentationRunnerArguments.shardIndex=$%s",
 			ParallelTotalEnvKey,
 			ParallelIndexEnvKey,
