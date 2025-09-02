@@ -50,6 +50,11 @@ func (e DirEntry) FindFirstEntryByName(name string, isDir bool) *DirEntry {
 	return recursiveFindFirstEntryByName([]DirEntry{e}, name, isDir)
 }
 
+// FindFirstFileEntryByExtension returns the first file entry (shortest file path) with the specified extension.
+func (e DirEntry) FindFirstFileEntryByExtension(extension string) *DirEntry {
+	return recursiveFindFirstFileEntryByExtension([]DirEntry{e}, extension)
+}
+
 // FindImmediateChildByName returns the immediate child entry with the specified name and directory status.
 func (e DirEntry) FindImmediateChildByName(name string, isDir bool) *DirEntry {
 	for _, entry := range e.entries {
@@ -103,6 +108,26 @@ func recursiveFindFirstEntryByName(dirEntries []DirEntry, name string, isDir boo
 	}
 
 	return recursiveFindFirstEntryByName(nextDirEntries, name, isDir)
+}
+
+func recursiveFindFirstFileEntryByExtension(dirEntries []DirEntry, extension string) *DirEntry {
+	if len(dirEntries) == 0 {
+		return nil
+	}
+
+	var nextDirEntries []DirEntry
+	for _, dirEntry := range dirEntries {
+		for _, entry := range dirEntry.entries {
+			if filepath.Ext(entry.Name) == extension {
+				return &entry
+			}
+			if entry.IsDir {
+				nextDirEntries = append(nextDirEntries, entry)
+			}
+		}
+	}
+
+	return recursiveFindFirstFileEntryByExtension(nextDirEntries, extension)
 }
 
 func recursiveFindAllEntriesByName(dirEntries []DirEntry, matchingDirEntries []DirEntry, name string, isDir bool) []DirEntry {
