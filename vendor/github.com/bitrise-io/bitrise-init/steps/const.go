@@ -39,15 +39,15 @@ const (
 	CacheRestoreGradleID         = "restore-gradle-cache"
 	CacheRestoreGradleVersion    = "2"
 	CacheRestoreCocoapodsID      = "restore-cocoapods-cache"
-	CacheRestoreCocoapodsVersion = "1"
+	CacheRestoreCocoapodsVersion = "2"
 	CacheRestoreCarthageID       = "restore-carthage-cache"
-	CacheRestoreCarthageVersion  = "1"
+	CacheRestoreCarthageVersion  = "2"
 	CacheRestoreNPMID            = "restore-npm-cache"
 	CacheRestoreNPMVersion       = "2"
 	CacheRestoreSPMID            = "restore-spm-cache"
-	CacheRestoreSPMVersion       = "1"
+	CacheRestoreSPMVersion       = "2"
 	CacheRestoreDartID           = "restore-dart-cache"
-	CacheRestoreDartVersion      = "1"
+	CacheRestoreDartVersion      = "2"
 
 	CacheSaveGradleID         = "save-gradle-cache"
 	CacheSaveGradleVersion    = "1"
@@ -61,6 +61,9 @@ const (
 	CacheSaveSPMVersion       = "1"
 	CacheSaveDartID           = "save-dart-cache"
 	CacheSaveDartVersion      = "1"
+
+	ActivateBuildCacheForGradleID      = "activate-build-cache-for-gradle"
+	ActivateBuildCacheForGradleVersion = "2"
 )
 
 const (
@@ -80,7 +83,7 @@ const (
 
 const (
 	SignAPKID      = "sign-apk"
-	SignAPKVersion = "1"
+	SignAPKVersion = "2"
 )
 
 const (

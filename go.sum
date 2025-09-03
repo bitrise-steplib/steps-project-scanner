@@ -4,8 +4,8 @@ github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/beevik/etree v1.2.0 h1:l7WETslUG/T+xOPs47dtd6jov2Ii/8/OjCldk5fYfQw=
 github.com/beevik/etree v1.2.0/go.mod h1:aiPf89g/1k3AShMVAzriilpcE4R/Vuor90y83zVZWFc=
-github.com/bitrise-io/bitrise-init v0.0.0-20250901090610-01cf64354a55 h1:al0M0VMMgjT1vYX4du2x8S5ncLJCFSl740VTSagk2W8=
-github.com/bitrise-io/bitrise-init v0.0.0-20250901090610-01cf64354a55/go.mod h1:EGPy+4noRCmWkdnX13lbwPbz6eUbqjfQLf9mpvN1ubI=
+github.com/bitrise-io/bitrise-init v0.0.0-20250903112050-e22cef00fbf9 h1:uMBtsQL++PTKaNgtehUmJ6IZ3WpGYi6v1W65eHaqd7g=
+github.com/bitrise-io/bitrise-init v0.0.0-20250903112050-e22cef00fbf9/go.mod h1:EGPy+4noRCmWkdnX13lbwPbz6eUbqjfQLf9mpvN1ubI=
 github.com/bitrise-io/bitrise/v2 v2.30.5 h1:ez1NfLMa8OyO4EfHdRvYDjY2og6GAQv8RJczu75nDK8=
 github.com/bitrise-io/bitrise/v2 v2.30.5/go.mod h1:GQv5foBoO8bmyyybHZIEqMeF9vxT9LfJmOASZ6RWKHI=
 github.com/bitrise-io/envman v0.0.0-20230802102824-1300c57d49c4 h1:idT9p2ISMoW5SOz2ow3jWzxVNc4DkNreLeoTk8BGPHg=

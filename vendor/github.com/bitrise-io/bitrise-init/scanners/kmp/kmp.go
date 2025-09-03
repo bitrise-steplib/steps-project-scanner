@@ -26,14 +26,53 @@ Relevant Gradle dependencies:
 */
 
 const (
-	projectType       = "kotlin-multiplatform"
-	configName        = "kotlin-multiplatform-config"
-	defaultConfigName = "default-kotlin-multiplatform-config"
-	testWorkflowID    = "run_tests"
+	projectType = "kotlin-multiplatform"
+)
 
+// KMP project common options
+const (
 	gradleProjectRootDirInputEnvKey  = "PROJECT_ROOT_DIR"
-	gradleProjectRootDirInputTitle   = "The root directory of the Gradle project."
-	gradleProjectRootDirInputSummary = "The root directory of the Gradle project, which contains all source files from your project, as well as Gradle files, including the Gradle Wrapper (`gradlew`) file."
+	gradleProjectRootDirInputTitle   = "The root directory of the Kotlin Multiplatform project."
+	gradleProjectRootDirInputSummary = "The root directory of the Kotlin Multiplatform project, which contains all source files from your project, as well as Gradle files, including the Gradle Wrapper (gradlew) file."
+)
+
+// Android App project options
+const (
+	moduleInputTitle                  = "Android Application Module"
+	moduleInputSummary                = "The name of the Android application module to build."
+	variantInputTitle                 = "Android Application Variant"
+	variantInputSummary               = "The name of the Android application variant to build."
+	hasAndroidApplicationInputTitle   = "Has Android Application target?"
+	HasAndroidApplicationInputSummary = "Indicates whether the project contains an Android Application target."
+)
+
+// iOS App project options
+const (
+	projectPathInputTitle          = "iOS Application Project or Workspace path"
+	projectPathInputSummary        = "The path of iOS application Xcode project or workspace to build."
+	schemeInputTitle               = "iOS Application Scheme"
+	schemeInputSummary             = "The name of the iOS application scheme to build."
+	distributionMethodInputTitle   = "iOS Application Distribution method"
+	distributionMethodInputSummary = "The export method to use to build the iOS application IPA file."
+	hasIOSApplicationInputTitle    = "Has iOS Application target?"
+	hasIOSApplicationInputSummary  = "Indicates whether the project contains an iOS Application target."
+)
+
+// Config names
+const (
+	configName                                    = "kotlin-multiplatform-config"
+	defaultConfigName                             = "default-kotlin-multiplatform-config"
+	defaultConfigNameWithAndroidAndIOSApplication = "default-kotlin-multiplatform-config-android-ios"
+	defaultConfigNameWithAndroidApplication       = "default-kotlin-multiplatform-config-android"
+	defaultConfigNameWithIOSApplication           = "default-kotlin-multiplatform-config-ios"
+)
+
+// Workflow and Pipeline IDs
+const (
+	testWorkflowID         = "run_tests"
+	androidBuildWorkflowID = "android_build"
+	iosBuildWorkflowID     = "ios_build"
+	buildPipelineID        = "build"
 )
 
 type Scanner struct {
@@ -109,10 +148,10 @@ func (s *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, e
 	var nextOption models.OptionNode
 	var nextOptionValue string
 	if s.kmpProject.AndroidAppDetectResult != nil {
-		moduleOption := models.NewOption(android.ModuleInputTitle, android.ModuleInputSummary, android.ModuleInputEnvKey, models.TypeSelector)
+		moduleOption := models.NewOption(moduleInputTitle, moduleInputSummary, android.ModuleInputEnvKey, models.TypeSelector)
 		gradleProjectRootDirOption.AddOption(s.kmpProject.GradleProject.RootDirEntry.RelPath, moduleOption)
 
-		variantOption := models.NewOption(android.VariantInputTitle, android.VariantInputSummary, android.VariantInputEnvKey, models.TypeOptionalUserInput)
+		variantOption := models.NewOption(variantInputTitle, variantInputSummary, android.VariantInputEnvKey, models.TypeOptionalUserInput)
 		moduleOption.AddOption(s.kmpProject.AndroidAppDetectResult.Modules[0].ModulePath, variantOption)
 
 		nextOption = *variantOption
@@ -123,14 +162,14 @@ func (s *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, e
 	}
 
 	if s.kmpProject.IOSAppDetectResult != nil {
-		projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeSelector)
+		projectPathOption := models.NewOption(projectPathInputTitle, projectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeSelector)
 		nextOption.AddOption(nextOptionValue, projectPathOption)
 
-		schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeSelector)
+		schemeOption := models.NewOption(schemeInputTitle, schemeInputSummary, ios.SchemeInputEnvKey, models.TypeSelector)
 		projectPathOption.AddOption(s.kmpProject.IOSAppDetectResult.Projects[0].RelPath, schemeOption)
 
 		for _, scheme := range s.kmpProject.IOSAppDetectResult.Projects[0].Schemes {
-			exportMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
+			exportMethodOption := models.NewOption(distributionMethodInputTitle, distributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
 			schemeOption.AddOption(scheme.Name, exportMethodOption)
 
 			for _, exportMethod := range ios.IosExportMethods {
@@ -148,69 +187,69 @@ func (s *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, e
 
 func (s *Scanner) DefaultOptions() models.OptionNode {
 	gradleProjectRootDirOption := models.NewOption(gradleProjectRootDirInputTitle, gradleProjectRootDirInputSummary, gradleProjectRootDirInputEnvKey, models.TypeUserInput)
-	hasAndroidAppTarget := models.NewOption("Has Android app target?", "Indicates whether the project contains an Android app target.", "", models.TypeSelector)
+	hasAndroidAppTarget := models.NewOption(hasAndroidApplicationInputTitle, HasAndroidApplicationInputSummary, "", models.TypeSelector)
 	gradleProjectRootDirOption.AddOption(models.UserInputOptionDefaultValue, hasAndroidAppTarget)
 
 	// Has Android app target
 	{
-		moduleOption := models.NewOption(android.ModuleInputTitle, android.ModuleInputSummary, android.ModuleInputEnvKey, models.TypeUserInput)
+		moduleOption := models.NewOption(moduleInputTitle, moduleInputSummary, android.ModuleInputEnvKey, models.TypeUserInput)
 		hasAndroidAppTarget.AddOption("yes", moduleOption)
 
-		variantOption := models.NewOption(android.VariantInputTitle, android.VariantInputSummary, android.VariantInputEnvKey, models.TypeOptionalUserInput)
+		variantOption := models.NewOption(variantInputTitle, variantInputSummary, android.VariantInputEnvKey, models.TypeOptionalUserInput)
 		moduleOption.AddOption("", variantOption)
 
-		hasIosAppTarget := models.NewOption("Has iOS app target?", "Indicates whether the project contains an iOS app target.", "", models.TypeSelector)
+		hasIosAppTarget := models.NewOption(hasIOSApplicationInputTitle, hasIOSApplicationInputSummary, "", models.TypeSelector)
 		variantOption.AddOption("", hasIosAppTarget)
 
 		// Has iOS app target
 		{
-			projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeUserInput)
+			projectPathOption := models.NewOption(projectPathInputTitle, projectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeUserInput)
 			hasIosAppTarget.AddOption("yes", projectPathOption)
 
-			schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
+			schemeOption := models.NewOption(schemeInputTitle, schemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
 			projectPathOption.AddOption("", schemeOption)
 
-			exportMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
+			exportMethodOption := models.NewOption(distributionMethodInputTitle, distributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
 			schemeOption.AddOption("", exportMethodOption)
 
 			for _, exportMethod := range ios.IosExportMethods {
-				configOption := models.NewConfigOption("default-kotlin-multiplatform-config-android-ios", nil)
+				configOption := models.NewConfigOption(defaultConfigNameWithAndroidAndIOSApplication, nil)
 				exportMethodOption.AddConfig(exportMethod, configOption)
 			}
 		}
 
 		// Has no iOS app target
 		{
-			configOption := models.NewConfigOption("default-kotlin-multiplatform-config-android", nil)
+			configOption := models.NewConfigOption(defaultConfigNameWithAndroidApplication, nil)
 			hasIosAppTarget.AddConfig("no", configOption)
 		}
 	}
 
 	// Has no Android app target
 	{
-		hasIosAppTarget := models.NewOption("Has iOS app target?", "Indicates whether the project contains an iOS app target.", "", models.TypeSelector)
+		hasIosAppTarget := models.NewOption(hasIOSApplicationInputTitle, hasIOSApplicationInputSummary, "", models.TypeSelector)
 		hasAndroidAppTarget.AddOption("no", hasIosAppTarget)
 
 		// Has iOS app target
 		{
-			projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeUserInput)
+			projectPathOption := models.NewOption(projectPathInputTitle, projectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeUserInput)
 			hasIosAppTarget.AddOption("yes", projectPathOption)
 
-			schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
+			schemeOption := models.NewOption(schemeInputTitle, schemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
 			projectPathOption.AddOption("", schemeOption)
 
-			exportMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
+			exportMethodOption := models.NewOption(distributionMethodInputTitle, distributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
 			schemeOption.AddOption("", exportMethodOption)
 
 			for _, exportMethod := range ios.IosExportMethods {
-				configOption := models.NewConfigOption("default-kotlin-multiplatform-config-ios", nil)
+				configOption := models.NewConfigOption(defaultConfigNameWithIOSApplication, nil)
 				exportMethodOption.AddConfig(exportMethod, configOption)
 			}
 		}
 
 		// Has no iOS app target
 		{
-			configOption := models.NewConfigOption("default-kotlin-multiplatform-config", nil)
+			configOption := models.NewConfigOption(defaultConfigName, nil)
 			hasIosAppTarget.AddConfig("no", configOption)
 		}
 	}
@@ -231,6 +270,7 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 
 		// Cache setup steps
 		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.RestoreGradleCache())
+		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Test step
 		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.GradleUnitTestStepListItem("$"+gradleProjectRootDirInputEnvKey))
@@ -243,7 +283,6 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 	}
 
 	// Android build workflow
-	androidBuildWorkflowID := models.WorkflowID("android_build")
 	if s.kmpProject.AndroidAppDetectResult != nil {
 		// Repository clone steps
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
@@ -252,6 +291,7 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 
 		// Cache setup steps
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.RestoreGradleCache())
+		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Build step
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.AndroidBuildStepListItem(
@@ -259,6 +299,7 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 			envmanModels.EnvironmentItemModel{android.ModuleInputKey: "$" + android.ModuleInputEnvKey},
 			envmanModels.EnvironmentItemModel{android.VariantInputKey: "$" + android.VariantInputEnvKey},
 		))
+		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.SignAPKStepListItem())
 
 		// Cache teardown steps
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.SaveGradleCache())
@@ -268,7 +309,6 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 	}
 
 	// iOS build workflow
-	iosBuildWorkflowID := models.WorkflowID("ios_build")
 	if s.kmpProject.IOSAppDetectResult != nil {
 		// Repository clone steps
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
@@ -279,18 +319,17 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 		if s.kmpProject.IOSAppDetectResult.HasSPMDependencies {
 			configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.RestoreSPMCache())
 		}
-
 		if s.kmpProject.IOSAppDetectResult.Projects[0].IsPodWorkspace {
 			configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.RestoreCocoapodsCache())
 			configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.CocoapodsInstallStepListItem())
 		}
-
 		if s.kmpProject.IOSAppDetectResult.Projects[0].CarthageCommand != "" {
 			configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.RestoreCarthageCache())
 			configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.CarthageStepListItem(
 				envmanModels.EnvironmentItemModel{ios.CarthageCommandInputKey: s.kmpProject.IOSAppDetectResult.Projects[0].CarthageCommand},
 			))
 		}
+		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Build step
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.XcodeArchiveStepListItem(
@@ -317,9 +356,8 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 	}
 
 	if s.kmpProject.AndroidAppDetectResult != nil && s.kmpProject.IOSAppDetectResult != nil {
-		pipelineID := models.PipelineID("build")
-		configBuilder.SetGraphPipelineWorkflowTo(pipelineID, androidBuildWorkflowID, bitriseModels.GraphPipelineWorkflowModel{})
-		configBuilder.SetGraphPipelineWorkflowTo(pipelineID, iosBuildWorkflowID, bitriseModels.GraphPipelineWorkflowModel{})
+		configBuilder.SetGraphPipelineWorkflowTo(buildPipelineID, androidBuildWorkflowID, bitriseModels.GraphPipelineWorkflowModel{})
+		configBuilder.SetGraphPipelineWorkflowTo(buildPipelineID, iosBuildWorkflowID, bitriseModels.GraphPipelineWorkflowModel{})
 	}
 
 	config, err := configBuilder.Generate(projectType)
@@ -354,6 +392,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		// Cache setup steps
 		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.RestoreGradleCache())
+		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Test step
 		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.GradleUnitTestStepListItem("$"+gradleProjectRootDirInputEnvKey))
@@ -374,7 +413,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			return models.BitriseConfigMap{}, err
 		}
 
-		bitriseDataMap["default-kotlin-multiplatform-config"] = string(data)
+		bitriseDataMap[defaultConfigName] = string(data)
 	}
 
 	// Android and no iOS config
@@ -391,6 +430,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		// Cache setup steps
 		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.RestoreGradleCache())
+		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Test step
 		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.GradleUnitTestStepListItem("$"+gradleProjectRootDirInputEnvKey))
@@ -403,7 +443,6 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		//
 		// Android build workflow
-		androidBuildWorkflowID := models.WorkflowID("android_build")
 
 		// Repository clone steps
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
@@ -412,6 +451,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		// Cache setup steps
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.RestoreGradleCache())
+		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Build step
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.AndroidBuildStepListItem(
@@ -419,6 +459,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			envmanModels.EnvironmentItemModel{android.ModuleInputKey: "$" + android.ModuleInputEnvKey},
 			envmanModels.EnvironmentItemModel{android.VariantInputKey: "$" + android.VariantInputEnvKey},
 		))
+		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.SignAPKStepListItem())
 
 		// Cache teardown steps
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.SaveGradleCache())
@@ -436,7 +477,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			return models.BitriseConfigMap{}, err
 		}
 
-		bitriseDataMap["default-kotlin-multiplatform-config-android"] = string(data)
+		bitriseDataMap[defaultConfigNameWithAndroidApplication] = string(data)
 	}
 
 	// iOS and no Android config
@@ -453,6 +494,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		// Cache setup steps
 		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.RestoreGradleCache())
+		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Test step
 		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.GradleUnitTestStepListItem("$"+gradleProjectRootDirInputEnvKey))
@@ -465,12 +507,14 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		//
 		// iOS build workflow
-		iosBuildWorkflowID := models.WorkflowID("ios_build")
 
 		// Repository clone steps
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
 			SSHKeyActivation: models.SSHKeyActivationConditional,
 		})...)
+
+		// Cache setup step
+		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Build step
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.XcodeArchiveStepListItem(
@@ -494,7 +538,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			return models.BitriseConfigMap{}, err
 		}
 
-		bitriseDataMap["default-kotlin-multiplatform-config-ios"] = string(data)
+		bitriseDataMap[defaultConfigNameWithIOSApplication] = string(data)
 	}
 
 	// Android and iOS config
@@ -511,6 +555,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		// Cache setup steps
 		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.RestoreGradleCache())
+		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Test step
 		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.GradleUnitTestStepListItem("$"+gradleProjectRootDirInputEnvKey))
@@ -523,7 +568,6 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		//
 		// Android build workflow
-		androidBuildWorkflowID := models.WorkflowID("android_build")
 
 		// Repository clone steps
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
@@ -532,6 +576,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		// Cache setup steps
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.RestoreGradleCache())
+		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Build step
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.AndroidBuildStepListItem(
@@ -539,6 +584,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			envmanModels.EnvironmentItemModel{android.ModuleInputKey: "$" + android.ModuleInputEnvKey},
 			envmanModels.EnvironmentItemModel{android.VariantInputKey: "$" + android.VariantInputEnvKey},
 		))
+		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.SignAPKStepListItem())
 
 		// Cache teardown steps
 		configBuilder.AppendStepListItemsTo(androidBuildWorkflowID, steps.SaveGradleCache())
@@ -548,12 +594,14 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 
 		//
 		// iOS build workflow
-		iosBuildWorkflowID := models.WorkflowID("ios_build")
 
 		// Repository clone steps
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
 			SSHKeyActivation: models.SSHKeyActivationConditional,
 		})...)
+
+		// Cache setup step
+		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Build step
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.XcodeArchiveStepListItem(
@@ -577,7 +625,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			return models.BitriseConfigMap{}, err
 		}
 
-		bitriseDataMap["default-kotlin-multiplatform-config-android-ios"] = string(data)
+		bitriseDataMap[defaultConfigNameWithAndroidAndIOSApplication] = string(data)
 	}
 
 	return bitriseDataMap, nil
