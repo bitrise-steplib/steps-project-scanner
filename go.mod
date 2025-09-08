@@ -5,7 +5,7 @@ go 1.22.0
 toolchain go1.23.2
 
 require (
-	github.com/bitrise-io/bitrise-init v0.0.0-20250825130133-471ee31cc85b
+	github.com/bitrise-io/bitrise-init v0.0.0-20250908072740-05c0f54c474a
 	github.com/bitrise-io/go-steputils v1.0.6
 	github.com/bitrise-io/go-utils v1.0.13
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.22
@@ -14,6 +14,7 @@ require (
 )
 
 require (
+	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/beevik/etree v1.2.0 // indirect
 	github.com/bitrise-io/bitrise/v2 v2.30.5 // indirect

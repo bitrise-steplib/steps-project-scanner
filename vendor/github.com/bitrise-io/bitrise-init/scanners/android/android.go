@@ -80,7 +80,7 @@ const (
 	gradleKotlinBuildFile = "build.gradle.kts"
 )
 
-type gradleModule struct {
+type GradleModule struct {
 	ModulePath     string
 	BuildScriptPth string
 	UsesKotlinDSL  bool
@@ -108,7 +108,7 @@ func (scanner *Scanner) ExcludedScannerNames() []string {
 
 type DetectResult struct {
 	GradleProject gradle.Project
-	Modules       []gradleModule
+	Modules       []GradleModule
 	Icons         models.Icons
 }
 
@@ -179,11 +179,11 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 		}
 
 		log.TPrintf("Scanning Gradle modules...")
-		var modules []gradleModule
+		var modules []GradleModule
 		if len(gradleProject.IncludedProjects) > 0 {
 			for _, includedProject := range gradleProject.IncludedProjects {
 				modulePath := modulePathFromBuildScriptPath(gradleProject.RootDirEntry.RelPath, includedProject.BuildScriptFileEntry.RelPath)
-				modules = append(modules, gradleModule{
+				modules = append(modules, GradleModule{
 					ModulePath:     modulePath,
 					BuildScriptPth: includedProject.BuildScriptFileEntry.RelPath,
 					UsesKotlinDSL:  strings.HasSuffix(includedProject.BuildScriptFileEntry.RelPath, ".kts"),
@@ -201,7 +201,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 					// Skipp top-level build script file
 					continue
 				}
-				modules = append(modules, gradleModule{
+				modules = append(modules, GradleModule{
 					ModulePath:     modulePath,
 					BuildScriptPth: buildScript.RelPath,
 					UsesKotlinDSL:  strings.HasSuffix(buildScript.RelPath, ".kts"),

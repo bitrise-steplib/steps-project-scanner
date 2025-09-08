@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/bitrise-io/bitrise-init/detectors/direntry"
 	"github.com/bitrise-io/go-utils/log"
 )
@@ -27,6 +28,10 @@ Settings File (settings.gradle[.kts]): The settings file is the entry point of e
 type SubProject struct {
 	Name                 string
 	BuildScriptFileEntry direntry.DirEntry
+}
+
+func (proj SubProject) DetectAnyDependenciesInBuildScript(dependencies []string) (bool, error) {
+	return detectAnyDependencies(proj.BuildScriptFileEntry.AbsPath, dependencies)
 }
 
 type Project struct {
@@ -87,16 +92,76 @@ func (proj Project) DetectAnyDependencies(dependencies []string) (bool, error) {
 	return proj.detectAnyDependenciesInBuildScripts(dependencies)
 }
 
+func (proj Project) FindSubProjectsWithAnyDependencies(dependencies []string) ([]SubProject, error) {
+	var subProjects []SubProject
+	for _, includedProject := range proj.IncludedProjects {
+		detected, err := includedProject.DetectAnyDependenciesInBuildScript(dependencies)
+		if err != nil {
+			return nil, err
+		}
+		if detected {
+			subProjects = append(subProjects, includedProject)
+		}
+	}
+	return subProjects, nil
+}
+
+func (proj Project) GetPluginAliasFromVersionCatalog(pluginID string) (string, error) {
+	if proj.VersionCatalogFileEntry == nil {
+		return "", nil
+	}
+
+	file, err := os.Open(proj.VersionCatalogFileEntry.AbsPath)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.TWarnf("Unable to close file %s: %s", proj.VersionCatalogFileEntry.AbsPath, err)
+		}
+	}()
+
+	content, err := io.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+
+	/*
+		[plugins]
+		androidApplication = { id = "com.android.application", version.ref = "agp" } # referenced in build.gradle: alias(libs.plugins.androidApplication)
+		androidLibrary = { id = "com.android.library", version.ref = "agp" }
+	*/
+	var versionCatalog struct {
+		Plugins map[string]struct {
+			ID         string `toml:"id"`
+			VersionRef string `toml:"version.ref"`
+		} `toml:"plugins"`
+	}
+	if _, err := toml.Decode(string(content), &versionCatalog); err != nil {
+		return "", fmt.Errorf("failed to decode version catalog file: %w", err)
+	}
+
+	var pluginAlias string
+	for alias, plugin := range versionCatalog.Plugins {
+		if plugin.ID == pluginID {
+			pluginAlias = alias
+			break
+		}
+	}
+
+	return pluginAlias, nil
+}
+
 func (proj Project) detectAnyDependenciesInVersionCatalogFile(dependencies []string) (bool, error) {
 	if proj.VersionCatalogFileEntry == nil {
 		return false, nil
 	}
-	return proj.detectAnyDependencies(proj.VersionCatalogFileEntry.AbsPath, dependencies)
+	return detectAnyDependencies(proj.VersionCatalogFileEntry.AbsPath, dependencies)
 }
 
 func (proj Project) detectAnyDependenciesInIncludedProjectBuildScripts(dependencies []string) (bool, error) {
 	for _, includedProject := range proj.IncludedProjects {
-		detected, err := proj.detectAnyDependencies(includedProject.BuildScriptFileEntry.AbsPath, dependencies)
+		detected, err := detectAnyDependencies(includedProject.BuildScriptFileEntry.AbsPath, dependencies)
 		if err != nil {
 			return false, err
 		}
@@ -109,7 +174,7 @@ func (proj Project) detectAnyDependenciesInIncludedProjectBuildScripts(dependenc
 
 func (proj Project) detectAnyDependenciesInBuildScripts(dependencies []string) (bool, error) {
 	for _, BuildScriptFileEntry := range proj.AllBuildScriptFileEntries {
-		detected, err := proj.detectAnyDependencies(BuildScriptFileEntry.AbsPath, dependencies)
+		detected, err := detectAnyDependencies(BuildScriptFileEntry.AbsPath, dependencies)
 		if err != nil {
 			return false, err
 		}
@@ -120,7 +185,7 @@ func (proj Project) detectAnyDependenciesInBuildScripts(dependencies []string) (
 	return false, nil
 }
 
-func (proj Project) detectAnyDependencies(pth string, dependencies []string) (bool, error) {
+func detectAnyDependencies(pth string, dependencies []string) (bool, error) {
 	file, err := os.Open(pth)
 	if err != nil {
 		return false, err
