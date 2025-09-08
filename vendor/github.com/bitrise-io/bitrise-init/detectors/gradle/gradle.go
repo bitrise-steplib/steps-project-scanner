@@ -30,8 +30,8 @@ type SubProject struct {
 	BuildScriptFileEntry direntry.DirEntry
 }
 
-func (inc SubProject) DetectAnyDependenciesInBuildScript(dependencies []string) (bool, error) {
-	return detectAnyDependencies(inc.BuildScriptFileEntry.AbsPath, dependencies)
+func (proj SubProject) DetectAnyDependenciesInBuildScript(dependencies []string) (bool, error) {
+	return detectAnyDependencies(proj.BuildScriptFileEntry.AbsPath, dependencies)
 }
 
 type Project struct {
@@ -106,9 +106,9 @@ func (proj Project) FindSubProjectsWithAnyDependencies(dependencies []string) ([
 	return subProjects, nil
 }
 
-func (proj Project) GetDependencyID(dependency string) (string, error) {
+func (proj Project) GetPluginAliasFromVersionCatalog(pluginID string) (string, error) {
 	if proj.VersionCatalogFileEntry == nil {
-		return "", fmt.Errorf("version catalog file entry is not set")
+		return "", nil
 	}
 
 	file, err := os.Open(proj.VersionCatalogFileEntry.AbsPath)
@@ -131,27 +131,25 @@ func (proj Project) GetDependencyID(dependency string) (string, error) {
 		androidApplication = { id = "com.android.application", version.ref = "agp" } # referenced in build.gradle: alias(libs.plugins.androidApplication)
 		androidLibrary = { id = "com.android.library", version.ref = "agp" }
 	*/
-
-	type versionCatalog struct {
+	var versionCatalog struct {
 		Plugins map[string]struct {
 			ID         string `toml:"id"`
 			VersionRef string `toml:"version.ref"`
 		} `toml:"plugins"`
 	}
-	var catalog versionCatalog
-	if _, err := toml.Decode(string(content), &catalog); err != nil {
+	if _, err := toml.Decode(string(content), &versionCatalog); err != nil {
 		return "", fmt.Errorf("failed to decode version catalog file: %w", err)
 	}
 
-	var pluginID string
-	for ID, plugin := range catalog.Plugins {
-		if plugin.ID == dependency {
-			pluginID = ID
+	var pluginAlias string
+	for alias, plugin := range versionCatalog.Plugins {
+		if plugin.ID == pluginID {
+			pluginAlias = alias
 			break
 		}
 	}
 
-	return pluginID, nil
+	return pluginAlias, nil
 }
 
 func (proj Project) detectAnyDependenciesInVersionCatalogFile(dependencies []string) (bool, error) {

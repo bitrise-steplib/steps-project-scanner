@@ -34,6 +34,8 @@ const (
 	gradleProjectRootDirInputEnvKey  = "PROJECT_ROOT_DIR"
 	gradleProjectRootDirInputTitle   = "The root directory of the Kotlin Multiplatform project."
 	gradleProjectRootDirInputSummary = "The root directory of the Kotlin Multiplatform project, which contains all source files from your project, as well as Gradle files, including the Gradle Wrapper (gradlew) file."
+	optionValueYes                   = "yes"
+	optionValueNo                    = "no"
 )
 
 // Android App project options
@@ -193,7 +195,7 @@ func (s *Scanner) DefaultOptions() models.OptionNode {
 	// Has Android app target
 	{
 		moduleOption := models.NewOption(moduleInputTitle, moduleInputSummary, android.ModuleInputEnvKey, models.TypeUserInput)
-		hasAndroidAppTarget.AddOption("yes", moduleOption)
+		hasAndroidAppTarget.AddOption(optionValueYes, moduleOption)
 
 		variantOption := models.NewOption(variantInputTitle, variantInputSummary, android.VariantInputEnvKey, models.TypeOptionalUserInput)
 		moduleOption.AddOption("", variantOption)
@@ -204,7 +206,7 @@ func (s *Scanner) DefaultOptions() models.OptionNode {
 		// Has iOS app target
 		{
 			projectPathOption := models.NewOption(projectPathInputTitle, projectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeUserInput)
-			hasIosAppTarget.AddOption("yes", projectPathOption)
+			hasIosAppTarget.AddOption(optionValueYes, projectPathOption)
 
 			schemeOption := models.NewOption(schemeInputTitle, schemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
 			projectPathOption.AddOption("", schemeOption)
@@ -221,19 +223,19 @@ func (s *Scanner) DefaultOptions() models.OptionNode {
 		// Has no iOS app target
 		{
 			configOption := models.NewConfigOption(defaultConfigNameWithAndroidApplication, nil)
-			hasIosAppTarget.AddConfig("no", configOption)
+			hasIosAppTarget.AddConfig(optionValueNo, configOption)
 		}
 	}
 
 	// Has no Android app target
 	{
 		hasIosAppTarget := models.NewOption(hasIOSApplicationInputTitle, hasIOSApplicationInputSummary, "", models.TypeSelector)
-		hasAndroidAppTarget.AddOption("no", hasIosAppTarget)
+		hasAndroidAppTarget.AddOption(optionValueNo, hasIosAppTarget)
 
 		// Has iOS app target
 		{
 			projectPathOption := models.NewOption(projectPathInputTitle, projectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeUserInput)
-			hasIosAppTarget.AddOption("yes", projectPathOption)
+			hasIosAppTarget.AddOption(optionValueYes, projectPathOption)
 
 			schemeOption := models.NewOption(schemeInputTitle, schemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
 			projectPathOption.AddOption("", schemeOption)
@@ -250,7 +252,7 @@ func (s *Scanner) DefaultOptions() models.OptionNode {
 		// Has no iOS app target
 		{
 			configOption := models.NewConfigOption(defaultConfigName, nil)
-			hasIosAppTarget.AddConfig("no", configOption)
+			hasIosAppTarget.AddConfig(optionValueNo, configOption)
 		}
 	}
 
