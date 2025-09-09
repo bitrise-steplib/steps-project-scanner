@@ -331,6 +331,7 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 				envmanModels.EnvironmentItemModel{ios.CarthageCommandInputKey: s.kmpProject.IOSAppDetectResult.Projects[0].CarthageCommand},
 			))
 		}
+		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.RestoreGradleCache())
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Build step
@@ -352,6 +353,7 @@ func (s *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.Bitr
 		if s.kmpProject.IOSAppDetectResult.Projects[0].CarthageCommand != "" {
 			configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.SaveCarthageCache())
 		}
+		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.SaveGradleCache())
 
 		// Deploy step
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.DefaultDeployStepList()...)
@@ -516,6 +518,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		})...)
 
 		// Cache setup step
+		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.RestoreGradleCache())
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Build step
@@ -526,6 +529,9 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			envmanModels.EnvironmentItemModel{ios.ConfigurationInputKey: "Release"},
 			envmanModels.EnvironmentItemModel{ios.AutomaticCodeSigningInputKey: ios.AutomaticCodeSigningInputAPIKeyValue},
 		))
+
+		// Cache teardown steps
+		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.SaveGradleCache())
 
 		// Deploy step
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.DefaultDeployStepList()...)
@@ -603,6 +609,7 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		})...)
 
 		// Cache setup step
+		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.RestoreGradleCache())
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.ActivateBuildCacheForGradle())
 
 		// Build step
@@ -614,8 +621,16 @@ func (s *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			envmanModels.EnvironmentItemModel{ios.AutomaticCodeSigningInputKey: ios.AutomaticCodeSigningInputAPIKeyValue},
 		))
 
+		// Cache teardown steps
+		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.SaveGradleCache())
+
 		// Deploy step
 		configBuilder.AppendStepListItemsTo(iosBuildWorkflowID, steps.DefaultDeployStepList()...)
+
+		//
+		// iOS and Android build pipeline
+		configBuilder.SetGraphPipelineWorkflowTo(buildPipelineID, androidBuildWorkflowID, bitriseModels.GraphPipelineWorkflowModel{})
+		configBuilder.SetGraphPipelineWorkflowTo(buildPipelineID, iosBuildWorkflowID, bitriseModels.GraphPipelineWorkflowModel{})
 
 		config, err := configBuilder.Generate(projectType)
 		if err != nil {
