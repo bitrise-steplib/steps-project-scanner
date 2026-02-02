@@ -22,7 +22,7 @@ const (
 
 const (
 	GradleRunnerID      = "gradle-runner"
-	GradleRunnerVersion = "4"
+	GradleRunnerVersion = "5"
 )
 
 const (
@@ -98,7 +98,7 @@ const (
 
 const (
 	CocoapodsInstallID      = "cocoapods-install"
-	CocoapodsInstallVersion = "2"
+	CocoapodsInstallVersion = "3"
 )
 
 const (
@@ -168,7 +168,7 @@ const (
 
 const (
 	NpmID      = "npm"
-	NpmVersion = "1"
+	NpmVersion = "2"
 )
 
 const (
@@ -180,7 +180,7 @@ var RunEASBuildPlatforms = []string{"all", "android", "ios"}
 
 const (
 	YarnID      = "yarn"
-	YarnVersion = "0"
+	YarnVersion = "1"
 )
 
 const (

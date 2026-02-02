@@ -35,6 +35,8 @@ gem 'cocoapods-core'
 gem 'json'
 # warning: bigdecimal was loaded from the standard library, but will no longer be part of the default gems starting from Ruby 3.4.0.
 gem 'bigdecimal'
+# warning: base64 was loaded from the standard library, but is not part of the default gems starting from Ruby 3.4.0.
+gem 'base64'
 gem 'mutex_m'
 `, gemfileCocoapodsVersion)
 
