@@ -22,7 +22,7 @@ The Step scans for:
 ### Configuring the Step
 
 To successfully run the Step, you need:
-1. An SSH key or Git HTTP credentials
+1. An SSH key
 1. A repository
 
 To configure the Step:
@@ -43,7 +43,7 @@ If you receive an error message, `No known platform detected`, make sure that yo
 
 ## 🧩 Get started
 
-Add this step directly to your workflow in the [Bitrise Workflow Editor](https://devcenter.bitrise.io/steps-and-workflows/steps-and-workflows-index/).
+Add this step directly to your workflow in the [Bitrise Workflow Editor](https://docs.bitrise.io/en/bitrise-ci/workflows-and-pipelines/steps/adding-steps-to-a-workflow.html).
 
 You can also run this step directly with [Bitrise CLI](https://github.com/bitrise-io/bitrise).
 
@@ -59,10 +59,11 @@ You can also run this step directly with [Bitrise CLI](https://github.com/bitris
 | `scan_result_submit_api_token` | If provided and `scan_result_submit_url` also provided, this API Token will be used for sending the Scan Results.  | sensitive | `$BITRISE_APP_API_TOKEN` |
 | `icon_candidates_url` | If provided, the app icons will be uploaded.  |  | `$BITRISE_AVATAR_CANDIDATES_POST_URL` |
 | `verbose_log` | You can enable the verbose log for easier debugging.  |  | `false` |
-| `enable_repo_clone` | If set to yes then it will setup the ssh key and will clone the repo with the provided url and branch name.  |  | `no` |
+| `enable_repo_clone` | If set to yes then it will setup the SSH key (or HTTP credentials) and will clone the repo with the provided url and branch name.  |  | `no` |
 | `ssh_rsa_private_key` | SSH key to be used for the git clone. | sensitive | `$SSH_RSA_PRIVATE_KEY` |
 | `git_http_username` | Username for establishing an HTTP(S) connection to the repository | sensitive | `$GIT_HTTP_USERNAME` |
 | `git_http_password` | Personal access token (or password) for establishing an HTTP(S) connection to the repository | sensitive | `$GIT_HTTP_PASSWORD` |
+| `app_slug` | Unique Identifier (slug) of the Bitrise app |  | `$BITRISE_APP_SLUG` |
 | `repository_url` | Url to be used for the git clone. |  | `$GIT_REPOSITORY_URL` |
 | `branch` | Branch to be used for the git clone. |  | `$BITRISE_GIT_BRANCH` |
 </details>
@@ -76,9 +77,8 @@ There are no outputs defined in this step
 
 We welcome [pull requests](https://github.com/bitrise-steplib/steps-project-scanner/pulls) and [issues](https://github.com/bitrise-steplib/steps-project-scanner/issues) against this repository.
 
-For pull requests, work on your changes in a forked repository and use the Bitrise CLI to [run step tests locally](https://devcenter.bitrise.io/bitrise-cli/run-your-first-build/).
+For pull requests, work on your changes in a forked repository and use the Bitrise CLI to [run step tests locally](https://docs.bitrise.io/en/bitrise-ci/bitrise-cli/running-your-first-local-build-with-the-cli.html).
 
 Learn more about developing steps:
 
-- [Create your own step](https://devcenter.bitrise.io/contributors/create-your-own-step/)
-- [Testing your Step](https://devcenter.bitrise.io/contributors/testing-and-versioning-your-steps/)
+- [Create your own step](https://docs.bitrise.io/en/bitrise-ci/workflows-and-pipelines/developing-your-own-bitrise-step/developing-a-new-step.html)
