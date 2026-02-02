@@ -89,27 +89,29 @@ inputs:
     - "no"
 - ssh_rsa_private_key: $SSH_RSA_PRIVATE_KEY
   opts:
-    title: SSH private key in RSA format
+    title: SSH private key
     description: SSH key to be used for the git clone.
     is_expand: true
     is_dont_change_value: true
     is_sensitive: true
 - git_http_username: $GIT_HTTP_USERNAME
   opts:
-    title: Username for establishing an HTTP(S) connection to the repository
+    title: Git HTTPS username
+    description: Username for establishing an HTTP(S) connection to the repository
     is_dont_change_value: true
     is_sensitive: true
 
 - git_http_password: $GIT_HTTP_PASSWORD
   opts:
-    title: Personal access token (or password) for establishing an HTTP(S) connection to the repository
+    title: Git HTTPS password
+    description: Personal access token (or password) for establishing an HTTP(S) connection to the repository
     is_dont_change_value: true
     is_sensitive: true
 
 - app_slug: $BITRISE_APP_SLUG
   opts:
-    title: Unique Identifier (slug) of the Bitrise app
-    description: Used for analytics purposes
+    title: Bitrise app slug
+    description: Unique Identifier (slug) of the Bitrise app
     is_dont_change_value: true
 
 - repository_url: $GIT_REPOSITORY_URL
