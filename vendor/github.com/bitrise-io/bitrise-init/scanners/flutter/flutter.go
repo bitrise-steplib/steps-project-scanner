@@ -156,6 +156,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 func (scanner *Scanner) ExcludedScannerNames() []string {
 	return []string{
 		string(ios.XcodeProjectTypeIOS),
+		string(ios.XcodeProjectTypeMacOS),
 		android.ScannerName,
 		java.ProjectType,
 	}
@@ -254,7 +255,7 @@ func generateConfig(sshKeyActivation models.SSHKeyActivation, proj project) (str
 
 	// Common steps to all workflows
 	prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKeyActivation})
-	flutterInstallStep := steps.FlutterInstallStepListItem(proj.flutterVersionToUse, false)
+	flutterInstallStep := steps.FlutterInstallStepListItem(proj.flutterVersionToUse)
 	deploySteps := steps.DefaultDeployStepList()
 
 	// primary
