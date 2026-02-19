@@ -5,7 +5,7 @@ go 1.22.0
 toolchain go1.23.2
 
 require (
-	github.com/bitrise-io/bitrise-init v0.0.0-20260218153855-a39cf058bdb8
+	github.com/bitrise-io/bitrise-init v0.0.0-20260219135644-61dc33e6c078
 	github.com/bitrise-io/go-steputils v1.0.6
 	github.com/bitrise-io/go-utils v1.0.13
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.22
