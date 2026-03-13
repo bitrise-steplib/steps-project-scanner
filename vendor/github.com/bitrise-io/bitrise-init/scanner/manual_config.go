@@ -20,14 +20,14 @@ func ManualConfig() (models.ScanResultModel, error) {
 
 		configs, err := scanner.DefaultConfigs()
 		if err != nil {
-			return models.ScanResultModel{}, fmt.Errorf("Failed create default configs, error: %s", err)
+			return models.ScanResultModel{}, fmt.Errorf("failed create default configs, error: %w", err)
 		}
 		scannerToBitriseConfigMap[scanner.Name()] = configs
 	}
 
 	customConfig, err := scanners.CustomConfig()
 	if err != nil {
-		return models.ScanResultModel{}, fmt.Errorf("Failed create default custom configs, error: %s", err)
+		return models.ScanResultModel{}, fmt.Errorf("failed create default custom configs, error: %w", err)
 	}
 
 	scannerToBitriseConfigMap[scanners.CustomProjectType] = customConfig

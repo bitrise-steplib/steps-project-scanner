@@ -42,7 +42,7 @@ func CollectPackageJSONFiles(searchDir string) ([]string, error) {
 
 func containsYarnLock(absPackageJSONDir string) (bool, error) {
 	if exist, err := pathutil.IsPathExists(filepath.Join(absPackageJSONDir, "yarn.lock")); err != nil {
-		return false, fmt.Errorf("Failed to check if yarn.lock file exists in the workdir: %s", err)
+		return false, fmt.Errorf("failed to check if yarn.lock file exists in the workdir: %w", err)
 	} else if exist {
 		return true, nil
 	}

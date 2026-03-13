@@ -96,14 +96,14 @@ func newOptionsFailedMatcher() *errormapper.PatternErrorMatcher {
 
 var newOptionsFailedGenericDetail = newDetectPlatformFailedGenericDetail
 
-func newGradlewNotFoundDetail(errorMsg string, params ...string) errormapper.DetailedError {
+func newGradlewNotFoundDetail(_ string, _ ...string) errormapper.DetailedError {
 	return errormapper.DetailedError{
 		Title:       "We couldn't find your Gradle Wrapper. Please make sure there is a gradlew file in your project's root directory.",
 		Description: `The Gradle Wrapper ensures that the right Gradle version is installed and used for the build. You can find out more about <a target="_blank" href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">the Gradle Wrapper in the Gradle docs</a>.`,
 	}
 }
 
-func newAppJSONIssueDetail(errorMsg string, params ...string) errormapper.DetailedError {
+func newAppJSONIssueDetail(_ string, params ...string) errormapper.DetailedError {
 	appJSONPath := params[0]
 	entryName := params[1]
 	return errormapper.DetailedError{
@@ -114,7 +114,7 @@ func newAppJSONIssueDetail(errorMsg string, params ...string) errormapper.Detail
 	}
 }
 
-func newExpoAppJSONIssueDetail(errorMsg string, params ...string) errormapper.DetailedError {
+func newExpoAppJSONIssueDetail(_ string, params ...string) errormapper.DetailedError {
 	appJSONPath := params[0]
 	entryName := params[1]
 	return errormapper.DetailedError{
@@ -126,7 +126,7 @@ func newExpoAppJSONIssueDetail(errorMsg string, params ...string) errormapper.De
 	}
 }
 
-func newIonicCapacitorNotSupportedIssueDetail(errorMsg string, params ...string) errormapper.DetailedError {
+func newIonicCapacitorNotSupportedIssueDetail(_ string, _ ...string) errormapper.DetailedError {
 	return errormapper.DetailedError{
 		Title:       "We couldn't find your cordova.xml file.",
 		Description: `Our auto-configurator only supports Ionic projects with Cordova at the moment. If you're trying to add a project with Ionic Capacitor, or something else, some Steps in your automatically generated Workflow might fail. To fix this, replace the failing Steps with script Steps in the Workflow editor later.`,
