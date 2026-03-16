@@ -183,7 +183,7 @@ func main() {
 		}
 	}
 
-	if !(runtime.GOOS == "darwin" || runtime.GOOS == "linux") {
+	if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
 		failf("Unsupported OS: %s", runtime.GOOS)
 	}
 
