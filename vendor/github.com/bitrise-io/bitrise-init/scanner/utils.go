@@ -111,7 +111,7 @@ func AskForOptions(options models.OptionNode) (string, []envmanModels.Environmen
 	walkDepth = func(opt models.OptionNode) error {
 		optionEnvKey, selectedValue, err := askForOptionValue(opt)
 		if err != nil {
-			return fmt.Errorf("Failed to ask for value, error: %s", err)
+			return fmt.Errorf("failed to ask for value, error: %w", err)
 		}
 
 		if opt.Title == "" {
@@ -207,7 +207,7 @@ func AskForConfig(scanResult models.ScanResultModel) (bitriseModels.BitriseDataM
 
 	var config bitriseModels.BitriseDataModel
 	if err := yaml.Unmarshal([]byte(configStr), &config); err != nil {
-		return bitriseModels.BitriseDataModel{}, fmt.Errorf("failed to unmarshal config, error: %s", err)
+		return bitriseModels.BitriseDataModel{}, fmt.Errorf("failed to unmarshal config, error: %w", err)
 	}
 
 	config.App.Environments = append(config.App.Environments, appEnvs...)

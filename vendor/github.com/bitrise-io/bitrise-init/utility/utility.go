@@ -84,3 +84,21 @@ func FileExists(filename string) bool {
 	}
 	return !info.IsDir()
 }
+
+// FindFileInAppDir finds files with the given name in the search directory
+func FindFileInAppDir(searchDir, fileName string) ([]string, error) {
+	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, false)
+	if err != nil {
+		return nil, err
+	}
+
+	filters := []pathutil.FilterFunc{
+		pathutil.BaseFilter(fileName, true),
+	}
+	filteredFileList, err := pathutil.FilterPaths(fileList, filters...)
+	if err != nil {
+		return nil, err
+	}
+
+	return filteredFileList, nil
+}

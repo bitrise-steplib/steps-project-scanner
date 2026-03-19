@@ -74,7 +74,7 @@ end
 
 	out, err := runRubyScriptForOutput(rubyScriptContent, gemfileContent, envs)
 	if err != nil {
-		return map[string]string{}, fmt.Errorf("ruby script failed: %s", err)
+		return map[string]string{}, fmt.Errorf("ruby script failed: %w", err)
 	}
 
 	if out == "" {
@@ -88,7 +88,7 @@ end
 
 	var targetDefinitionOutput targetDefinitionOutputModel
 	if err := json.Unmarshal([]byte(out), &targetDefinitionOutput); err != nil {
-		return map[string]string{}, fmt.Errorf("failed to parse target definition output: %s, output: %s", err, out)
+		return map[string]string{}, fmt.Errorf("failed to parse target definition: %w, output: %s", err, out)
 	}
 
 	if podfileParser.shouldRaiseReadDefinitionError(targetDefinitionOutput.Error) {
@@ -116,7 +116,7 @@ func (podfileParser podfileParser) shouldRaiseReadDefinitionError(err string) bo
 func (podfileParser podfileParser) getUserDefinedProjectAbsPath(cocoapodsVersion string) (string, error) {
 	targetProjectMap, err := podfileParser.getTargetDefinitionProjectMap(cocoapodsVersion)
 	if err != nil {
-		return "", fmt.Errorf("failed to get target definition map: %s", err)
+		return "", fmt.Errorf("failed to get target definition map: %w", err)
 	}
 
 	// Return the first custom project
@@ -170,7 +170,7 @@ end
 
 	out, err := runRubyScriptForOutput(rubyScriptContent, gemfileContent, envs)
 	if err != nil {
-		return "", fmt.Errorf("ruby script failed: %s", err)
+		return "", fmt.Errorf("ruby script failed: %w", err)
 	}
 
 	if out == "" {
@@ -184,7 +184,7 @@ end
 
 	var workspacePathOutput workspacePathOutputModel
 	if err := json.Unmarshal([]byte(out), &workspacePathOutput); err != nil {
-		return "", fmt.Errorf("failed to parse workspace path output: %s", err)
+		return "", fmt.Errorf("failed to parse workspace path output: %w", err)
 	}
 
 	if podfileParser.shouldRaiseReadDefinitionError(workspacePathOutput.Error) {
@@ -223,13 +223,13 @@ func (podfileParser podfileParser) GetWorkspaceProjectMap(projects []string) (ma
 
 	projectPth, err := podfileParser.getUserDefinedProjectAbsPath(cocoapodsVersion)
 	if err != nil {
-		return map[string]string{}, fmt.Errorf("failed to get user defined project path: %s", err)
+		return map[string]string{}, fmt.Errorf("failed to get user defined project path: %w", err)
 	}
 
 	if projectPth == "" {
 		projects, err := pathutil.FilterPaths(projects, pathutil.InDirectoryFilter(podfileDir, true))
 		if err != nil {
-			return map[string]string{}, fmt.Errorf("failed to filter projects: %s", err)
+			return map[string]string{}, fmt.Errorf("failed to filter projects: %w", err)
 		}
 
 		if len(projects) == 0 {
@@ -242,14 +242,14 @@ func (podfileParser podfileParser) GetWorkspaceProjectMap(projects []string) (ma
 	}
 
 	if exist, err := pathutil.IsPathExists(projectPth); err != nil {
-		return map[string]string{}, fmt.Errorf("failed to check if path (%s) exists: %s", projectPth, err)
+		return map[string]string{}, fmt.Errorf("failed to check if path (%s) exists: %w", projectPth, err)
 	} else if !exist {
 		return map[string]string{}, fmt.Errorf("project not found at: %s", projectPth)
 	}
 
 	workspacePth, err := podfileParser.getUserDefinedWorkspaceAbsPath(cocoapodsVersion)
 	if err != nil {
-		return map[string]string{}, fmt.Errorf("failed to get user defined workspace path: %s", err)
+		return map[string]string{}, fmt.Errorf("failed to get user defined workspace path: %w", err)
 	}
 
 	if workspacePth == "" {
@@ -265,11 +265,11 @@ func (podfileParser podfileParser) GetWorkspaceProjectMap(projects []string) (ma
 func (podfileParser podfileParser) podfilelockPath(podfileDir string) (string, error) {
 	podfileLockPth := filepath.Join(podfileDir, "Podfile.lock")
 	if exist, err := pathutil.IsPathExists(podfileLockPth); err != nil {
-		return "", fmt.Errorf("failed to check if Podfile.lock exist: %s", err)
+		return "", fmt.Errorf("failed to check if Podfile.lock exist: %w", err)
 	} else if !exist {
 		podfileLockPth = filepath.Join(podfileDir, "podfile.lock")
 		if exist, err := pathutil.IsPathExists(podfileLockPth); err != nil {
-			return "", fmt.Errorf("failed to check if podfile.lock exist: %s", err)
+			return "", fmt.Errorf("failed to check if podfile.lock exist: %w", err)
 		} else if !exist {
 			podfileLockPth = ""
 		}
@@ -286,7 +286,7 @@ func (podfileParser podfileParser) cocoapodsVersion(podfileLockPth string) (stri
 
 	version, err := GemVersionFromGemfileLock("cocoapods", podfileLockPth)
 	if err != nil {
-		return "", fmt.Errorf("failed to read cocoapods version from %s: %s", podfileLockPth, err)
+		return "", fmt.Errorf("failed to read cocoapods version from %s: %w", podfileLockPth, err)
 	}
 	return version, nil
 }
@@ -294,16 +294,16 @@ func (podfileParser podfileParser) cocoapodsVersion(podfileLockPth string) (stri
 func (podfileParser podfileParser) fixPodfileQuotation(podfilePth string) error {
 	podfileContent, err := fileutil.ReadStringFromFile(podfilePth)
 	if err != nil {
-		return fmt.Errorf("failed to read podfile (%s): %s", podfilePth, err)
+		return fmt.Errorf("failed to read podfile (%s): %w", podfilePth, err)
 	}
 
-	podfileContent = strings.Replace(podfileContent, `‘`, `'`, -1)
-	podfileContent = strings.Replace(podfileContent, `’`, `'`, -1)
-	podfileContent = strings.Replace(podfileContent, `“`, `"`, -1)
-	podfileContent = strings.Replace(podfileContent, `”`, `"`, -1)
+	podfileContent = strings.ReplaceAll(podfileContent, `‘`, `'`)
+	podfileContent = strings.ReplaceAll(podfileContent, `’`, `'`)
+	podfileContent = strings.ReplaceAll(podfileContent, `“`, `"`)
+	podfileContent = strings.ReplaceAll(podfileContent, `”`, `"`)
 
 	if err := fileutil.WriteStringToFile(podfilePth, podfileContent); err != nil {
-		return fmt.Errorf("failed to apply Podfile quotation fix: %s", err)
+		return fmt.Errorf("failed to apply Podfile quotation fix: %w", err)
 	}
 
 	return nil
@@ -323,7 +323,7 @@ func mergePodWorkspaceProjectMap(podWorkspaceProjectMap map[string]string, detec
 
 			podWorkspaceProjects, err := podWorkspace.projectPaths()
 			if err != nil {
-				return containers{}, fmt.Errorf("failed to get workspace projects: %s", err)
+				return containers{}, fmt.Errorf("failed to get workspace projects: %w", err)
 			}
 			// This case the project is already attached to the workspace.
 			found := sliceutil.IsStringInSlice(podProjectFile, podWorkspaceProjects)

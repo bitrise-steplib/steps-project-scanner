@@ -13,6 +13,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/macos"
 	"github.com/bitrise-io/bitrise-init/scanners/nodejs"
 	"github.com/bitrise-io/bitrise-init/scanners/reactnative"
+	"github.com/bitrise-io/bitrise-init/scanners/ruby"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"gopkg.in/yaml.v2"
 )
@@ -83,6 +84,7 @@ func ProjectScanners() []ScannerInterface {
 		android.NewScanner(),
 		nodejs.NewScanner(),
 		java.NewScanner(),
+		ruby.NewScanner(),
 	}
 }
 

@@ -328,7 +328,6 @@ func xcodeArchiveStepInputModels(projectType XcodeProjectType) []envmanModels.En
 		inputModels = append(inputModels, []envmanModels.EnvironmentItemModel{
 			{DistributionMethodInputKey: "$" + DistributionMethodEnvKey},
 			{AutomaticCodeSigningKey: AutomaticCodeSigningValue},
-			{CacheLevelKey: CacheLevelNone},
 		}...)
 	} else {
 		inputModels = []envmanModels.EnvironmentItemModel{

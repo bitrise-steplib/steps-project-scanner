@@ -12,6 +12,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/android"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
 	"github.com/bitrise-io/bitrise-init/scanners/java"
+	"github.com/bitrise-io/bitrise-init/scanners/ruby"
 	"github.com/bitrise-io/bitrise-init/steps"
 	bitriseModels "github.com/bitrise-io/bitrise/v2/models"
 	envmanModels "github.com/bitrise-io/envman/v2/models"
@@ -141,6 +142,7 @@ func (s *Scanner) ExcludedScannerNames() []string {
 		android.ScannerName,
 		string(ios.XcodeProjectTypeIOS),
 		java.ProjectType,
+		ruby.ScannerName,
 	}
 }
 
