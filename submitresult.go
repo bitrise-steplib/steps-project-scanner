@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -24,7 +25,7 @@ type resultClient struct {
 func newResultClient(resultSubmitURL string, resultSubmitAPIToken stepconf.Secret) (*resultClient, error) {
 	submitURL, err := url.Parse(resultSubmitURL)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse submit URL, error: %s", err)
+		return nil, fmt.Errorf("could not parse submit URL: %w", err)
 	}
 
 	q := submitURL.Query()
@@ -39,7 +40,8 @@ func newResultClient(resultSubmitURL string, resultSubmitAPIToken stepconf.Secre
 func buildErrorScanResultModel(stepID string, err error) models.ScanResultModel {
 	var errWithRec models.ErrorWithRecommendations
 	// It's a stepError
-	if stepError, ok := err.(*step.Error); ok {
+	var stepError *step.Error
+	if errors.As(err, &stepError) {
 		rec := stepError.Recommendations
 
 		// If it doesn't have recommendations, create one
@@ -99,7 +101,7 @@ func (c *resultClient) uploadResults(bytes []byte) error {
 
 		req, err := http.NewRequest(http.MethodPost, c.URL.String(), strings.NewReader(string(bytes)))
 		if err != nil {
-			return fmt.Errorf("failed to create request: %v", err)
+			return fmt.Errorf("failed to create request: %w", err)
 		}
 		req.Header.Add("Content-Type", "application/json")
 
@@ -113,7 +115,7 @@ func (c *resultClient) uploadResults(bytes []byte) error {
 		if err != nil {
 			log.TErrorf("failed to send request: url: %s, request: %s", c.URL.String(), reqDump)
 
-			return fmt.Errorf("failed to submit results: %v", err)
+			return fmt.Errorf("failed to submit results: %w", err)
 		}
 
 		defer func() {

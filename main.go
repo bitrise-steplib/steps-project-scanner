@@ -144,7 +144,8 @@ func cloneRepo(cfg repoConfig) error {
 		UpdateSubmodules: true,
 	}
 	if _, err := gitcloner.CheckoutState(config); err != nil {
-		if _, ok := err.(*step.Error); ok {
+		var stepError *step.Error
+		if errors.As(err, &stepError) {
 			return err
 		}
 
@@ -205,7 +206,8 @@ func main() {
 			GitHTTPPassword:  cfg.GitHTTPPassword,
 			Branch:           cfg.Branch,
 		}); err != nil {
-			if stepError, ok := err.(*step.Error); ok {
+			var stepError *step.Error
+			if errors.As(err, &stepError) {
 				handleStepError(stepError.StepID, stepError.Tag, stepError, stepError.ShortMsg)
 			} else {
 				wrappedStepError := newStepError("error_cast_failed", err, "Failed to cast error")

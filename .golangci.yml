@@ -1,0 +1,11 @@
+version: "2"
+
+linters:
+  enable:
+    - unparam
+    - exhaustive
+    - errorlint
+    - errname
+  disable:
+    - revive
+    - err113
