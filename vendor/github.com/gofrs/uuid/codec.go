@@ -21,7 +21,10 @@
 
 package uuid
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // FromBytes returns a UUID generated from the raw byte slice input.
 // It will return an error if the slice isn't 16 bytes long.
@@ -40,6 +43,8 @@ func FromBytesOrNil(input []byte) UUID {
 	}
 	return uuid
 }
+
+var errInvalidFormat = errors.New("uuid: invalid UUID format")
 
 func fromHexChar(c byte) byte {
 	switch {
@@ -61,21 +66,21 @@ func (u *UUID) Parse(s string) error {
 	case 36: // canonical
 	case 34, 38:
 		if s[0] != '{' || s[len(s)-1] != '}' {
-			return fmt.Errorf("%w %q", ErrIncorrectFormatInString, s)
+			return fmt.Errorf("uuid: incorrect UUID format in string %q", s)
 		}
 		s = s[1 : len(s)-1]
 	case 41, 45:
 		if s[:9] != "urn:uuid:" {
-			return fmt.Errorf("%w %q", ErrIncorrectFormatInString, s[:9])
+			return fmt.Errorf("uuid: incorrect UUID format in string %q", s[:9])
 		}
 		s = s[9:]
 	default:
-		return fmt.Errorf("%w %d in string %q", ErrIncorrectLength, len(s), s)
+		return fmt.Errorf("uuid: incorrect UUID length %d in string %q", len(s), s)
 	}
 	// canonical
 	if len(s) == 36 {
 		if s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-' {
-			return fmt.Errorf("%w %q", ErrIncorrectFormatInString, s)
+			return fmt.Errorf("uuid: incorrect UUID format in string %q", s)
 		}
 		for i, x := range [16]byte{
 			0, 2, 4, 6,
@@ -87,7 +92,7 @@ func (u *UUID) Parse(s string) error {
 			v1 := fromHexChar(s[x])
 			v2 := fromHexChar(s[x+1])
 			if v1|v2 == 255 {
-				return ErrInvalidFormat
+				return errInvalidFormat
 			}
 			u[i] = (v1 << 4) | v2
 		}
@@ -98,7 +103,7 @@ func (u *UUID) Parse(s string) error {
 		v1 := fromHexChar(s[i])
 		v2 := fromHexChar(s[i+1])
 		if v1|v2 == 255 {
-			return ErrInvalidFormat
+			return errInvalidFormat
 		}
 		u[i/2] = (v1 << 4) | v2
 	}
@@ -170,20 +175,20 @@ func (u *UUID) UnmarshalText(b []byte) error {
 	case 36: // canonical
 	case 34, 38:
 		if b[0] != '{' || b[len(b)-1] != '}' {
-			return fmt.Errorf("%w %q", ErrIncorrectFormatInString, b)
+			return fmt.Errorf("uuid: incorrect UUID format in string %q", b)
 		}
 		b = b[1 : len(b)-1]
 	case 41, 45:
 		if string(b[:9]) != "urn:uuid:" {
-			return fmt.Errorf("%w %q", ErrIncorrectFormatInString, b[:9])
+			return fmt.Errorf("uuid: incorrect UUID format in string %q", b[:9])
 		}
 		b = b[9:]
 	default:
-		return fmt.Errorf("%w %d in string %q", ErrIncorrectLength, len(b), b)
+		return fmt.Errorf("uuid: incorrect UUID length %d in string %q", len(b), b)
 	}
 	if len(b) == 36 {
 		if b[8] != '-' || b[13] != '-' || b[18] != '-' || b[23] != '-' {
-			return fmt.Errorf("%w %q", ErrIncorrectFormatInString, b)
+			return fmt.Errorf("uuid: incorrect UUID format in string %q", b)
 		}
 		for i, x := range [16]byte{
 			0, 2, 4, 6,
@@ -195,7 +200,7 @@ func (u *UUID) UnmarshalText(b []byte) error {
 			v1 := fromHexChar(b[x])
 			v2 := fromHexChar(b[x+1])
 			if v1|v2 == 255 {
-				return ErrInvalidFormat
+				return errInvalidFormat
 			}
 			u[i] = (v1 << 4) | v2
 		}
@@ -205,7 +210,7 @@ func (u *UUID) UnmarshalText(b []byte) error {
 		v1 := fromHexChar(b[i])
 		v2 := fromHexChar(b[i+1])
 		if v1|v2 == 255 {
-			return ErrInvalidFormat
+			return errInvalidFormat
 		}
 		u[i/2] = (v1 << 4) | v2
 	}
@@ -221,7 +226,7 @@ func (u UUID) MarshalBinary() ([]byte, error) {
 // It will return an error if the slice isn't 16 bytes long.
 func (u *UUID) UnmarshalBinary(data []byte) error {
 	if len(data) != Size {
-		return fmt.Errorf("%w, got %d bytes", ErrIncorrectByteLength, len(data))
+		return fmt.Errorf("uuid: UUID must be exactly 16 bytes long, got %d bytes", len(data))
 	}
 	copy(u[:], data)
 

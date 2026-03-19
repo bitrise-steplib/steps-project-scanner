@@ -14,7 +14,6 @@ import (
 	"github.com/bitrise-io/bitrise-init/detectors/gradle"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/scanners/java"
-	"github.com/bitrise-io/bitrise-init/scanners/ruby"
 	"github.com/bitrise-io/bitrise-init/steps"
 	bitriseModels "github.com/bitrise-io/bitrise/v2/models"
 	envmanModels "github.com/bitrise-io/envman/v2/models"
@@ -104,7 +103,7 @@ func (scanner *Scanner) Name() string {
 
 // ExcludedScannerNames ...
 func (scanner *Scanner) ExcludedScannerNames() []string {
-	return []string{java.ProjectType, ruby.ScannerName}
+	return []string{java.ProjectType}
 }
 
 type DetectResult struct {

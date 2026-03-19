@@ -201,7 +201,7 @@ func createCheckoutStrategy(checkoutMethod CheckoutMethod, cfg Config, patchFile
 				branchRef = refsHeadsPrefix + cfg.Branch
 			}
 
-			params, err := NewCommitParams(cfg.Commit, branchRef, "", cfg.IgnoreBranchForCommitFetch)
+			params, err := NewCommitParams(cfg.Commit, branchRef, "")
 			if err != nil {
 				return nil, err
 			}
@@ -250,25 +250,6 @@ func createCheckoutStrategy(checkoutMethod CheckoutMethod, cfg Config, patchFile
 
 			return checkoutPRMergeRef{
 				params: *params,
-				fallbackCheckout: func(gitCmd git.Git) error {
-					log.Warnf("Using manual merge strategy with PR source branch")
-
-					manualMergeFallbackFetchOpts := selectFetchOptions(CheckoutPRManualMergeMethod, cfg.CloneDepth, cfg.FetchTags, cfg.UpdateSubmodules, len(cfg.SparseDirectories) != 0)
-					manualMergeFallbackFallback := selectFallbacks(CheckoutPRManualMergeMethod, manualMergeFallbackFetchOpts)
-
-					prRepositoryURL := ""
-					if isFork(cfg.RepositoryURL, cfg.PRSourceRepositoryURL) {
-						prRepositoryURL = cfg.PRSourceRepositoryURL
-					}
-
-					fallbackManualMergeWithSourceBranch, err := createManualMergeFallbackFunc(prRepositoryURL, cfg.Branch, cfg.Commit, cfg.PRDestBranch)
-					if err != nil {
-						return err
-					}
-
-					// PR merge branch checkout falls back to PR manual merge strategy using the PR source branch
-					return fallbackManualMergeWithSourceBranch.do(gitCmd, manualMergeFallbackFetchOpts, manualMergeFallbackFallback)
-				},
 			}, nil
 		}
 	case CheckoutPRDiffFileMethod:
@@ -307,46 +288,19 @@ func createCheckoutStrategy(checkoutMethod CheckoutMethod, cfg Config, patchFile
 	case CheckoutHeadBranchCommitMethod:
 		{
 			headBranchRef := refsPrefix + cfg.PRHeadBranch // ref/pull/2/head
-			params, err := NewCommitParams(cfg.Commit, headBranchRef, "", false)
+			params, err := NewCommitParams(cfg.Commit, headBranchRef, "")
 			if err != nil {
 				return nil, err
 			}
 
 			return checkoutCommit{
 				params: *params,
-				fallbackCheckout: func(gitCmd git.Git) error {
-					log.Warnf("Using commit checkout strategy with PR source branch")
-
-					if cfg.Branch == "" || cfg.Commit == "" {
-						return fmt.Errorf("inconsistent checkout strategy and checkout params: branch=%s, commit=%s", cfg.Branch, cfg.Commit)
-					}
-
-					branchRef := refsHeadsPrefix + cfg.Branch
-					commitCheckoutFallbackFetchOpts := selectFetchOptions(CheckoutCommitMethod, cfg.CloneDepth, cfg.FetchTags, cfg.UpdateSubmodules, len(cfg.SparseDirectories) != 0)
-					commitCheckoutFallbackFallback := selectFallbacks(CheckoutCommitMethod, commitCheckoutFallbackFetchOpts)
-
-					prRepositoryURL := ""
-					if isFork(cfg.RepositoryURL, cfg.PRSourceRepositoryURL) {
-						prRepositoryURL = cfg.PRSourceRepositoryURL
-					}
-
-					params, err := NewCommitParams(cfg.Commit, branchRef, prRepositoryURL, false)
-					if err != nil {
-						return err
-					}
-
-					commitCheckoutFallbackCheckoutMethod := checkoutCommit{
-						params: *params,
-					}
-
-					return commitCheckoutFallbackCheckoutMethod.do(gitCmd, commitCheckoutFallbackFetchOpts, commitCheckoutFallbackFallback)
-				},
 			}, nil
 		}
 	case CheckoutForkCommitMethod:
 		{
 			sourceBranchRef := refsHeadsPrefix + cfg.Branch
-			params, err := NewCommitParams(cfg.Commit, sourceBranchRef, cfg.PRSourceRepositoryURL, false)
+			params, err := NewCommitParams(cfg.Commit, sourceBranchRef, cfg.PRSourceRepositoryURL)
 			if err != nil {
 				return nil, err
 			}
@@ -474,14 +428,4 @@ func isPRCheckout(method CheckoutMethod) bool {
 	default:
 		panic(fmt.Sprintf("implementation missing for enum value %T", method))
 	}
-}
-
-func createManualMergeFallbackFunc(repositoryURL, branch, commit, prDestBranch string) (*checkoutPRManualMerge, error) {
-	manualMergeFallbackParams, err := NewPRManualMergeParams(branch, commit, repositoryURL, prDestBranch)
-	if err != nil {
-		return nil, err
-	}
-	return &checkoutPRManualMerge{
-		params: *manualMergeFallbackParams,
-	}, nil
 }

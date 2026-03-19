@@ -112,9 +112,6 @@ func (e *OutputExporter) gitOutputs(gitRef string, isPR bool) []gitOutput {
 }
 
 func (e *OutputExporter) printLogAndExportEnv(command *v1command.Model, env string, maxEnvLength int) error {
-	runner.PausePerformanceMonitoring()
-	defer runner.ResumePerformanceMonitoring()
-
 	l, err := runner.RunForOutput(command)
 	if err != nil {
 		return fmt.Errorf("command failed: %s", err)

@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/gofrs/uuid/v5"
+	"github.com/gofrs/uuid"
 )
 
 type event struct {

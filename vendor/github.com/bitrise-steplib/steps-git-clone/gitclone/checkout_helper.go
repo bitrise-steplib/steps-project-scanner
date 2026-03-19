@@ -99,25 +99,30 @@ func checkoutWithCustomRetry(gitCmd git.Git, arg string, retry fallbackRetry) er
 	return nil
 }
 
-func forceCheckoutRemoteBranch(gitCmd git.Git, remote string, branchRef string, fetchTraits fetchOptions) error {
+func fetchInitialBranch(gitCmd git.Git, remote string, branchRef string, fetchTraits fetchOptions) error {
 	branch := strings.TrimPrefix(branchRef, refsHeadsPrefix)
 	if err := fetch(gitCmd, remote, branchRef, fetchTraits); err != nil {
-		wErr := fmt.Errorf("fetch branch %s: %w", branchRef, err)
+		wErr := fmt.Errorf("failed to fetch branch (%s): %w", branchRef, err)
 		return fmt.Errorf("%v: %w", wErr, errors.New("please make sure the branch still exists"))
 	}
-	
-	remoteBranch := fmt.Sprintf("%s/%s", remote, branch)
-	// -B: create the branch if it doesn't exist, reset if it does
-	// The latter is important in persistent environments because shallow-fetching only fetches 1 commit,
-	// so the next run would see unrelated histories after shallow-fetching another single commit.
-	err := runner.Run(gitCmd.Checkout("-B", branch, remoteBranch))
-	if err != nil {
+
+	if err := checkoutWithCustomRetry(gitCmd, branch, nil); err != nil {
 		return handleCheckoutError(
 			listBranches(gitCmd),
 			checkoutFailedTag,
 			err,
 			"Checkout has failed",
 			branch,
+		)
+	}
+
+	// Update branch: 'git fetch' followed by a 'git merge' is the same as 'git pull'.
+	remoteBranch := fmt.Sprintf("%s/%s", remote, branch)
+	if err := runner.Run(gitCmd.Merge(remoteBranch)); err != nil {
+		return newStepError(
+			"update_branch_failed",
+			fmt.Errorf("updating branch (%s) failed: %w", branch, err),
+			"Updating branch failed",
 		)
 	}
 
@@ -152,8 +157,4 @@ func detachHead(gitCmd git.Git) error {
 	}
 
 	return nil
-}
-
-func deleteRef(gitCmd git.Git, ref string) error {
-	return runner.Run(gitCmd.UpdateRef("-d", ref))
 }

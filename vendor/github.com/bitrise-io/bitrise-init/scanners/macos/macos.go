@@ -3,7 +3,6 @@ package macos
 import (
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
-	"github.com/bitrise-io/bitrise-init/scanners/ruby"
 )
 
 //------------------
@@ -48,7 +47,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 
 // ExcludedScannerNames ...
 func (Scanner) ExcludedScannerNames() []string {
-	return []string{ruby.ScannerName}
+	return []string{}
 }
 
 // Options ...

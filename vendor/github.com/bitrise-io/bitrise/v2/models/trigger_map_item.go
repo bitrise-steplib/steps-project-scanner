@@ -3,9 +3,9 @@ package models
 import (
 	"fmt"
 	"reflect"
-	"slices"
 	"strings"
 
+	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/ryanuber/go-glob"
 )
 
@@ -257,11 +257,11 @@ func (item TriggerMapItemModel) validateTarget(idx int, workflows, pipelines []s
 	}
 
 	if item.PipelineID != "" {
-		if !slices.Contains(pipelines, item.PipelineID) {
+		if !sliceutil.IsStringInSlice(item.PipelineID, pipelines) {
 			return warnings, fmt.Errorf("trigger item #%d: non-existent pipeline defined as trigger target: %s", idx+1, item.PipelineID)
 		}
 	} else {
-		if !slices.Contains(workflows, item.WorkflowID) {
+		if !sliceutil.IsStringInSlice(item.WorkflowID, workflows) {
 			return warnings, fmt.Errorf("trigger item #%d: non-existent workflow defined as trigger target: %s", idx+1, item.WorkflowID)
 		}
 	}
@@ -295,7 +295,7 @@ func (item TriggerMapItemModel) getType() TriggerItemType {
 
 func (item TriggerMapItemModel) validateType(idx int) error {
 	if item.Type != "" {
-		if !slices.Contains([]string{string(CodePushType), string(PullRequestType), string(TagPushType)}, string(item.Type)) {
+		if !sliceutil.IsStringInSlice(string(item.Type), []string{string(CodePushType), string(PullRequestType), string(TagPushType)}) {
 			return fmt.Errorf("trigger item #%d: invalid type (%s) defined, valid types are: push, pull_request and tag", idx+1, item.Type)
 		}
 	}
@@ -425,7 +425,7 @@ func (item TriggerMapItemModel) validateNoPullRequestConditionsSet(idx int, fiel
 	if isStringLiteralOrRegexSet(item.PullRequestTargetBranch) {
 		return fmt.Errorf("trigger item #%d: both %s and pull_request_target_branch defined", idx+1, field)
 	}
-	//nolint:staticcheck
+	//nolint:gosimple
 	if item.IsDraftPullRequestEnabled() != defaultDraftPullRequestEnabled {
 		return fmt.Errorf("trigger item #%d: both %s and draft_pull_request_enabled defined", idx+1, field)
 	}
@@ -461,7 +461,7 @@ func (item TriggerMapItemModel) conditionsString() string {
 
 		if tag == "draft_pull_request_enabled" {
 			if boolPtrValue, ok := value.(*bool); ok {
-				//nolint:staticcheck
+				//nolint:gosimple
 				if boolPtrValue == nil || *boolPtrValue == defaultDraftPullRequestEnabled {
 					continue
 				}

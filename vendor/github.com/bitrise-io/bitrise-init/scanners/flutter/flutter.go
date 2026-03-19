@@ -8,7 +8,6 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/android"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
 	"github.com/bitrise-io/bitrise-init/scanners/java"
-	"github.com/bitrise-io/bitrise-init/scanners/ruby"
 	"github.com/bitrise-io/bitrise-init/steps"
 	envmanModels "github.com/bitrise-io/envman/v2/models"
 	"github.com/bitrise-io/go-flutter/flutterproject"
@@ -160,7 +159,6 @@ func (scanner *Scanner) ExcludedScannerNames() []string {
 		string(ios.XcodeProjectTypeMacOS),
 		android.ScannerName,
 		java.ProjectType,
-		ruby.ScannerName,
 	}
 }
 

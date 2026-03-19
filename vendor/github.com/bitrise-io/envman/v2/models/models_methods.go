@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/bitrise-io/go-utils/parseutil"
 	"github.com/bitrise-io/go-utils/pointers"
-	"github.com/bitrise-io/go-utils/v2/parseutil"
 )
 
 const (
@@ -96,7 +96,7 @@ func (env EnvironmentItemModel) GetKeyValuePair() (string, string, error) {
 	if value != nil {
 		if str, ok := value.(string); ok {
 			valueStr = str
-		} else if str := parseutil.StringFrom(value); str != "" {
+		} else if str := parseutil.CastToString(value); str != "" {
 			valueStr = str
 		} else {
 			return "", "", fmt.Errorf("value (%#v) is not a string for key (%s)", value, key)
@@ -228,13 +228,13 @@ func (envSerModel *EnvironmentItemOptionsModel) ParseFromInterfaceMap(input map[
 	for keyStr, value := range input {
 		switch keyStr {
 		case "title":
-			envSerModel.Title = parseutil.StringPtrFrom(value)
+			envSerModel.Title = parseutil.CastToStringPtr(value)
 		case "description":
-			envSerModel.Description = parseutil.StringPtrFrom(value)
+			envSerModel.Description = parseutil.CastToStringPtr(value)
 		case "summary":
-			envSerModel.Summary = parseutil.StringPtrFrom(value)
+			envSerModel.Summary = parseutil.CastToStringPtr(value)
 		case "category":
-			envSerModel.Category = parseutil.StringPtrFrom(value)
+			envSerModel.Category = parseutil.CastToStringPtr(value)
 		case "value_options":
 			castedValue, ok := value.([]string)
 			if !ok {
@@ -248,7 +248,7 @@ func (envSerModel *EnvironmentItemOptionsModel) ParseFromInterfaceMap(input map[
 				for _, interfItm := range interfArr {
 					castedItm, ok := interfItm.(string)
 					if !ok {
-						castedItm = parseutil.StringFrom(interfItm)
+						castedItm = parseutil.CastToString(interfItm)
 						if castedItm == "" {
 							return fmt.Errorf("not a string value (%#v) in value_options", interfItm)
 						}
@@ -258,43 +258,43 @@ func (envSerModel *EnvironmentItemOptionsModel) ParseFromInterfaceMap(input map[
 			}
 			envSerModel.ValueOptions = castedValue
 		case "is_required":
-			castedBoolPtr, ok := parseutil.BoolPtrFrom(value)
+			castedBoolPtr, ok := parseutil.CastToBoolPtr(value)
 			if !ok {
 				return fmt.Errorf("failed to parse bool value (%#v) for key (%s)", value, keyStr)
 			}
 			envSerModel.IsRequired = castedBoolPtr
 		case "is_expand":
-			castedBoolPtr, ok := parseutil.BoolPtrFrom(value)
+			castedBoolPtr, ok := parseutil.CastToBoolPtr(value)
 			if !ok {
 				return fmt.Errorf("failed to parse bool value (%#v) for key (%s)", value, keyStr)
 			}
 			envSerModel.IsExpand = castedBoolPtr
 		case "is_sensitive":
-			castedBoolPtr, ok := parseutil.BoolPtrFrom(value)
+			castedBoolPtr, ok := parseutil.CastToBoolPtr(value)
 			if !ok {
 				return fmt.Errorf("failed to parse bool value (%#v) for key (%s)", value, keyStr)
 			}
 			envSerModel.IsSensitive = castedBoolPtr
 		case "is_dont_change_value":
-			castedBoolPtr, ok := parseutil.BoolPtrFrom(value)
+			castedBoolPtr, ok := parseutil.CastToBoolPtr(value)
 			if !ok {
 				return fmt.Errorf("failed to parse bool value (%#v) for key (%s)", value, keyStr)
 			}
 			envSerModel.IsDontChangeValue = castedBoolPtr
 		case "is_template":
-			castedBoolPtr, ok := parseutil.BoolPtrFrom(value)
+			castedBoolPtr, ok := parseutil.CastToBoolPtr(value)
 			if !ok {
 				return fmt.Errorf("failed to parse bool value (%#v) for key (%s)", value, keyStr)
 			}
 			envSerModel.IsTemplate = castedBoolPtr
 		case "skip_if_empty":
-			castedBoolPtr, ok := parseutil.BoolPtrFrom(value)
+			castedBoolPtr, ok := parseutil.CastToBoolPtr(value)
 			if !ok {
 				return fmt.Errorf("failed to parse bool value (%#v) for key (%s)", value, keyStr)
 			}
 			envSerModel.SkipIfEmpty = castedBoolPtr
 		case "unset":
-			castedBoolPtr, ok := parseutil.BoolPtrFrom(value)
+			castedBoolPtr, ok := parseutil.CastToBoolPtr(value)
 			if !ok {
 				return fmt.Errorf("failed to parse bool value (%#v) for key (%s)", value, keyStr)
 			}

@@ -49,13 +49,12 @@ func GenerateAndWriteResults(searchDir string, outputDir string, format output.F
 	log.TInfof("Saving outputs:")
 	outputPth, err := writeScanResult(result, outputDir, format)
 	if err != nil {
-		return result, fmt.Errorf("failed to write output, error: %w", err)
+		return result, fmt.Errorf("Failed to write output, error: %s", err)
 	}
 	log.TPrintf("scan result: %s", outputPth)
 
 	if !detected {
 		printDirTree()
-		//nolint:staticcheck // Other components potentially rely on the error message
 		return result, fmt.Errorf("No known platform detected")
 	}
 	return result, nil
@@ -84,7 +83,7 @@ func writeScanResult(scanResult models.ScanResultModel, outputDir string, format
 			return "", fmt.Errorf("failed to create icons directory")
 		}
 		if err := copyIconsToDir(scanResult.Icons, iconsOutputDir); err != nil {
-			return "", fmt.Errorf("failed to copy icons, error: %w", err)
+			return "", fmt.Errorf("failed to copy icons, error: %s", err)
 		}
 	}
 

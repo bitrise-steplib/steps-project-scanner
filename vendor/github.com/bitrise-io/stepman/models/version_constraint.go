@@ -94,7 +94,6 @@ func ParseRequiredVersion(version string) (VersionConstraint, error) {
 	if version == "" {
 		return VersionConstraint{
 			VersionLockType: Latest,
-			Version:         Semver{},
 		}, nil
 	}
 
@@ -115,8 +114,6 @@ func ParseRequiredVersion(version string) (VersionConstraint, error) {
 			VersionLockType: MajorLocked,
 			Version: Semver{
 				Major: major,
-				Minor: 0,
-				Patch: 0,
 			},
 		}, nil
 	}
@@ -133,7 +130,6 @@ func ParseRequiredVersion(version string) (VersionConstraint, error) {
 			Version: Semver{
 				Major: major,
 				Minor: minor,
-				Patch: 0,
 			},
 		}, nil
 	}
@@ -175,7 +171,6 @@ func latestMatchingStepVersion(constraint VersionConstraint, stepVersions StepGr
 			latestVersion := Semver{
 				Major: constraint.Version.Major,
 				Minor: constraint.Version.Minor,
-				Patch: 0,
 			}
 			latestStep := StepModel{}
 
@@ -205,8 +200,6 @@ func latestMatchingStepVersion(constraint VersionConstraint, stepVersions StepGr
 		{
 			latestStepVersion := Semver{
 				Major: constraint.Version.Major,
-				Minor: 0,
-				Patch: 0,
 			}
 			latestStep := StepModel{}
 

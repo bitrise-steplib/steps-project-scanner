@@ -16,7 +16,7 @@ const (
 	jobsFlag          = "--jobs=10"
 )
 
-var runner CommandRunner = &DefaultRunner{}
+var runner CommandRunner = DefaultRunner{}
 
 func isOriginPresent(gitCmd git.Git, dir, repoURL string) (bool, error) {
 	absDir, err := pathutil.AbsPath(dir)
@@ -95,94 +95,34 @@ type getAvailableBranches func() (map[string][]string, error)
 
 func listBranches(gitCmd git.Git) getAvailableBranches {
 	return func() (map[string][]string, error) {
-		remoteList, err := runner.RunForOutput(gitCmd.RemoteList())
+		if err := runner.Run(gitCmd.Fetch(jobsFlag)); err != nil {
+			return nil, err
+		}
+		out, err := runner.RunForOutput(gitCmd.Branch("-r"))
 		if err != nil {
 			return nil, err
 		}
 
-		remoteBranches, err := runner.RunForOutput(gitCmd.RemoteBranches())
-		if err != nil {
-			return nil, err
-		}
-
-		return parseListBranchesOutput(remoteList, remoteBranches), nil
+		return parseListBranchesOutput(out), nil
 	}
 }
 
-func parseListBranchesOutput(remotes, branches string) map[string][]string {
-	parsedRemotes := extractRemotes(remotes)
-	branchesByRemote := extractBranches(parsedRemotes, branches)
+func parseListBranchesOutput(output string) map[string][]string {
+	lines := strings.Split(output, "\n")
+	branchesByRemote := map[string][]string{}
+	for _, line := range lines {
+		line = strings.Trim(line, " ")
+		split := strings.Split(line, "/")
 
-	return branchesByRemote
-}
-
-// extractRemotes parses the output of `git remote -v` and returns a map of remote URLs to their names
-// Example of what such an output looks like:
-//
-//	origin  git_url1 (fetch)
-//	origin  git_url1 (push)
-//	upstream  git_url2 (fetch)
-//	upstream  git_url2 (push)
-//
-// (Name of the remote, \t, URL, space, (fetch|push), \n)
-func extractRemotes(remotes string) map[string]string {
-	parsedRemotes := make(map[string]string)
-
-	for _, line := range strings.Split(remotes, "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
+		remote := split[0]
+		branch := ""
+		if len(split) > 1 {
+			branch = strings.Join(split[1:], "/")
+			branches := branchesByRemote[remote]
+			branches = append(branches, branch)
+			branchesByRemote[remote] = branches
 		}
-		split := strings.Split(line, "\t")
-		if len(split) < 2 {
-			continue
-		}
-
-		name := split[0]
-
-		split = strings.Split(split[1], " ")
-		url := split[0]
-
-		parsedRemotes[url] = name
 	}
-
-	return parsedRemotes
-}
-
-// extractBranches parses the output of `git ls-remote -b` and returns a map of remote names to their branches
-// Example of what such an output looks like:
-//
-//	From git_url
-//	a50bdc5182e3e7c292f7c8c881a1a0d9476c8eda        refs/heads/A
-//	25c9d97e5c9e7f4c9ad25597f8e1265af07869d7        refs/heads/B
-//	5b3dfe10c52cf5c762740ea5cfa619d82d70e205        refs/heads/C
-//	f6cdf8f2132f22516bb4d71e326e66a45850eb04        refs/heads/D
-//	b30b826ac9594330d77554f30103492409035aee        refs/heads/master
-//
-// (From, space, URL, \n)
-// (SHA, \t, refs/heads/, branch name, \n)
-func extractBranches(remotes map[string]string, branches string) map[string][]string {
-	branchesByRemote := make(map[string][]string)
-	currentRemote := ""
-	for _, line := range strings.Split(branches, "\n") {
-		if strings.HasPrefix(line, "From ") {
-			repoURL := strings.TrimPrefix(line, "From ")
-			currentRemote = remotes[repoURL]
-
-			continue
-		}
-
-		split := strings.Split(line, "\t")
-		if len(split) < 2 || currentRemote == "" {
-			continue
-		}
-
-		branch := strings.TrimPrefix(split[1], refsHeadsPrefix)
-		branches := branchesByRemote[currentRemote]
-		branches = append(branches, branch)
-		branchesByRemote[currentRemote] = branches
-	}
-
 	return branchesByRemote
 }
 
@@ -209,14 +149,4 @@ func handleCheckoutError(callback getAvailableBranches, tag string, err error, s
 		err,
 		shortMsg,
 	)
-}
-
-func isWorkingTreeClean(gitCmd git.Git) (bool, error) {
-	// Despite the flag name, `--porcelain` is the plumbing format to use in scripts:
-	// https://git-scm.com/docs/git-status#Documentation/git-status.txt---porcelainltversiongt
-	out, err := gitCmd.Status("--porcelain").RunAndReturnTrimmedOutput()
-	if err != nil {
-		return false, fmt.Errorf("git status check: %s", err)
-	}
-	return strings.TrimSpace(out) == "", nil
 }

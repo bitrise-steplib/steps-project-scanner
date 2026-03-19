@@ -13,7 +13,6 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
 	"github.com/bitrise-io/bitrise-init/scanners/java"
 	"github.com/bitrise-io/bitrise-init/scanners/nodejs"
-	"github.com/bitrise-io/bitrise-init/scanners/ruby"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"github.com/bitrise-io/bitrise-init/utility"
 	envmanModels "github.com/bitrise-io/envman/v2/models"
@@ -75,20 +74,20 @@ func (Scanner) Name() string {
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
-		return false, fmt.Errorf("failed to search for files in (%s), error: %w", searchDir, err)
+		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
 	}
 
 	// Ensure it is an ionic project
 	ionicConfigPath, err := FilterRootFile(fileList, "ionic.config.json")
 	if err != nil {
-		return false, fmt.Errorf("failed to check if project is an ionic project, error: %w", err)
+		return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
 	}
 
 	// Check the existence of the old ionic.project file
 	if ionicConfigPath == "" {
 		ionicConfigPath, err = FilterRootFile(fileList, "ionic.project")
 		if err != nil {
-			return false, fmt.Errorf("failed to check if project is an ionic project, error: %w", err)
+			return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
 		}
 	}
 
@@ -114,7 +113,6 @@ func (Scanner) ExcludedScannerNames() []string {
 		android.ScannerName,
 		nodejs.ScannerName,
 		java.ProjectType,
-		ruby.ScannerName,
 	}
 }
 
@@ -207,7 +205,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 		return models.OptionNode{},
 			warnings,
 			nil,
-			fmt.Errorf("failed to search for config.xml file: %w", err)
+			fmt.Errorf("failed to search for config.xml file: %s", err)
 	}
 
 	log.TPrintf("config.xml: %s", filepath.Join(projectRootDir, "config.xml"))
@@ -224,7 +222,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 		return models.OptionNode{},
 			warnings,
 			nil,
-			fmt.Errorf("failed to get relative config.xml dir path, error: %w", err)
+			fmt.Errorf("failed to get relative config.xml dir path, error: %s", err)
 	}
 	if relCordovaConfigDir == "." {
 		// config.xml placed in the search dir, no need to change-dir in the workflows

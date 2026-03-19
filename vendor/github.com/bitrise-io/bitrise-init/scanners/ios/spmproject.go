@@ -97,10 +97,9 @@ func supportsProjectType(projectType XcodeProjectType, platforms []spmPlatform) 
 	}
 
 	var platformName string
-	switch projectType {
-	case XcodeProjectTypeIOS:
+	if projectType == XcodeProjectTypeIOS {
 		platformName = platformNameiOS
-	case XcodeProjectTypeMacOS:
+	} else if projectType == XcodeProjectTypeMacOS {
 		platformName = platformNameMacOS
 	}
 

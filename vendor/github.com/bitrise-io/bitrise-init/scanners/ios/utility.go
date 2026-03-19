@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
 	envmanModels "github.com/bitrise-io/envman/v2/models"
@@ -13,6 +11,7 @@ import (
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/go-xcode/xcodeproject/xcscheme"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -330,7 +329,7 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 		containerPath := container.path()
 		containerRelPath, err := filepath.Rel(searchDir, containerPath)
 		if err != nil {
-			return DetectResult{Warnings: warnings}, fmt.Errorf("failed to get relative path: %w", err)
+			return DetectResult{Warnings: warnings}, fmt.Errorf("failed to get relative path: %s", err)
 		}
 
 		log.TInfof("Inspecting file: %s", containerRelPath)
@@ -341,12 +340,12 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 
 		projectToSchemes, err := container.schemes()
 		if err != nil {
-			return DetectResult{}, fmt.Errorf("failed to read Schemes: %w", err)
+			return DetectResult{}, fmt.Errorf("failed to read Schemes: %s", err)
 		}
 
 		containerProjects, missingProjects, err := container.projects()
 		if err != nil {
-			return DetectResult{}, fmt.Errorf("%w", err)
+			return DetectResult{}, fmt.Errorf("%s", err)
 		}
 
 		for _, missingProject := range missingProjects {
@@ -481,7 +480,7 @@ func GenerateOptions(projectType XcodeProjectType, result DetectResult) (models.
 	configDescriptors = RemoveDuplicatedConfigDescriptors(configDescriptors, projectType)
 	if len(configDescriptors) == 0 {
 		log.TErrorf("No valid %s config found", string(projectType))
-		return models.OptionNode{}, []ConfigDescriptor{}, nil, allWarnings, fmt.Errorf("no valid %s config found", string(projectType))
+		return models.OptionNode{}, []ConfigDescriptor{}, nil, allWarnings, fmt.Errorf("No valid %s config found", string(projectType))
 	}
 
 	return *projectPathOption, configDescriptors, iconsForAllProjects, allWarnings, nil

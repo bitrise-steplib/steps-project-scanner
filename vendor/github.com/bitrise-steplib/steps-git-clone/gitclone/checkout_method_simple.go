@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/bitrise-io/go-utils/command/git"
-	"github.com/bitrise-io/go-utils/log"
 )
 
 // checkoutNone
@@ -21,44 +20,30 @@ func (c checkoutNone) getBuildTriggerRef() string {
 
 // CommitParams are parameters to check out a given commit (In addition to the repository URL)
 type CommitParams struct {
-	Commit                     string
-	BranchRef                  string
-	SourceRepoURL              string // optional
-	IgnoreBranchForCommitFetch bool   // optional
+	Commit        string
+	BranchRef     string
+	SourceRepoURL string // optional
 }
 
 // NewCommitParams validates and returns a new CommitParams
-func NewCommitParams(commit, branchRef, sourceRepoURL string, ignoreBranchForCommitFetch bool) (*CommitParams, error) {
+func NewCommitParams(commit, branchRef, sourceRepoURL string) (*CommitParams, error) {
 	if strings.TrimSpace(commit) == "" {
 		return nil, NewParameterValidationError("commit checkout strategy can not be used: no commit hash specified")
 	}
 
 	return &CommitParams{
-		Commit:                     commit,
-		BranchRef:                  branchRef,
-		SourceRepoURL:              sourceRepoURL,
-		IgnoreBranchForCommitFetch: ignoreBranchForCommitFetch,
+		Commit:        commit,
+		BranchRef:     branchRef,
+		SourceRepoURL: sourceRepoURL,
 	}, nil
 }
 
 // checkoutCommit
 type checkoutCommit struct {
-	params           CommitParams
-	fallbackCheckout fallbackCheckoutFunc
+	params CommitParams
 }
 
 func (c checkoutCommit) do(gitCmd git.Git, fetchOptions fetchOptions, fallback fallbackRetry) error {
-	if err := c.performCheckout(gitCmd, fetchOptions, fallback); err != nil {
-		if c.fallbackCheckout != nil {
-			log.Warnf("Failed to checkout commit: %s", err)
-			return c.fallbackCheckout(gitCmd)
-		}
-		return err
-	}
-	return nil
-}
-
-func (c checkoutCommit) performCheckout(gitCmd git.Git, fetchOptions fetchOptions, fallback fallbackRetry) error {
 	remote := originRemoteName
 	if c.params.SourceRepoURL != "" {
 		remote = forkRemoteName
@@ -67,17 +52,8 @@ func (c checkoutCommit) performCheckout(gitCmd git.Git, fetchOptions fetchOption
 		}
 	}
 
-	if c.params.IgnoreBranchForCommitFetch || c.params.BranchRef == "" {
-		if directFetchErr := fetch(gitCmd, remote, c.params.Commit, fetchOptions); directFetchErr != nil {
-			log.Warnf("Could not fetch commit directly: %v", directFetchErr)
-			log.Warnf("Note: To speed up checkouts, ensure your Git server allows fetching reachable SHAs directly (uploadpack.allowReachableSHA1InWant).")
-
-			return fmt.Errorf("failed to fetch commit directly: %w", directFetchErr)
-		}
-	} else {
-		if err := fetch(gitCmd, remote, c.params.BranchRef, fetchOptions); err != nil {
-			return fmt.Errorf("failed to fetch branch ref (%s) while checking out commit: %w", c.params.BranchRef, err)
-		}
+	if err := fetch(gitCmd, remote, c.params.BranchRef, fetchOptions); err != nil {
+		return fmt.Errorf("failed to fetch branch ref (%s) while checking out commit: %w", c.params.BranchRef, err)
 	}
 
 	if err := checkoutWithCustomRetry(gitCmd, c.params.Commit, fallback); err != nil {
@@ -115,7 +91,7 @@ type checkoutBranch struct {
 }
 
 func (c checkoutBranch) do(gitCmd git.Git, fetchOptions fetchOptions, _ fallbackRetry) error {
-	if err := forceCheckoutRemoteBranch(gitCmd, originRemoteName, c.localRef(), fetchOptions); err != nil {
+	if err := fetchInitialBranch(gitCmd, originRemoteName, c.localRef(), fetchOptions); err != nil {
 		return err
 	}
 

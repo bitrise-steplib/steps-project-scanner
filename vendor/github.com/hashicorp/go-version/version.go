@@ -1,38 +1,19 @@
-// Copyright IBM Corp. 2014, 2025
-// SPDX-License-Identifier: MPL-2.0
-
 package version
 
 import (
-	"database/sql/driver"
+	"bytes"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 // The compiled regular expression used to test the validity of a version.
 var (
-	versionRegexp     *regexp.Regexp
-	versionRegexpOnce sync.Once
-	semverRegexp      *regexp.Regexp
-	semverRegexpOnce  sync.Once
+	versionRegexp *regexp.Regexp
+	semverRegexp  *regexp.Regexp
 )
-
-func getVersionRegexp() *regexp.Regexp {
-	versionRegexpOnce.Do(func() {
-		versionRegexp = regexp.MustCompile("^" + VersionRegexpRaw + "$")
-	})
-	return versionRegexp
-}
-
-func getSemverRegexp() *regexp.Regexp {
-	semverRegexpOnce.Do(func() {
-		semverRegexp = regexp.MustCompile("^" + SemverRegexpRaw + "$")
-	})
-	return semverRegexp
-}
 
 // The raw regular expression string used for testing the validity
 // of a version.
@@ -58,23 +39,28 @@ type Version struct {
 	original string
 }
 
+func init() {
+	versionRegexp = regexp.MustCompile("^" + VersionRegexpRaw + "$")
+	semverRegexp = regexp.MustCompile("^" + SemverRegexpRaw + "$")
+}
+
 // NewVersion parses the given version and returns a new
 // Version.
 func NewVersion(v string) (*Version, error) {
-	return newVersion(v, getVersionRegexp())
+	return newVersion(v, versionRegexp)
 }
 
 // NewSemver parses the given version and returns a new
 // Version that adheres strictly to SemVer specs
 // https://semver.org/
 func NewSemver(v string) (*Version, error) {
-	return newVersion(v, getSemverRegexp())
+	return newVersion(v, semverRegexp)
 }
 
 func newVersion(v string, pattern *regexp.Regexp) (*Version, error) {
 	matches := pattern.FindStringSubmatch(v)
 	if matches == nil {
-		return nil, fmt.Errorf("malformed version: %s", v)
+		return nil, fmt.Errorf("Malformed version: %s", v)
 	}
 	segmentsStr := strings.Split(matches[1], ".")
 	segments := make([]int64, len(segmentsStr))
@@ -82,7 +68,7 @@ func newVersion(v string, pattern *regexp.Regexp) (*Version, error) {
 		val, err := strconv.ParseInt(str, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"error parsing version: %s", err)
+				"Error parsing version: %s", err)
 		}
 
 		segments[i] = val
@@ -131,8 +117,11 @@ func (v *Version) Compare(other *Version) int {
 		return 0
 	}
 
+	segmentsSelf := v.Segments64()
+	segmentsOther := other.Segments64()
+
 	// If the segments are the same, we must compare on prerelease info
-	if v.equalSegments(other) {
+	if reflect.DeepEqual(segmentsSelf, segmentsOther) {
 		preSelf := v.Prerelease()
 		preOther := other.Prerelease()
 		if preSelf == "" && preOther == "" {
@@ -148,8 +137,6 @@ func (v *Version) Compare(other *Version) int {
 		return comparePrereleases(preSelf, preOther)
 	}
 
-	segmentsSelf := v.Segments64()
-	segmentsOther := other.Segments64()
 	// Get the highest specificity (hS), or if they're equal, just use segmentSelf length
 	lenSelf := len(segmentsSelf)
 	lenOther := len(segmentsOther)
@@ -173,7 +160,7 @@ func (v *Version) Compare(other *Version) int {
 			// this means Other had the lower specificity
 			// Check to see if the remaining segments in Self are all zeros -
 			if !allZero(segmentsSelf[i:]) {
-				// if not, it means that Self has to be greater than Other
+				//if not, it means that Self has to be greater than Other
 				return 1
 			}
 			break
@@ -185,27 +172,12 @@ func (v *Version) Compare(other *Version) int {
 		} else if lhs < rhs {
 			return -1
 		}
-		// Otherwise, rhs was > lhs, they're not equal
+		// Otherwis, rhs was > lhs, they're not equal
 		return 1
 	}
 
 	// if we got this far, they're equal
 	return 0
-}
-
-func (v *Version) equalSegments(other *Version) bool {
-	segmentsSelf := v.Segments64()
-	segmentsOther := other.Segments64()
-
-	if len(segmentsSelf) != len(segmentsOther) {
-		return false
-	}
-	for i, v := range segmentsSelf {
-		if v != segmentsOther[i] {
-			return false
-		}
-	}
-	return true
 }
 
 func allZero(segs []int64) bool {
@@ -393,29 +365,22 @@ func (v *Version) Segments64() []int64 {
 // missing parts (1.0 => 1.0.0) will be made into a canonicalized form
 // as shown in the parenthesized examples.
 func (v *Version) String() string {
-	return string(v.bytes())
-}
-
-func (v *Version) bytes() []byte {
-	var buf []byte
+	var buf bytes.Buffer
+	fmtParts := make([]string, len(v.segments))
 	for i, s := range v.segments {
-		if i > 0 {
-			buf = append(buf, '.')
-		}
-		buf = strconv.AppendInt(buf, s, 10)
+		// We can ignore err here since we've pre-parsed the values in segments
+		str := strconv.FormatInt(s, 10)
+		fmtParts[i] = str
 	}
-
+	fmt.Fprintf(&buf, strings.Join(fmtParts, "."))
 	if v.pre != "" {
-		buf = append(buf, '-')
-		buf = append(buf, v.pre...)
+		fmt.Fprintf(&buf, "-%s", v.pre)
 	}
-
 	if v.metadata != "" {
-		buf = append(buf, '+')
-		buf = append(buf, v.metadata...)
+		fmt.Fprintf(&buf, "+%s", v.metadata)
 	}
 
-	return buf
+	return buf.String()
 }
 
 // Original returns the original parsed version as-is, including any
@@ -439,21 +404,4 @@ func (v *Version) UnmarshalText(b []byte) error {
 // MarshalText implements encoding.TextMarshaler interface.
 func (v *Version) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
-}
-
-// Scan implements the sql.Scanner interface.
-func (v *Version) Scan(src interface{}) error {
-	switch src := src.(type) {
-	case string:
-		return v.UnmarshalText([]byte(src))
-	case nil:
-		return nil
-	default:
-		return fmt.Errorf("cannot scan %T as Version", src)
-	}
-}
-
-// Value implements the driver.Valuer interface.
-func (v *Version) Value() (driver.Value, error) {
-	return v.String(), nil
 }
