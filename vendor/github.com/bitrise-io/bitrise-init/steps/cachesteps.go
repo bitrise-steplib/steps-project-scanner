@@ -1,6 +1,9 @@
 package steps
 
-import bitriseModels "github.com/bitrise-io/bitrise/v2/models"
+import (
+	bitriseModels "github.com/bitrise-io/bitrise/v2/models"
+	envmanModels "github.com/bitrise-io/envman/v2/models"
+)
 
 func RestoreGradleCache() bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(CacheRestoreGradleID, CacheRestoreGradleVersion)
@@ -60,6 +63,21 @@ func RestoreDartCache() bitriseModels.StepListItemModel {
 func SaveDartCache() bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(CacheSaveDartID, CacheSaveDartVersion)
 	return stepListItem(stepIDComposite, "", "")
+}
+
+func RestoreCache(key string) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(CacheRestoreID, CacheRestoreVersion)
+	return stepListItem(stepIDComposite, "", "",
+		envmanModels.EnvironmentItemModel{"key": key},
+	)
+}
+
+func SaveCache(key, paths string) bitriseModels.StepListItemModel {
+	stepIDComposite := stepIDComposite(CacheSaveID, CacheSaveVersion)
+	return stepListItem(stepIDComposite, "", "",
+		envmanModels.EnvironmentItemModel{"key": key},
+		envmanModels.EnvironmentItemModel{"paths": paths},
+	)
 }
 
 func ActivateBuildCacheForGradle() bitriseModels.StepListItemModel {

@@ -1,8 +1,6 @@
 package ios
 
 import (
-	"fmt"
-
 	"github.com/bitrise-io/go-xcode/xcodeproject/xcodeproj"
 	"github.com/bitrise-io/go-xcode/xcodeproject/xcscheme"
 )
@@ -33,7 +31,7 @@ func (w podWorkspace) schemes() (map[string][]xcscheme.Scheme, error) {
 	for _, p := range w.workspaceProjects {
 		innerSchemes, err := p.schemes()
 		if err != nil {
-			return nil, fmt.Errorf("%s", err)
+			return nil, err
 		}
 
 		for path, schemes := range innerSchemes {

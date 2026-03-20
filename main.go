@@ -135,7 +135,7 @@ func cloneRepo(cfg repoConfig) error {
 	// build URL and build api token don't apply here
 	patchSource := bitriseapi.NewPatchSource("", "")
 	mergeRefChecker := bitriseapi.NewMergeRefChecker("", "", retry.NewHTTPClient(), logger, stepTracker)
-	gitcloner := gitclone.NewGitCloner(logger, stepTracker, cmdFactory, patchSource, mergeRefChecker)
+	gitcloner := gitclone.NewGitCloner(logger, stepTracker, cmdFactory, patchSource, mergeRefChecker, false)
 	config := gitclone.Config{
 		RepositoryURL: cfg.RepositoryURL,
 		CloneIntoDir:  cfg.CloneIntoDir, // Using the same directory later to run scan

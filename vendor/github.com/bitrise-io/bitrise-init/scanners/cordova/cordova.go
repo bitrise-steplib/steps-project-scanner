@@ -74,7 +74,7 @@ func (Scanner) Name() string {
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
-		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
+		return false, fmt.Errorf("failed to search for files in (%s), error: %w", searchDir, err)
 	}
 
 	// Search for config.xml file
@@ -82,7 +82,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 
 	configXMLPth, err := FilterRootConfigXMLFile(fileList)
 	if err != nil {
-		return false, fmt.Errorf("failed to search for config.xml file, error: %s", err)
+		return false, fmt.Errorf("failed to search for config.xml file, error: %w", err)
 	}
 
 	log.TPrintf("config.xml: %s", configXMLPth)
@@ -110,14 +110,14 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	projectBaseDir := filepath.Dir(configXMLPth)
 
 	if exist, err := pathutil.IsPathExists(filepath.Join(projectBaseDir, "ionic.project")); err != nil {
-		return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
+		return false, fmt.Errorf("failed to check if project is an ionic project, error: %w", err)
 	} else if exist {
 		log.TPrintf("ionic.project file found seems to be an ionic project")
 		return false, nil
 	}
 
 	if exist, err := pathutil.IsPathExists(filepath.Join(projectBaseDir, "ionic.config.json")); err != nil {
-		return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
+		return false, fmt.Errorf("failed to check if project is an ionic project, error: %w", err)
 	} else if exist {
 		log.TPrintf("ionic.config.json file found seems to be an ionic project")
 		return false, nil
@@ -228,7 +228,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	cordovaConfigDir := filepath.Dir(scanner.cordovaConfigPth)
 	relCordovaConfigDir, err := utility.RelPath(scanner.searchDir, cordovaConfigDir)
 	if err != nil {
-		return models.OptionNode{}, warnings, nil, fmt.Errorf("Failed to get relative config.xml dir path, error: %s", err)
+		return models.OptionNode{}, warnings, nil, fmt.Errorf("failed to get relative config.xml dir path, error: %w", err)
 	}
 	if relCordovaConfigDir == "." {
 		// config.xml placed in the search dir, no need to change-dir in the workflows

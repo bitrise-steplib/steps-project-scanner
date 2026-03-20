@@ -74,20 +74,20 @@ func (Scanner) Name() string {
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
-		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
+		return false, fmt.Errorf("failed to search for files in (%s), error: %w", searchDir, err)
 	}
 
 	// Ensure it is an ionic project
 	ionicConfigPath, err := FilterRootFile(fileList, "ionic.config.json")
 	if err != nil {
-		return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
+		return false, fmt.Errorf("failed to check if project is an ionic project, error: %w", err)
 	}
 
 	// Check the existence of the old ionic.project file
 	if ionicConfigPath == "" {
 		ionicConfigPath, err = FilterRootFile(fileList, "ionic.project")
 		if err != nil {
-			return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
+			return false, fmt.Errorf("failed to check if project is an ionic project, error: %w", err)
 		}
 	}
 
@@ -205,7 +205,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 		return models.OptionNode{},
 			warnings,
 			nil,
-			fmt.Errorf("failed to search for config.xml file: %s", err)
+			fmt.Errorf("failed to search for config.xml file: %w", err)
 	}
 
 	log.TPrintf("config.xml: %s", filepath.Join(projectRootDir, "config.xml"))
@@ -222,7 +222,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 		return models.OptionNode{},
 			warnings,
 			nil,
-			fmt.Errorf("failed to get relative config.xml dir path, error: %s", err)
+			fmt.Errorf("failed to get relative config.xml dir path, error: %w", err)
 	}
 	if relCordovaConfigDir == "." {
 		// config.xml placed in the search dir, no need to change-dir in the workflows

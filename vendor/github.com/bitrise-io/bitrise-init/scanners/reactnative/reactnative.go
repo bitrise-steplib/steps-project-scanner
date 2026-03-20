@@ -58,7 +58,7 @@ func (Scanner) Name() string {
 func isExpoBasedProject(packageJSONPth string) (bool, error) {
 	packages, err := utility.ParsePackagesJSON(packageJSONPth)
 	if err != nil {
-		return false, fmt.Errorf("failed to parse package json file (%s): %s", packageJSONPth, err)
+		return false, fmt.Errorf("failed to parse package json file (%s): %w", packageJSONPth, err)
 	}
 
 	if _, found := packages.Dependencies["expo"]; !found {
@@ -70,7 +70,7 @@ func isExpoBasedProject(packageJSONPth string) (bool, error) {
 		expoAppConfigPth := filepath.Join(filepath.Dir(packageJSONPth), base)
 		exist, err := pathutil.IsPathExists(expoAppConfigPth)
 		if err != nil {
-			return false, fmt.Errorf("failed to check if Expo app config exists at: %s: %s", expoAppConfigPth, err)
+			return false, fmt.Errorf("failed to check if Expo app config exists at: %s: %w", expoAppConfigPth, err)
 		}
 		if exist {
 			return true, nil
@@ -182,7 +182,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		packageJSONDir := filepath.Dir(packageJSONPth)
 		relPackageJSONDir, err := utility.RelPath(searchDir, packageJSONDir)
 		if err != nil {
-			return false, fmt.Errorf("failed to get relative package.json dir path: %s", err)
+			return false, fmt.Errorf("failed to get relative package.json dir path: %w", err)
 		}
 
 		var (
