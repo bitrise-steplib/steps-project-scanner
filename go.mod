@@ -20,7 +20,7 @@ require (
 	github.com/bitrise-io/envman/v2 v2.5.6 // indirect
 	github.com/bitrise-io/go-flutter v0.1.1 // indirect
 	github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10 // indirect
-	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.44 // indirect
+	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.48 // indirect
 	github.com/bitrise-io/go-xcode v1.0.18 // indirect
 	github.com/bitrise-io/goinp v0.0.0-20240103152431-054ed78518ef // indirect
 	github.com/bitrise-io/stepman v0.19.0 // indirect

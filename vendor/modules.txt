@@ -60,7 +60,7 @@ github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.44
+# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.48
 ## explicit; go 1.17
 github.com/bitrise-io/go-steputils/v2/export
 github.com/bitrise-io/go-steputils/v2/internal
