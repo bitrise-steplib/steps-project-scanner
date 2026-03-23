@@ -38,8 +38,8 @@ github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2
 github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203/go.mod h1:zrkn07He4SgP2HP9GgJQgbC6SOKW3h6W7I08mgDlGbE=
 github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230711084209-91fcd09b2017 h1:80dEVNOKqMipUQy6WQH//TbEaKjb7CkPvlrGCN8gKc4=
 github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230711084209-91fcd09b2017/go.mod h1:X1+WYJT3/vJpfeU5gbQwNdAq5Me0TD0ysWpAcXs01Uw=
-github.com/bitrise-steplib/steps-git-clone v0.0.0-20260313085450-e9de8e502ed2 h1:1Oh3au3E06ZmlCX8RataaRmmJ1fov3ORozZpOfJQM58=
-github.com/bitrise-steplib/steps-git-clone v0.0.0-20260313085450-e9de8e502ed2/go.mod h1:ROMjlw0ZtCc2Tm1gOmDdaV62e+lITBMiQoFtfYeft4Q=
+github.com/bitrise-steplib/steps-git-clone v0.0.0-20260323082101-d766f0962a2b h1:wkfN5931drvvZmrXMHQZVLpcg88XnOWdrZ5Q+EPljIM=
+github.com/bitrise-steplib/steps-git-clone v0.0.0-20260323082101-d766f0962a2b/go.mod h1:ROMjlw0ZtCc2Tm1gOmDdaV62e+lITBMiQoFtfYeft4Q=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
