@@ -37,17 +37,19 @@ const (
 
 const (
 	CacheRestoreGradleID         = "restore-gradle-cache"
-	CacheRestoreGradleVersion    = "2"
+	CacheRestoreGradleVersion    = "3"
 	CacheRestoreCocoapodsID      = "restore-cocoapods-cache"
-	CacheRestoreCocoapodsVersion = "2"
+	CacheRestoreCocoapodsVersion = "3"
 	CacheRestoreCarthageID       = "restore-carthage-cache"
-	CacheRestoreCarthageVersion  = "2"
+	CacheRestoreCarthageVersion  = "3"
 	CacheRestoreNPMID            = "restore-npm-cache"
-	CacheRestoreNPMVersion       = "2"
+	CacheRestoreNPMVersion       = "3"
 	CacheRestoreSPMID            = "restore-spm-cache"
-	CacheRestoreSPMVersion       = "2"
+	CacheRestoreSPMVersion       = "3"
 	CacheRestoreDartID           = "restore-dart-cache"
-	CacheRestoreDartVersion      = "2"
+	CacheRestoreDartVersion      = "3"
+	CacheRestoreID               = "restore-cache"
+	CacheRestoreVersion          = "3"
 
 	CacheSaveGradleID         = "save-gradle-cache"
 	CacheSaveGradleVersion    = "1"
@@ -61,6 +63,8 @@ const (
 	CacheSaveSPMVersion       = "1"
 	CacheSaveDartID           = "save-dart-cache"
 	CacheSaveDartVersion      = "1"
+	CacheSaveID               = "save-cache"
+	CacheSaveVersion          = "1"
 
 	ActivateBuildCacheForGradleID      = "activate-build-cache-for-gradle"
 	ActivateBuildCacheForGradleVersion = "2"
@@ -108,7 +112,7 @@ const (
 
 const (
 	XcodeArchiveID      = "xcode-archive"
-	XcodeArchiveVersion = "5"
+	XcodeArchiveVersion = "6"
 )
 
 const (
@@ -168,7 +172,7 @@ const (
 
 const (
 	NpmID      = "npm"
-	NpmVersion = "2"
+	NpmVersion = "3"
 )
 
 const (
@@ -180,7 +184,7 @@ var RunEASBuildPlatforms = []string{"all", "android", "ios"}
 
 const (
 	YarnID      = "yarn"
-	YarnVersion = "1"
+	YarnVersion = "2"
 )
 
 const (

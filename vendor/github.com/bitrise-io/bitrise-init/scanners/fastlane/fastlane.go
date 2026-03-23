@@ -3,6 +3,8 @@ package fastlane
 import (
 	"fmt"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"github.com/bitrise-io/bitrise-init/toolscanner"
@@ -10,7 +12,6 @@ import (
 	envmanModels "github.com/bitrise-io/envman/v2/models"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"gopkg.in/yaml.v2"
 )
 
 const scannerName = "fastlane"
@@ -81,7 +82,7 @@ func (Scanner) Name() string {
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, true)
 	if err != nil {
-		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
+		return false, fmt.Errorf("failed to search for files in (%s), error: %w", searchDir, err)
 	}
 
 	// Search for Fastfile
@@ -89,7 +90,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 
 	fastfiles, err := FilterFastfiles(fileList)
 	if err != nil {
-		return false, fmt.Errorf("failed to search for Fastfile in (%s), error: %s", searchDir, err)
+		return false, fmt.Errorf("failed to search for Fastfile in (%s), error: %w", searchDir, err)
 	}
 
 	scanner.Fastfiles = fastfiles

@@ -135,7 +135,7 @@ func cloneRepo(cfg repoConfig) error {
 	// build URL and build api token don't apply here
 	patchSource := bitriseapi.NewPatchSource("", "")
 	mergeRefChecker := bitriseapi.NewMergeRefChecker("", "", retry.NewHTTPClient(), logger, stepTracker)
-	gitcloner := gitclone.NewGitCloner(logger, stepTracker, cmdFactory, patchSource, mergeRefChecker)
+	gitcloner := gitclone.NewGitCloner(logger, stepTracker, cmdFactory, patchSource, mergeRefChecker, false)
 	config := gitclone.Config{
 		RepositoryURL: cfg.RepositoryURL,
 		CloneIntoDir:  cfg.CloneIntoDir, // Using the same directory later to run scan
@@ -183,13 +183,13 @@ func main() {
 		}
 	}
 
-	if !(runtime.GOOS == "darwin" || runtime.GOOS == "linux") {
+	if runtime.GOOS != "darwin" && runtime.GOOS != "linux" {
 		failf("Unsupported OS: %s", runtime.GOOS)
 	}
 
 	if cfg.EnableRepoClone {
 		handleStepError := func(stepID, tag string, err error, shortMsg string) {
-			LogError(stepID, tag, err, shortMsg) //nolint:govet
+			LogError(stepID, tag, err, "%s", shortMsg) //nolint:govet
 			if resultClient != nil {
 				if err := resultClient.uploadErrorResult(stepID, err); err != nil {
 					log.TWarnf("Failed to submit result: %s", err)
