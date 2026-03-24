@@ -189,7 +189,7 @@ func main() {
 
 	if cfg.EnableRepoClone {
 		handleStepError := func(stepID, tag string, err error, shortMsg string) {
-			LogError(stepID, tag, err, "%s", shortMsg) //nolint:govet
+			LogError(stepID, tag, err, "%s", shortMsg)
 			if resultClient != nil {
 				if err := resultClient.uploadErrorResult(stepID, err); err != nil {
 					log.TWarnf("Failed to submit result: %s", err)
