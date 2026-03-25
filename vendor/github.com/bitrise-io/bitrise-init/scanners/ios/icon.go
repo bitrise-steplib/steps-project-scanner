@@ -52,7 +52,7 @@ func lookupIconByTarget(projectPath string, target xcodeproj.Target, basepath st
 	for _, appIconSetPath := range appIconSetPaths {
 		icon, found, err := parseResourceSet(appIconSetPath)
 		if err != nil {
-			return nil, fmt.Errorf("could not get icon, error: %s", err)
+			return nil, fmt.Errorf("could not get icon, error: %w", err)
 		} else if !found {
 			log.TDebugf("No icon found at %s", appIconSetPath)
 			return nil, nil
@@ -61,7 +61,7 @@ func lookupIconByTarget(projectPath string, target xcodeproj.Target, basepath st
 
 		iconPath := filepath.Join(appIconSetPath, icon.Filename)
 		if _, err := os.Stat(iconPath); err != nil && os.IsNotExist(err) {
-			return nil, fmt.Errorf("icon file does not exist: %s, error: %err", iconPath, err)
+			return nil, fmt.Errorf("icon file does not exist: %s, error: %w", iconPath, err)
 		}
 		iconPaths = append(iconPaths, iconPath)
 	}

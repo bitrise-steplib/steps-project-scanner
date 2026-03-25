@@ -99,7 +99,7 @@ func scanAndroidAppProject(gradleProject gradle.Project) (*android.DetectResult,
 	}
 	if androidApplicationPluginAlias != "" {
 		// Convert plugin alias to accessor format: groovyJson-core -> libs.plugins.groovyJson.core
-		androidApplicationPluginAccessor := fmt.Sprintf("libs.plugins.%s", strings.Replace(androidApplicationPluginAlias, "-", ".", -1))
+		androidApplicationPluginAccessor := fmt.Sprintf("libs.plugins.%s", strings.ReplaceAll(androidApplicationPluginAlias, "-", "."))
 		androidAppDependencies = append(androidAppDependencies, fmt.Sprintf("alias(%s)", androidApplicationPluginAccessor))
 	}
 

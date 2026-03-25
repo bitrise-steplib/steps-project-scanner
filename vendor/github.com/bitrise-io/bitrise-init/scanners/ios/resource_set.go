@@ -33,12 +33,12 @@ func parseResourceSet(resourceSetPath string) (appIcon, bool, error) {
 	const resourceMetadataFileName = "Contents.json"
 	file, err := os.Open(filepath.Join(resourceSetPath, resourceMetadataFileName))
 	if err != nil {
-		return appIcon{}, false, fmt.Errorf("failed to open file, error: %s", err)
+		return appIcon{}, false, fmt.Errorf("failed to open file, error: %w", err)
 	}
 
 	appIcons, err := parseResourceSetMetadata(file)
 	if err != nil {
-		return appIcon{}, false, fmt.Errorf("failed to parse asset metadata, error: %s", err)
+		return appIcon{}, false, fmt.Errorf("failed to parse asset metadata, error: %w", err)
 	}
 
 	if len(appIcons) == 0 {
@@ -56,7 +56,7 @@ func parseResourceSet(resourceSetPath string) (appIcon, bool, error) {
 func parseResourceSetMetadata(input io.Reader) ([]appIcon, error) {
 	var decoded assetMetadata
 	if err := json.NewDecoder(input).Decode(&decoded); err != nil {
-		return nil, fmt.Errorf("failed to decode asset metadata file, error: %s", err)
+		return nil, fmt.Errorf("failed to decode asset metadata file, error: %w", err)
 	}
 
 	if decoded.Info.Version != 1 {
@@ -70,7 +70,7 @@ func parseResourceSetMetadata(input io.Reader) ([]appIcon, error) {
 		}
 		iconSize, err := strconv.ParseFloat(sizeParts[0], 32)
 		if err != nil {
-			return nil, fmt.Errorf("invalid image size, error: %s", err)
+			return nil, fmt.Errorf("invalid image size, error: %w", err)
 		}
 		// If icon is not set for a given usage, filaname key is missing
 		if icon.Filename != "" {
