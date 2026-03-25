@@ -229,7 +229,7 @@ func collectAptPackages(databases []databaseGem) []string {
 }
 
 func generateSystemDepsScript(packages []string) string {
-	return "#!/usr/bin/env bash\nset -euxo pipefail\n\napt-get install -y " + strings.Join(packages, " ") + "\n"
+	return "#!/usr/bin/env bash\nset -euxo pipefail\n\napt-get update\napt-get install -y " + strings.Join(packages, " ") + "\n"
 }
 
 func serviceContainerReferences(databases []databaseGem) []stepmanModels.ContainerReference {
