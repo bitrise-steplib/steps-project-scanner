@@ -38,7 +38,8 @@ type project struct {
 	scripts        []string
 	hasTest        bool
 	hasLint        bool
-	hasBuild       bool
+	framework      string
+	nodeVersion    string
 }
 
 // Scanner implements the Scanner interface for Node.js projects
@@ -77,6 +78,8 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 			log.TWarnf("Failed to check package scripts: %s", err)
 			continue
 		}
+		framework := detectFramework(packageJsonPath)
+		nodeVersion := detectNodeVersion(pkgJsonDir, packageJsonPath)
 
 		projectRelDir, err := utility.RelPath(searchDir, pkgJsonDir)
 		if err != nil {
@@ -90,7 +93,8 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 			scripts:        results.scripts,
 			hasTest:        results.hasTest,
 			hasLint:        results.hasLint,
-			hasBuild:       results.hasBuild,
+			framework:      framework,
+			nodeVersion:    nodeVersion,
 		}
 
 		scanner.projects = append(scanner.projects, project)

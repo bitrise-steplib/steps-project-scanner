@@ -4,38 +4,20 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/steps"
 	"github.com/bitrise-io/bitrise-init/utility"
+	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 )
 
-const (
-	asdfInstallScriptStepTitle   = "Install Node.js"
-	asdfInstallScriptStepContent = `#!/usr/bin/env bash
-set -euxo pipefail
-
-export ASDF_NODEJS_LEGACY_FILE_DYNAMIC_STRATEGY=latest_installed
-envman add --key ASDF_NODEJS_LEGACY_FILE_DYNAMIC_STRATEGY --value latest_installed
-
-pushd "${NODEJS_PROJECT_DIR:-.}" > /dev/null
-
-# Bitrise stacks come with asdf pre-installed to help auto-switch between various software versions
-# asdf looks for the Node.js version in these files: .tool-versions, .nvmrc, .node-version
-# so it should work out-of-the-box even if the project uses another Node.js manager
-# See: https://github.com/asdf-vm/asdf-nodejs
-asdf install nodejs
-
-popd > /dev/null
-`
-)
-
 type checkScriptResult struct {
-	scripts                    []string
-	hasBuild, hasLint, hasTest bool
+	scripts            []string
+	hasLint, hasTest bool
 }
 
 func checkPackageManager(searchDir string) string {
@@ -60,10 +42,9 @@ func checkPackageScripts(packageJsonPath string) (checkScriptResult, error) {
 	log.TPrintf("Checking package scripts")
 
 	result := checkScriptResult{
-		scripts:  make([]string, 0),
-		hasBuild: false,
-		hasLint:  false,
-		hasTest:  false,
+		scripts: make([]string, 0),
+		hasLint: false,
+		hasTest: false,
 	}
 
 	packages, err := utility.ParsePackagesJSON(packageJsonPath)
@@ -74,13 +55,6 @@ func checkPackageScripts(packageJsonPath string) (checkScriptResult, error) {
 	for name := range packages.Scripts {
 		log.TDebugf("- %s", name)
 		result.scripts = append(result.scripts, name)
-	}
-
-	if slices.Contains(result.scripts, "build") {
-		log.TPrintf("- build - found")
-		result.hasBuild = true
-	} else {
-		log.TPrintf("- build - not found")
 	}
 
 	if slices.Contains(result.scripts, "lint") {
@@ -100,24 +74,128 @@ func checkPackageScripts(packageJsonPath string) (checkScriptResult, error) {
 	return result, nil
 }
 
+// detectFramework returns the JS framework detected from package.json dependencies.
+// Returns "nextjs", "nestjs", or "" if none is detected.
+func detectFramework(packageJsonPath string) string {
+	log.TPrintf("Checking framework")
+
+	packages, err := utility.ParsePackagesJSON(packageJsonPath)
+	if err != nil {
+		log.TPrintf("- framework - failed to parse package.json: %s", err)
+		return ""
+	}
+
+	allDeps := make(map[string]string)
+	for k, v := range packages.Dependencies {
+		allDeps[k] = v
+	}
+	for k, v := range packages.DevDependencies {
+		allDeps[k] = v
+	}
+
+	if _, ok := allDeps["next"]; ok {
+		log.TPrintf("- framework: nextjs")
+		return "nextjs"
+	}
+	if _, ok := allDeps["@nestjs/core"]; ok {
+		log.TPrintf("- framework: nestjs")
+		return "nestjs"
+	}
+
+	log.TPrintf("- framework - not detected")
+	return ""
+}
+
+// detectNodeVersion returns the Node.js version declared in version files or package.json engines.
+// Sources checked in order: .nvmrc, .node-version, .tool-versions, engines.node in package.json.
+// Returns an empty string if no version is found.
+func detectNodeVersion(projectDir, packageJsonPath string) string {
+	log.TPrintf("Checking Node.js version")
+
+	// .nvmrc — single line containing the version (e.g. "22" or "22.14.0")
+	if content, err := fileutil.ReadStringFromFile(filepath.Join(projectDir, ".nvmrc")); err == nil {
+		version := strings.TrimSpace(content)
+		if version != "" {
+			log.TPrintf("- .nvmrc - found (%s)", version)
+			return version
+		}
+	}
+
+	// .node-version — same format as .nvmrc
+	if content, err := fileutil.ReadStringFromFile(filepath.Join(projectDir, ".node-version")); err == nil {
+		version := strings.TrimSpace(content)
+		if version != "" {
+			log.TPrintf("- .node-version - found (%s)", version)
+			return version
+		}
+	}
+
+	// .tool-versions — asdf/mise format: "nodejs <version>"
+	if content, err := fileutil.ReadStringFromFile(filepath.Join(projectDir, ".tool-versions")); err == nil {
+		for _, line := range strings.Split(content, "\n") {
+			fields := strings.Fields(line)
+			if len(fields) >= 2 && fields[0] == "nodejs" {
+				log.TPrintf("- .tool-versions - found nodejs %s", fields[1])
+				return fields[1]
+			}
+		}
+	}
+
+	// engines.node in package.json — semver range, e.g. ">=22.0.0"
+	packages, err := utility.ParsePackagesJSON(packageJsonPath)
+	if err == nil {
+		if constraint, ok := packages.Engines["node"]; ok && constraint != "" {
+			version := parseEnginesNodeVersion(constraint)
+			if version != "" {
+				log.TPrintf("- engines.node - found (%s → %s)", constraint, version)
+				return version
+			}
+		}
+	}
+
+	log.TPrintf("- Node.js version - not found")
+	return ""
+}
+
+// parseEnginesNodeVersion strips leading semver operators and returns the first version string.
+// e.g. ">=22.0.0" → "22.0.0", "^18.17.0" → "18.17.0"
+func parseEnginesNodeVersion(constraint string) string {
+	constraint = strings.TrimSpace(constraint)
+	i := 0
+	for i < len(constraint) {
+		c := constraint[i]
+		if c == '>' || c == '<' || c == '=' || c == '^' || c == '~' || c == 'v' || c == ' ' {
+			i++
+		} else {
+			break
+		}
+	}
+	version := strings.TrimSpace(constraint[i:])
+	// Take only the first token in case of compound ranges like ">=18.0.0 <20"
+	if parts := strings.Fields(version); len(parts) > 0 {
+		return parts[0]
+	}
+	return ""
+}
+
 // Options & Configs
 type configDescriptor struct {
-	workdir    string
-	pkgManager string
-	hasBuild   bool
-	hasLint    bool
-	hasTest    bool
-	isDefault  bool
+	workdir     string
+	pkgManager  string
+	hasLint     bool
+	hasTest     bool
+	isDefault   bool
+	nodeVersion string
 }
 
 func createConfigDescriptor(project project, isDefault bool) configDescriptor {
 	descriptor := configDescriptor{
-		workdir:    "$" + projectDirInputEnvKey,
-		pkgManager: project.packageManager,
-		hasBuild:   project.hasBuild,
-		hasLint:    project.hasLint,
-		hasTest:    project.hasTest,
-		isDefault:  isDefault,
+		workdir:     "$" + projectDirInputEnvKey,
+		pkgManager:  project.packageManager,
+		hasLint:     project.hasLint,
+		hasTest:     project.hasTest,
+		isDefault:   isDefault,
+		nodeVersion: project.nodeVersion,
 	}
 
 	// package.json placed in the search dir, no need to change-dir
@@ -132,7 +210,6 @@ func createDefaultConfigDescriptor(packageManager string) configDescriptor {
 	return createConfigDescriptor(project{
 		projectRelDir:  "$" + projectDirInputEnvKey,
 		packageManager: packageManager,
-		hasBuild:       true,
 		hasLint:        true,
 		hasTest:        true,
 	}, true)
@@ -153,14 +230,9 @@ func configName(params configDescriptor) string {
 		name = name + "-root"
 	}
 
-	if params.hasBuild {
-		name = name + "-build"
-	}
-
 	if params.hasLint {
 		name = name + "-lint"
 	}
-
 	if params.hasTest {
 		name = name + "-test"
 	}
@@ -233,10 +305,13 @@ func generateConfigs(projects []project, sshKeyActivation models.SSHKeyActivatio
 
 func generateConfigBasedOn(descriptor configDescriptor, sshKey models.SSHKeyActivation) (string, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
+	if descriptor.nodeVersion != "" {
+		configBuilder.AddTool("node", descriptor.nodeVersion)
+	}
+
 	prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKey})
 	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, prepareSteps...)
 
-	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.ScriptStepListItem(asdfInstallScriptStepTitle, asdfInstallScriptStepContent))
 	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.RestoreNPMCache())
 
 	switch descriptor.pkgManager {
