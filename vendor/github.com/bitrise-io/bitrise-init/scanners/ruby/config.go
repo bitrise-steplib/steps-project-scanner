@@ -33,13 +33,6 @@ bundle install
 `
 )
 
-const (
-	rubyVersionInputTitle           = "Ruby version"
-	rubyVersionInputSummary         = "The Ruby version to be used for the project. Use exact (3.2.0) or partial (3:latest, 3:installed) versions."
-	rubyVersionEnvKey               = "RUBY_VERSION"
-	rubyVersionInstallScriptContent = "bitrise tools install ruby $RUBY_VERSION"
-)
-
 type configDescriptor struct {
 	workdir        string
 	hasBundler     bool
@@ -89,16 +82,12 @@ func generateConfigs(projects []project, sshKeyActivation models.SSHKeyActivatio
 
 func generateConfigBasedOn(descriptor configDescriptor, sshKey models.SSHKeyActivation) (string, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
-	// Declarative Ruby version — runs before any step, no explicit install step needed
-	if descriptor.rubyVersion != "" {
-		configBuilder.AddTool("ruby", descriptor.rubyVersion)
-	}
-
 	prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKey})
 	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, prepareSteps...)
 
-	if descriptor.isDefault {
-		configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.ScriptStepListItem("Install Ruby", rubyVersionInstallScriptContent))
+	// Declarative Ruby version — runs before any step, no explicit install step needed
+	if descriptor.rubyVersion != "" {
+		configBuilder.AddTool("ruby", descriptor.rubyVersion)
 	}
 
 	// Restore gem cache

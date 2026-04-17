@@ -112,13 +112,10 @@ func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (model
 
 func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	projectRootOption := models.NewOption(projectDirInputTitle, projectDirInputSummary, projectDirInputEnvKey, models.TypeUserInput)
-	rubyVersionOption := models.NewOption(rubyVersionInputTitle, rubyVersionInputSummary, rubyVersionEnvKey, models.TypeUserInput)
-
-	projectRootOption.AddOption(models.UserInputOptionDefaultValue, rubyVersionOption)
 
 	defaultDescriptor := createDefaultConfigDescriptor()
 	configOption := models.NewConfigOption(configName(defaultDescriptor), nil)
-	rubyVersionOption.AddConfig(models.UserInputOptionDefaultValue, configOption)
+	projectRootOption.AddConfig(models.UserInputOptionDefaultValue, configOption)
 
 	return *projectRootOption
 }
