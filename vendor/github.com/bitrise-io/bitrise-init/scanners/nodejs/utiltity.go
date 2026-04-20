@@ -16,7 +16,7 @@ import (
 )
 
 type checkScriptResult struct {
-	scripts            []string
+	scripts          []string
 	hasLint, hasTest bool
 }
 
@@ -311,6 +311,10 @@ func generateConfigBasedOn(descriptor configDescriptor, sshKey models.SSHKeyActi
 
 	prepareSteps := steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: sshKey})
 	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, prepareSteps...)
+
+	if descriptor.isDefault {
+		configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.ScriptStepListItem("Install Node.js", nodeVersionInstallScriptContent))
+	}
 
 	configBuilder.AppendStepListItemsTo(runTestsWorkflowID, steps.RestoreNPMCache())
 

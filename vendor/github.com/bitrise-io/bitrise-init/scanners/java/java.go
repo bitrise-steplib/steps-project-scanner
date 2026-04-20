@@ -37,12 +37,7 @@ const (
 	mavenProjectRootDirInputSummary = "The root directory of the Maven project, which contains all source files from your project, as well as Maven files, including the Maven Wrapper (`mvn`) file."
 	mavenTestScriptTitle            = `Run Maven tests`
 	mavenTestScriptContent          = `#!/usr/bin/env bash
-# fail if any commands fails
-set -e
-# make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
-set -o pipefail
-# debug log
-set -x
+set -euxo pipefail
 
 ./mvnw test
 `

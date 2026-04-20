@@ -20,6 +20,15 @@ const (
 
 	packageManagerInputTitle   = "Package Manager"
 	packageManagerInputSummary = "The package manager used in the project"
+
+	nodeVersionInputTitle           = "Node.js version"
+	nodeVersionInputSummary         = "The Node.js version to be used for the project. Use exact (20.10.0) or partial (22:latest, 20:installed) versions."
+	nodeVersionEnvKey               = "NODEJS_VERSION"
+	nodeVersionInstallScriptContent = `#!/usr/bin/env bash
+set -euxo pipefail
+
+bitrise tools install nodejs $NODEJS_VERSION
+`
 )
 
 type packageManager struct {
@@ -127,14 +136,16 @@ func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (model
 func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	projectRootOption := models.NewOption(projectDirInputTitle, projectDirInputSummary, projectDirInputEnvKey, models.TypeUserInput)
 	packageManagerOption := models.NewOption(packageManagerInputTitle, packageManagerInputSummary, "", models.TypeSelector)
+	nodeVersionOption := models.NewOption(nodeVersionInputTitle, nodeVersionInputSummary, nodeVersionEnvKey, models.TypeUserInput)
+
+	projectRootOption.AddOption(models.UserInputOptionDefaultValue, nodeVersionOption)
+	nodeVersionOption.AddOption(models.UserInputOptionDefaultValue, packageManagerOption)
 
 	for _, pkgMgr := range pkgManagers {
 		defaultDescriptor := createDefaultConfigDescriptor(pkgMgr.name)
 		configOption := models.NewConfigOption(configName(defaultDescriptor), nil)
 		packageManagerOption.AddConfig(pkgMgr.name, configOption)
 	}
-
-	projectRootOption.AddOption(models.UserInputOptionDefaultValue, packageManagerOption)
 
 	return *projectRootOption
 }
