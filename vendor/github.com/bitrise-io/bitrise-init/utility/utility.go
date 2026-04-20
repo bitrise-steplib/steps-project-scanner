@@ -15,6 +15,7 @@ type PackagesModel struct {
 	Scripts         map[string]string `json:"scripts"`
 	Dependencies    map[string]string `json:"dependencies"`
 	DevDependencies map[string]string `json:"devDependencies"`
+	Engines         map[string]string `json:"engines"`
 }
 
 func parsePackagesJSONContent(content string) (PackagesModel, error) {
@@ -44,6 +45,7 @@ func CollectPackageJSONFiles(searchDir string) ([]string, error) {
 	filters := []pathutil.FilterFunc{
 		pathutil.BaseFilter("package.json", true),
 		pathutil.ComponentFilter("node_modules", false),
+		pathutil.ComponentFilter(".next", false),
 	}
 	packageFileList, err := pathutil.FilterPaths(fileList, filters...)
 	if err != nil {

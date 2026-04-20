@@ -20,6 +20,15 @@ const (
 
 	packageManagerInputTitle   = "Package Manager"
 	packageManagerInputSummary = "The package manager used in the project"
+
+	nodeVersionInputTitle           = "Node.js version"
+	nodeVersionInputSummary         = "The Node.js version to be used for the project. Use exact (20.10.0) or partial (22:latest, 20:installed) versions."
+	nodeVersionEnvKey               = "NODEJS_VERSION"
+	nodeVersionInstallScriptContent = `#!/usr/bin/env bash
+set -euxo pipefail
+
+bitrise tools install nodejs $NODEJS_VERSION
+`
 )
 
 type packageManager struct {
@@ -38,7 +47,8 @@ type project struct {
 	scripts        []string
 	hasTest        bool
 	hasLint        bool
-	hasBuild       bool
+	framework      string
+	nodeVersion    string
 }
 
 // Scanner implements the Scanner interface for Node.js projects
@@ -77,6 +87,8 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 			log.TWarnf("Failed to check package scripts: %s", err)
 			continue
 		}
+		framework := detectFramework(packageJsonPath)
+		nodeVersion := detectNodeVersion(pkgJsonDir, packageJsonPath)
 
 		projectRelDir, err := utility.RelPath(searchDir, pkgJsonDir)
 		if err != nil {
@@ -90,7 +102,8 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 			scripts:        results.scripts,
 			hasTest:        results.hasTest,
 			hasLint:        results.hasLint,
-			hasBuild:       results.hasBuild,
+			framework:      framework,
+			nodeVersion:    nodeVersion,
 		}
 
 		scanner.projects = append(scanner.projects, project)
@@ -123,14 +136,16 @@ func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (model
 func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	projectRootOption := models.NewOption(projectDirInputTitle, projectDirInputSummary, projectDirInputEnvKey, models.TypeUserInput)
 	packageManagerOption := models.NewOption(packageManagerInputTitle, packageManagerInputSummary, "", models.TypeSelector)
+	nodeVersionOption := models.NewOption(nodeVersionInputTitle, nodeVersionInputSummary, nodeVersionEnvKey, models.TypeUserInput)
+
+	projectRootOption.AddOption(models.UserInputOptionDefaultValue, nodeVersionOption)
+	nodeVersionOption.AddOption(models.UserInputOptionDefaultValue, packageManagerOption)
 
 	for _, pkgMgr := range pkgManagers {
 		defaultDescriptor := createDefaultConfigDescriptor(pkgMgr.name)
 		configOption := models.NewConfigOption(configName(defaultDescriptor), nil)
 		packageManagerOption.AddConfig(pkgMgr.name, configOption)
 	}
-
-	projectRootOption.AddOption(models.UserInputOptionDefaultValue, packageManagerOption)
 
 	return *projectRootOption
 }
