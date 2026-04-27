@@ -22,15 +22,34 @@ import (
 const (
 	scannerName                 = "flutter"
 	configName                  = "flutter-config"
+	testWorkflowID              = "run_tests"
+	buildWorkflowID             = "build_app"
 	projectLocationInputKey     = "project_location"
 	projectLocationInputEnvKey  = "BITRISE_FLUTTER_PROJECT_LOCATION"
 	projectLocationInputTitle   = "Project location"
 	projectLocationInputSummary = "The path to your Flutter project, stored as an Environment Variable. In your Workflows, you can specify paths relative to this path. You can change this at any time."
 	platformInputKey            = "platform"
-	platformInputTitle          = "Platform"
-	platformInputSummary        = "The target platform for your first build. Your options are iOS, Android, both, or neither. You can change this in your Env Vars at any time."
 	iosOutputTypeKey            = "ios_output_type"
 	iosOutputTypeArchive        = "archive"
+)
+
+const (
+	testWorkflowDescription = `Runs tests or analysis.
+
+Runs flutter-test if a test directory is present, otherwise runs flutter-analyze.
+
+Next steps:
+- Check out [Getting started with Flutter apps](https://docs.bitrise.io/en/bitrise-ci/getting-started/quick-start-guides/getting-started-with-flutter-projects.html).
+`
+
+	buildAppWorkflowDescription = `Builds and deploys app using [Deploy to bitrise.io Step](https://docs.bitrise.io/en/bitrise-ci/getting-started/quick-start-guides/getting-started-with-flutter-projects.html#deploying-a-flutter-app).
+
+If you build for iOS, make sure to set up code signing secrets on Bitrise for a successful build.
+
+Next steps:
+- Check out [Getting started with Flutter apps](https://docs.bitrise.io/en/bitrise-ci/getting-started/quick-start-guides/getting-started-with-flutter-projects.html) for signing and deployment options.
+- Check out the Code signing guide for [iOS](https://docs.bitrise.io/en/bitrise-ci/code-signing/ios-code-signing.html) and [Android](https://docs.bitrise.io/en/bitrise-ci/code-signing/android-code-signing.html).
+`
 )
 
 //------------------
@@ -43,35 +62,8 @@ type project struct {
 	hasTest             bool
 	hasIosProject       bool
 	hasAndroidProject   bool
+	hasWebProject       bool
 	flutterVersionToUse string
-}
-
-func (proj project) appPlatform() string {
-	switch {
-	case proj.hasAndroidProject && !proj.hasIosProject:
-		return "android"
-	case !proj.hasAndroidProject && proj.hasIosProject:
-		return "ios"
-	case proj.hasAndroidProject && proj.hasIosProject:
-		return "both"
-	default:
-		return ""
-	}
-}
-
-func (proj project) configName() string {
-	name := configName
-	if proj.hasTest {
-		name += "-test"
-	} else {
-		name += "-notest"
-	}
-	if proj.appPlatform() != "" {
-		name += "-" + proj.appPlatform()
-	}
-	name += fmt.Sprintf("-%d", proj.id)
-
-	return name
 }
 
 // Scanner ...
@@ -118,10 +110,11 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		hasTest := flutterProj.TestDirPth() != ""
 		hasIosProject := flutterProj.IOSProjectPth() != ""
 		hasAndroidProject := flutterProj.AndroidProjectPth() != ""
+		hasWebProject := flutterProj.WebProjectDir() != ""
 
 		// TODO: The second return value (flutterChannel) is omitted,
 		//  because the Flutter Installer step is not able to install a Flutter SDK version from a specific channel.
-		//  This is not a hugh issue, because just a few SDK version is available on multiple channels (like 2.2.2).
+		//  This is not a huge issue, because just a few SDK versions are available on multiple channels (like 2.2.2).
 		flutterVersion, _, err := flutterProj.FlutterSDKVersionToUse()
 		if err != nil {
 			log.Warnf(err.Error())
@@ -134,6 +127,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 			hasTest:             hasTest,
 			hasIosProject:       hasIosProject,
 			hasAndroidProject:   hasAndroidProject,
+			hasWebProject:       hasWebProject,
 			flutterVersionToUse: flutterVersion,
 		}
 
@@ -144,6 +138,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		log.TPrintf("  Has test: %v", hasTest)
 		log.TPrintf("  Has Android project: %v", hasAndroidProject)
 		log.TPrintf("  Has iOS project: %v", hasIosProject)
+		log.TPrintf("  Has Web project: %v", hasWebProject)
 		if flutterVersion != "" {
 			log.TPrintf("  Flutter version to use: %s", proj.flutterVersionToUse)
 		}
@@ -167,7 +162,7 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputSummary, projectLocationInputEnvKey, models.TypeSelector)
 
 	for _, proj := range scanner.projects {
-		configOption := models.NewConfigOption(proj.configName(), nil)
+		configOption := models.NewConfigOption(configNameFor(proj), nil)
 		flutterProjectLocationOption.AddConfig(proj.rootDir, configOption)
 	}
 
@@ -175,22 +170,17 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 }
 
 var defaultProjects = []project{
-	{hasTest: true, hasAndroidProject: true, hasIosProject: true},
-	{hasTest: true, hasAndroidProject: false, hasIosProject: true},
-	{hasTest: true, hasAndroidProject: true, hasIosProject: false},
+	{hasTest: true, hasAndroidProject: true, hasIosProject: true, hasWebProject: true},
 }
 
 // DefaultOptions ...
 func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputSummary, projectLocationInputEnvKey, models.TypeUserInput)
 
-	flutterPlatformOption := models.NewOption(platformInputTitle, platformInputSummary, "", models.TypeSelector)
-	flutterProjectLocationOption.AddOption(models.UserInputOptionDefaultValue, flutterPlatformOption)
-
 	for i, proj := range defaultProjects {
 		proj.id = i
-		configOption := models.NewConfigOption(proj.configName(), nil)
-		flutterPlatformOption.AddConfig(proj.appPlatform(), configOption)
+		configOption := models.NewConfigOption(configNameFor(proj), nil)
+		flutterProjectLocationOption.AddConfig(models.UserInputOptionDefaultValue, configOption)
 	}
 
 	return *flutterProjectLocationOption
@@ -205,7 +195,7 @@ func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (model
 			return nil, err
 		}
 
-		configs[proj.configName()] = config
+		configs[configNameFor(proj)] = config
 	}
 
 	return configs, nil
@@ -221,7 +211,7 @@ func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		if err != nil {
 			return nil, err
 		}
-		configs[proj.configName()] = config
+		configs[configNameFor(proj)] = config
 	}
 
 	return configs, nil
@@ -259,61 +249,61 @@ func generateConfig(sshKeyActivation models.SSHKeyActivation, proj project) (str
 	deploySteps := steps.DefaultDeployStepList()
 
 	// primary
-	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryWorkflowDescription)
+	configBuilder.SetWorkflowDescriptionTo(testWorkflowID, testWorkflowDescription)
 
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, prepareSteps...)
+	configBuilder.AppendStepListItemsTo(testWorkflowID, prepareSteps...)
 
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, flutterInstallStep)
+	configBuilder.AppendStepListItemsTo(testWorkflowID, flutterInstallStep)
 
 	// restore cache is after flutter-installer, to prevent removal of pub system cache
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreDartCache())
+	configBuilder.AppendStepListItemsTo(testWorkflowID, steps.RestoreDartCache())
 
 	if proj.hasTest {
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FlutterTestStepListItem(
+		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.FlutterTestStepListItem(
 			envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
 		))
 	} else {
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FlutterAnalyzeStepListItem(
+		configBuilder.AppendStepListItemsTo(testWorkflowID, steps.FlutterAnalyzeStepListItem(
 			envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
 		))
 	}
 
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveDartCache())
+	configBuilder.AppendStepListItemsTo(testWorkflowID, steps.SaveDartCache())
 
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, deploySteps...)
+	configBuilder.AppendStepListItemsTo(testWorkflowID, deploySteps...)
 
 	if proj.hasIosProject || proj.hasAndroidProject {
 		// deploy
-		configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
+		configBuilder.SetWorkflowDescriptionTo(buildWorkflowID, buildAppWorkflowDescription)
 
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, prepareSteps...)
+		configBuilder.AppendStepListItemsTo(buildWorkflowID, prepareSteps...)
 
 		if proj.hasIosProject {
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
+			configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 		}
 
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, flutterInstallStep)
+		configBuilder.AppendStepListItemsTo(buildWorkflowID, flutterInstallStep)
 
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterAnalyzeStepListItem(
+		configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.FlutterAnalyzeStepListItem(
 			envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
 		))
 
 		if proj.hasTest {
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterTestStepListItem(
+			configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.FlutterTestStepListItem(
 				envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
 			))
 		}
 
 		flutterBuildInputs := []envmanModels.EnvironmentItemModel{
 			{projectLocationInputKey: "$" + projectLocationInputEnvKey},
-			{platformInputKey: proj.appPlatform()},
+			{platformInputKey: targetPlatformInputValueFor(proj)},
 		}
 		if proj.hasIosProject {
 			flutterBuildInputs = append(flutterBuildInputs, envmanModels.EnvironmentItemModel{iosOutputTypeKey: iosOutputTypeArchive})
 		}
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterBuildStepListItem(flutterBuildInputs...))
+		configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.FlutterBuildStepListItem(flutterBuildInputs...))
 
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, deploySteps...)
+		configBuilder.AppendStepListItemsTo(buildWorkflowID, deploySteps...)
 	}
 
 	config, err := configBuilder.Generate(scannerName)
@@ -327,4 +317,38 @@ func generateConfig(sshKeyActivation models.SSHKeyActivation, proj project) (str
 	}
 
 	return string(data), nil
+}
+
+func targetPlatformInputValueFor(proj project) string {
+	switch {
+	case proj.hasIosProject && proj.hasAndroidProject:
+		return "both"
+	case proj.hasIosProject:
+		return "ios"
+	case proj.hasAndroidProject:
+		return "android"
+	default:
+		return ""
+	}
+}
+
+func configNameFor(proj project) string {
+	name := configName
+	if proj.hasTest {
+		name += "-test"
+	} else {
+		name += "-notest"
+	}
+	if proj.hasIosProject {
+		name += "-ios"
+	}
+	if proj.hasAndroidProject {
+		name += "-android"
+	}
+	if proj.hasWebProject {
+		name += "-web"
+	}
+	name += fmt.Sprintf("-%d", proj.id)
+
+	return name
 }

@@ -137,6 +137,17 @@ func (p *Project) AndroidProjectPth() string {
 	return androidProjectPth
 }
 
+func (p *Project) WebProjectDir() string {
+	const webProjectDirRelPath = "web"
+
+	webProjectDir := filepath.Join(p.rootDir, webProjectDirRelPath)
+	if exists, err := p.pathChecker.IsDirExists(webProjectDir); err == nil && exists {
+		return webProjectDir
+	}
+
+	return ""
+}
+
 func (p *Project) FlutterAndDartSDKVersions() (FlutterAndDartSDKVersions, error) {
 	sdkVersions := FlutterAndDartSDKVersions{}
 
