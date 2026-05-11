@@ -51,6 +51,7 @@ pytest
 	poetryInstallScriptContent = `#!/usr/bin/env bash
 set -euxo pipefail
 
+pip install poetry
 poetry install
 `
 
@@ -63,6 +64,7 @@ poetry run pytest
 	uvSyncScriptContent = `#!/usr/bin/env bash
 set -euxo pipefail
 
+pip install uv
 uv sync
 `
 
