@@ -10,6 +10,7 @@ import (
 )
 
 const fvmConfigRelPath = ".fvm/fvm_config.json"
+const fvmrcRelPath = ".fvmrc"
 
 type FVMVersionReader struct {
 	fileOpener FileOpener
@@ -22,8 +23,30 @@ func NewFVMVersionReader(fileOpener FileOpener) FVMVersionReader {
 }
 
 func (r FVMVersionReader) ReadSDKVersion(projectRootDir string) (*semver.Version, string, error) {
+	// Try FVM 2.x format first (.fvm/fvm_config.json)
 	fvmConfigPth := filepath.Join(projectRootDir, fvmConfigRelPath)
 	f, err := r.fileOpener.OpenReaderIfExists(fvmConfigPth)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if f != nil {
+		versionStr, channel, err := parseFVMFlutterVersion(f)
+		if err != nil {
+			return nil, "", err
+		}
+		if versionStr != "" {
+			version, err := semver.NewVersion(versionStr)
+			if err != nil {
+				return nil, "", err
+			}
+			return version, channel, nil
+		}
+	}
+
+	// Try FVM 3.x format (.fvmrc)
+	fvmrcPth := filepath.Join(projectRootDir, fvmrcRelPath)
+	f, err = r.fileOpener.OpenReaderIfExists(fvmrcPth)
 	if err != nil {
 		return nil, "", err
 	}
@@ -32,7 +55,7 @@ func (r FVMVersionReader) ReadSDKVersion(projectRootDir string) (*semver.Version
 		return nil, "", nil
 	}
 
-	versionStr, channel, err := parseFVMFlutterVersion(f)
+	versionStr, channel, err := parseFVMRCFlutterVersion(f)
 	if err != nil {
 		return nil, "", err
 	}
@@ -62,6 +85,28 @@ func parseFVMFlutterVersion(fvmConfigReader io.Reader) (string, string, error) {
 	version := config.FlutterSdkVersion
 	channel := ""
 	s := strings.Split(config.FlutterSdkVersion, "@")
+	if len(s) > 1 {
+		version = s[0]
+		channel = strings.Join(s[1:], "@")
+	}
+
+	return version, channel, nil
+}
+
+func parseFVMRCFlutterVersion(fvmrcReader io.Reader) (string, string, error) {
+	type fvmrc struct {
+		Flutter string `json:"flutter"`
+	}
+
+	var config fvmrc
+	d := json.NewDecoder(fvmrcReader)
+	if err := d.Decode(&config); err != nil {
+		return "", "", err
+	}
+
+	version := config.Flutter
+	channel := ""
+	s := strings.Split(config.Flutter, "@")
 	if len(s) > 1 {
 		version = s[0]
 		channel = strings.Join(s[1:], "@")
