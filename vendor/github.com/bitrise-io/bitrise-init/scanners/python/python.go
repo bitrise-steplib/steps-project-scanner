@@ -31,12 +31,13 @@ type project struct {
 	hasPytest           bool
 	pythonVersion       string
 	devRequirementsFile string
+	poetryNeedsNoRoot   bool
 }
 
 // Scanner implements ScannerInterface for Python projects.
 type Scanner struct {
 	searchDir   string
-	projectDirs []string // relative paths, populated by DetectPlatform
+	projectDirs []string  // relative paths, populated by DetectPlatform
 	projects    []project // populated by Options()
 }
 
@@ -98,12 +99,18 @@ func (s *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, e
 		devReqFile := detectDevRequirementsFile(absDir)
 		detectFramework(absDir)
 
+		needsNoRoot := false
+		if pkgMgr == "poetry" {
+			needsNoRoot = detectPoetryNeedsNoRoot(absDir)
+		}
+
 		s.projects = append(s.projects, project{
 			projectRelDir:       relDir,
 			packageManager:      pkgMgr,
 			pythonVersion:       pythonVersion,
 			hasPytest:           hasPytest,
 			devRequirementsFile: devReqFile,
+			poetryNeedsNoRoot:   needsNoRoot,
 		})
 	}
 

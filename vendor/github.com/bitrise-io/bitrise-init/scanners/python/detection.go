@@ -26,6 +26,13 @@ var requirementsFiles = []string{
 	"requirements_test.txt",
 }
 
+type pyprojectInfo struct {
+	poetryPackageModeFalse bool
+	poetryHasPackagesField bool
+	poetryName             string
+	projectName            string
+}
+
 func collectPythonProjectDirs(searchDir string) ([]string, error) {
 	fileList, err := pathutil.ListPathInDirSortedByComponents(searchDir, false)
 	if err != nil {
@@ -116,6 +123,135 @@ func detectPythonVersion(projectDir string) string {
 	return ""
 }
 
+func detectTestRunner(projectDir string) bool {
+	log.TPrintf("Checking test runner")
+
+	if utility.FileExists(filepath.Join(projectDir, "pytest.ini")) {
+		log.TPrintf("- pytest.ini - found")
+		return true
+	}
+
+	if utility.FileExists(filepath.Join(projectDir, "conftest.py")) {
+		log.TPrintf("- conftest.py - found")
+		return true
+	}
+
+	if hasPytestInPyprojectToml(projectDir) {
+		log.TPrintf("- [tool.pytest] in pyproject.toml - found")
+		return true
+	}
+
+	if hasPytestInRequirementsFiles(projectDir) {
+		log.TPrintf("- pytest in requirements files - found")
+		return true
+	}
+
+	log.TPrintf("- test runner - not detected")
+	return false
+}
+
+// detectDevRequirementsFile returns the first dev/test requirements file found in projectDir, or "".
+func detectDevRequirementsFile(projectDir string) string {
+	devFiles := []string{
+		"requirements-dev.txt",
+		"requirements-test.txt",
+		"requirements_dev.txt",
+		"requirements_test.txt",
+	}
+	for _, name := range devFiles {
+		if utility.FileExists(filepath.Join(projectDir, name)) {
+			log.TPrintf("- dev requirements: %s - found", name)
+			return name
+		}
+	}
+	return ""
+}
+
+// detectFramework logs which Python web framework the project uses, if any.
+// The result is only surfaced through scan logs; it doesn't affect the
+// generated workflow.
+func detectFramework(projectDir string) {
+	log.TPrintf("Checking framework")
+
+	frameworks := []string{"fastapi", "django", "flask"}
+
+	content, err := fileutil.ReadStringFromFile(filepath.Join(projectDir, "requirements.txt"))
+	if err != nil {
+		log.TPrintf("- framework - requirements.txt not found")
+		return
+	}
+
+	for _, line := range strings.Split(content, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		pkg := strings.ToLower(packageName(line))
+		for _, fw := range frameworks {
+			if pkg == fw {
+				log.TPrintf("- framework: %s", fw)
+				return
+			}
+		}
+	}
+
+	log.TPrintf("- framework - not detected")
+}
+
+// detectPoetryNeedsNoRoot decides whether `poetry install` should be invoked
+// with --no-root. Plain `poetry install` fails when poetry is in package mode
+// but the project doesn't ship an installable package, which is the common app
+// case (FastAPI/Django/Flask services). For library projects with a real
+// package layout we skip --no-root so the package is installed for tests that
+// rely on entry points or installed metadata.
+//
+// Heuristics in priority order:
+//  1. `package-mode = false` in [tool.poetry]                              -> no --no-root
+//  2. explicit `packages = ...` in [tool.poetry]                           -> no --no-root
+//  3. project name resolves to <dir>/__init__.py or src/<dir>/__init__.py  -> no --no-root
+//  4. otherwise                                                            -> use --no-root
+func detectPoetryNeedsNoRoot(projectDir string) bool {
+	log.TPrintf("Checking Poetry --no-root requirement")
+
+	content, err := fileutil.ReadStringFromFile(filepath.Join(projectDir, "pyproject.toml"))
+	if err != nil {
+		log.TPrintf("- pyproject.toml - not found, using --no-root")
+		return true
+	}
+
+	info := parsePyproject(content)
+	if info.poetryPackageModeFalse {
+		log.TPrintf("- package-mode = false - found, plain install")
+		return false
+	}
+	if info.poetryHasPackagesField {
+		log.TPrintf("- [tool.poetry] packages - declared, plain install")
+		return false
+	}
+
+	name := info.poetryName
+	if name == "" {
+		name = info.projectName
+	}
+	if name == "" {
+		log.TPrintf("- project name - not found, using --no-root")
+		return true
+	}
+
+	pkgDir := strings.ReplaceAll(name, "-", "_")
+	if utility.FileExists(filepath.Join(projectDir, pkgDir, "__init__.py")) {
+		log.TPrintf("- %s/__init__.py - found, plain install", pkgDir)
+		return false
+	}
+	if utility.FileExists(filepath.Join(projectDir, "src", pkgDir, "__init__.py")) {
+		log.TPrintf("- src/%s/__init__.py - found, plain install", pkgDir)
+		return false
+	}
+
+	log.TPrintf("- installable package layout - not found, using --no-root")
+	return true
+}
+
 // pyprojectRequiresPython extracts a version string from the requires-python field in pyproject.toml.
 func pyprojectRequiresPython(projectDir string) string {
 	content, err := fileutil.ReadStringFromFile(filepath.Join(projectDir, "pyproject.toml"))
@@ -151,33 +287,6 @@ func pyprojectRequiresPython(projectDir string) string {
 	return ""
 }
 
-func detectTestRunner(projectDir string) bool {
-	log.TPrintf("Checking test runner")
-
-	if utility.FileExists(filepath.Join(projectDir, "pytest.ini")) {
-		log.TPrintf("- pytest.ini - found")
-		return true
-	}
-
-	if utility.FileExists(filepath.Join(projectDir, "conftest.py")) {
-		log.TPrintf("- conftest.py - found")
-		return true
-	}
-
-	if hasPytestInPyprojectToml(projectDir) {
-		log.TPrintf("- [tool.pytest] in pyproject.toml - found")
-		return true
-	}
-
-	if hasPytestInRequirementsFiles(projectDir) {
-		log.TPrintf("- pytest in requirements files - found")
-		return true
-	}
-
-	log.TPrintf("- test runner - not detected")
-	return false
-}
-
 func hasPytestInPyprojectToml(projectDir string) bool {
 	content, err := fileutil.ReadStringFromFile(filepath.Join(projectDir, "pyproject.toml"))
 	if err != nil {
@@ -206,23 +315,6 @@ func hasPytestInRequirementsFiles(projectDir string) bool {
 	return false
 }
 
-// detectDevRequirementsFile returns the first dev/test requirements file found in projectDir, or "".
-func detectDevRequirementsFile(projectDir string) string {
-	devFiles := []string{
-		"requirements-dev.txt",
-		"requirements-test.txt",
-		"requirements_dev.txt",
-		"requirements_test.txt",
-	}
-	for _, name := range devFiles {
-		if utility.FileExists(filepath.Join(projectDir, name)) {
-			log.TPrintf("- dev requirements: %s - found", name)
-			return name
-		}
-	}
-	return ""
-}
-
 // packageName extracts the package name from a requirements.txt line by stripping version specifiers.
 func packageName(line string) string {
 	i := strings.IndexAny(line, "=<>![ ;#\t")
@@ -232,31 +324,45 @@ func packageName(line string) string {
 	return strings.TrimSpace(line[:i])
 }
 
-func detectFramework(projectDir string) string {
-	log.TPrintf("Checking framework")
-
-	frameworks := []string{"fastapi", "django", "flask"}
-
-	content, err := fileutil.ReadStringFromFile(filepath.Join(projectDir, "requirements.txt"))
-	if err != nil {
-		log.TPrintf("- framework - requirements.txt not found")
-		return ""
-	}
-
+func parsePyproject(content string) pyprojectInfo {
+	info := pyprojectInfo{}
+	section := ""
 	for _, line := range strings.Split(content, "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, "#") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") {
+			section = trimmed
 			continue
 		}
-		pkg := strings.ToLower(packageName(line))
-		for _, fw := range frameworks {
-			if pkg == fw {
-				log.TPrintf("- framework: %s", fw)
-				return fw
+		switch section {
+		case "[tool.poetry]":
+			if strings.HasPrefix(trimmed, "package-mode") {
+				if parts := strings.SplitN(trimmed, "=", 2); len(parts) == 2 && strings.TrimSpace(parts[1]) == "false" {
+					info.poetryPackageModeFalse = true
+				}
+			}
+			if strings.HasPrefix(trimmed, "packages") && strings.Contains(trimmed, "=") {
+				info.poetryHasPackagesField = true
+			}
+			if strings.HasPrefix(trimmed, "name") {
+				if v := pyprojectStringValue(trimmed); v != "" {
+					info.poetryName = v
+				}
+			}
+		case "[project]":
+			if strings.HasPrefix(trimmed, "name") {
+				if v := pyprojectStringValue(trimmed); v != "" {
+					info.projectName = v
+				}
 			}
 		}
 	}
+	return info
+}
 
-	log.TPrintf("- framework - not detected")
-	return ""
+func pyprojectStringValue(line string) string {
+	parts := strings.SplitN(line, "=", 2)
+	if len(parts) < 2 {
+		return ""
+	}
+	return strings.Trim(strings.TrimSpace(parts[1]), `"'`)
 }
