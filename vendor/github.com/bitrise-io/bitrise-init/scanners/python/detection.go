@@ -27,7 +27,7 @@ var requirementsFiles = []string{
 }
 
 type pyprojectInfo struct {
-	poetryPackageModeFalse bool
+	poetryPackageModeDisabled bool
 	poetryHasPackagesField bool
 	poetryName             string
 	projectName            string
@@ -220,7 +220,7 @@ func detectPoetryNeedsNoRoot(projectDir string) bool {
 	}
 
 	info := parsePyproject(content)
-	if info.poetryPackageModeFalse {
+	if info.poetryPackageModeDisabled {
 		log.TPrintf("- package-mode = false - found, plain install")
 		return false
 	}
@@ -337,7 +337,7 @@ func parsePyproject(content string) pyprojectInfo {
 		case "[tool.poetry]":
 			if strings.HasPrefix(trimmed, "package-mode") {
 				if parts := strings.SplitN(trimmed, "=", 2); len(parts) == 2 && strings.TrimSpace(parts[1]) == "false" {
-					info.poetryPackageModeFalse = true
+					info.poetryPackageModeDisabled = true
 				}
 			}
 			if strings.HasPrefix(trimmed, "packages") && strings.Contains(trimmed, "=") {
