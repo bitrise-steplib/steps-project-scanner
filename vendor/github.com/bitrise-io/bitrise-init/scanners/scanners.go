@@ -12,6 +12,7 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/kmp"
 	"github.com/bitrise-io/bitrise-init/scanners/macos"
 	"github.com/bitrise-io/bitrise-init/scanners/nodejs"
+	"github.com/bitrise-io/bitrise-init/scanners/python"
 	"github.com/bitrise-io/bitrise-init/scanners/reactnative"
 	"github.com/bitrise-io/bitrise-init/scanners/ruby"
 	"github.com/bitrise-io/bitrise-init/steps"
@@ -85,6 +86,7 @@ func ProjectScanners() []ScannerInterface {
 		nodejs.NewScanner(),
 		java.NewScanner(),
 		ruby.NewScanner(),
+		python.NewScanner(),
 	}
 }
 

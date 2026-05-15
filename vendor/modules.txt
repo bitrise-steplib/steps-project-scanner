@@ -8,7 +8,7 @@ github.com/Masterminds/semver/v3
 # github.com/beevik/etree v1.2.0
 ## explicit; go 1.13
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise-init v0.0.0-20260422084044-67f75a3da543
+# github.com/bitrise-io/bitrise-init v0.0.0-20260514122216-d8834310349c
 ## explicit; go 1.25.7
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/detectors/direntry
@@ -30,6 +30,7 @@ github.com/bitrise-io/bitrise-init/scanners/java
 github.com/bitrise-io/bitrise-init/scanners/kmp
 github.com/bitrise-io/bitrise-init/scanners/macos
 github.com/bitrise-io/bitrise-init/scanners/nodejs
+github.com/bitrise-io/bitrise-init/scanners/python
 github.com/bitrise-io/bitrise-init/scanners/reactnative
 github.com/bitrise-io/bitrise-init/scanners/ruby
 github.com/bitrise-io/bitrise-init/steps
@@ -46,7 +47,7 @@ github.com/bitrise-io/envman/envman
 # github.com/bitrise-io/envman/v2 v2.5.6
 ## explicit; go 1.25.3
 github.com/bitrise-io/envman/v2/models
-# github.com/bitrise-io/go-flutter v0.1.2-0.20260413123617-d1289effff65
+# github.com/bitrise-io/go-flutter v0.3.0
 ## explicit; go 1.20
 github.com/bitrise-io/go-flutter/flutterproject
 github.com/bitrise-io/go-flutter/flutterproject/internal/sdk
