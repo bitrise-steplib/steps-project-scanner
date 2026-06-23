@@ -8,7 +8,7 @@ github.com/Masterminds/semver/v3
 # github.com/beevik/etree v1.2.0
 ## explicit; go 1.13
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise-init v0.0.0-20260514122216-d8834310349c
+# github.com/bitrise-io/bitrise-init v0.0.0-20260622165137-67dd158ae0fc
 ## explicit; go 1.25.7
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/detectors/direntry

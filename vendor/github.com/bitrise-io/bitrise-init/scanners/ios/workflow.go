@@ -11,7 +11,6 @@ const (
 	TestRepetitionModeKey                 = "test_repetition_mode"
 	TestRepetitionModeRetryOnFailureValue = "retry_on_failure"
 	BuildForTestDestinationKey            = "destination"
-	BuildForTestDestinationValue          = "platform=iOS Simulator,name=iPhone 8 Plus,OS=latest"
 	GenericBuildForTestDestinationValue   = "generic/platform=iOS Simulator"
 	AutomaticCodeSigningKey               = "automatic_code_signing"
 	AutomaticCodeSigningValue             = "api-key"
@@ -207,7 +206,7 @@ func addBuildStep(workflow models.WorkflowID, configBuilder *models.ConfigBuilde
 		return
 	}
 
-	configBuilder.AppendStepListItemsTo(workflow, steps.XcodeBuildForTestStepListItem(xcodeBuildForTestStepInputModels()...))
+	configBuilder.AppendStepListItemsTo(workflow, steps.XcodeBuildForTestStepListItem(genericXcodeBuildForTestStepInputModels()...))
 }
 
 func addArchiveStep(workflow models.WorkflowID, configBuilder *models.ConfigBuilderModel, projectType XcodeProjectType, hasAppClip bool, exportMethod string) {
@@ -297,15 +296,6 @@ func baseXcodeStepInputModels() []envmanModels.EnvironmentItemModel {
 func xcodeTestStepInputModels() []envmanModels.EnvironmentItemModel {
 	inputModels := []envmanModels.EnvironmentItemModel{
 		{TestRepetitionModeKey: TestRepetitionModeRetryOnFailureValue},
-		{CacheLevelKey: CacheLevelNone},
-	}
-
-	return append(baseXcodeStepInputModels(), inputModels...)
-}
-
-func xcodeBuildForTestStepInputModels() []envmanModels.EnvironmentItemModel {
-	inputModels := []envmanModels.EnvironmentItemModel{
-		{BuildForTestDestinationKey: BuildForTestDestinationValue},
 		{CacheLevelKey: CacheLevelNone},
 	}
 
