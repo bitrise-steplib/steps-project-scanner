@@ -1,5 +1,16 @@
-format_version: "6"
+format_version: "11"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+include:
+- repository: steps-check
+  branch: master
+  path: yamlfmt.bitrise.yml
+- repository: steps-check
+  branch: master
+  path: step-metadata.bitrise.yml
+- repository: steps-check
+  branch: master
+  path: golang.bitrise.yml
 
 app:
   envs:
@@ -31,9 +42,12 @@ workflows:
     - CLONE_INTO_DIR: _tmp
     - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
     steps:
-    - git::https://github.com/bitrise-steplib/steps-check.git@golangci-lint-version:
+    - bundle::yamlfmt: {}
+    - bundle::step-yml-audit: {}
+    - bundle::golangci-lint:
         inputs:
-        - golangci_lint_version: v2.7.0
+        - golangci_lint_version: 2.11.4
+    - bundle::go-test: {}
     - script:
         title: "Scan test: ios-no-shared-schemes"
         inputs:
@@ -166,4 +180,4 @@ workflows:
 
   generate_readme:
     steps:
-    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: { }
+    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: {}
