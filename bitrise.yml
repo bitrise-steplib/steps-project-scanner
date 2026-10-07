@@ -44,6 +44,19 @@ workflows:
     steps:
     - bundle::yamlfmt: {}
     - bundle::step-yml-audit: {}
+    - script:
+        title: Check README.md is consistent with step.yml
+        inputs:
+        - content: |-
+            #!/bin/env bash
+            set -eo pipefail
+
+            bitrise run generate_readme
+
+            if ! git diff --exit-code -- README.md; then
+              echo "README.md is out of date; run 'bitrise run generate_readme' and commit the result."
+              exit 1
+            fi
     - bundle::golangci-lint:
         inputs:
         - golangci_lint_version: 2.11.4
