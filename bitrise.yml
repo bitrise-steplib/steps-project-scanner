@@ -4,9 +4,6 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 include:
 - repository: steps-check
   branch: master
-  path: yamlfmt.bitrise.yml
-- repository: steps-check
-  branch: master
   path: step-metadata.bitrise.yml
 - repository: steps-check
   branch: master
@@ -42,7 +39,20 @@ workflows:
     - CLONE_INTO_DIR: _tmp
     - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
     steps:
-    - bundle::yamlfmt: {}
+    - script:
+        title: yamlfmt
+        inputs:
+        - content: |-
+            #!/bin/env bash
+            set -eo pipefail
+            set -x
+
+            # TODO: deviates from the step-repo convention on purpose. bundle::yamlfmt only
+            # reformats and leaves autofix-ci to commit the result, which needs Unified CI, so
+            # here it could never fail. Lint instead until this Step migrates, then switch back.
+            ymlfmt_conf="$(mktemp)"
+            curl -sSfL -o "$ymlfmt_conf" https://raw.githubusercontent.com/bitrise-steplib/steps-check/refs/heads/master/.ymlfmt
+            go run github.com/google/yamlfmt/cmd/yamlfmt@v0.21.0 -lint -conf "$ymlfmt_conf" -match_type doublestar -exclude "_tmp/**,.bitrise.secrets.yml,.git/**,.github/**,vendor/**" '**/*.yml'
     - bundle::step-yml-audit: {}
     - script:
         title: Check README.md is consistent with step.yml
