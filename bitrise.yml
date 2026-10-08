@@ -63,8 +63,12 @@ workflows:
 
             bitrise run generate_readme
 
-            if ! git diff --exit-code -- README.md; then
-              echo "README.md is out of date; run 'bitrise run generate_readme' and commit the result."
+            # `git diff` only compares tracked paths, so a commit that deletes README.md would
+            # pass: the generator recreates it as an untracked file and the diff stays empty.
+            # `git status --porcelain` reports `??` for that case as well as `M` for drift.
+            if [ -n "$(git status --porcelain -- README.md)" ]; then
+              echo "README.md is out of date or untracked; run 'bitrise run generate_readme' and commit the result."
+              git status --short -- README.md
               exit 1
             fi
     - bundle::golangci-lint:
