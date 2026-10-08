@@ -1,5 +1,13 @@
-format_version: "6"
+format_version: "11"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+include:
+- repository: steps-check
+  branch: master
+  path: step-metadata.bitrise.yml
+- repository: steps-check
+  branch: master
+  path: golang.bitrise.yml
 
 app:
   envs:
@@ -31,9 +39,42 @@ workflows:
     - CLONE_INTO_DIR: _tmp
     - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
     steps:
-    - git::https://github.com/bitrise-steplib/steps-check.git@golangci-lint-version:
+    - script:
+        title: yamlfmt
         inputs:
-        - golangci_lint_version: v2.7.0
+        - content: |-
+            #!/bin/env bash
+            set -eo pipefail
+            set -x
+
+            # TODO: deviates from the step-repo convention on purpose. bundle::yamlfmt only
+            # reformats and leaves autofix-ci to commit the result, which needs Unified CI, so
+            # here it could never fail. Lint instead until this Step migrates, then switch back.
+            ymlfmt_conf="$(mktemp)"
+            curl -sSfL -o "$ymlfmt_conf" https://raw.githubusercontent.com/bitrise-steplib/steps-check/refs/heads/master/.ymlfmt
+            go run github.com/google/yamlfmt/cmd/yamlfmt@v0.21.0 -lint -conf "$ymlfmt_conf" -match_type doublestar -exclude "_tmp/**,.bitrise.secrets.yml,.git/**,.github/**,vendor/**" '**/*.yml'
+    - bundle::step-yml-audit: {}
+    - script:
+        title: Check README.md is consistent with step.yml
+        inputs:
+        - content: |-
+            #!/bin/env bash
+            set -eo pipefail
+
+            bitrise run generate_readme
+
+            # `git diff` only compares tracked paths, so a commit that deletes README.md would
+            # pass: the generator recreates it as an untracked file and the diff stays empty.
+            # `git status --porcelain` reports `??` for that case as well as `M` for drift.
+            if [ -n "$(git status --porcelain -- README.md)" ]; then
+              echo "README.md is out of date or untracked; run 'bitrise run generate_readme' and commit the result."
+              git status --short -- README.md
+              exit 1
+            fi
+    - bundle::golangci-lint:
+        inputs:
+        - golangci_lint_version: 2.11.4
+    - bundle::go-test: {}
     - script:
         title: "Scan test: ios-no-shared-schemes"
         inputs:
@@ -166,4 +207,4 @@ workflows:
 
   generate_readme:
     steps:
-    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: { }
+    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: {}
