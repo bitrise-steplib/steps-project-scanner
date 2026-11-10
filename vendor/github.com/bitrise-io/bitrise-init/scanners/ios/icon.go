@@ -8,20 +8,20 @@ import (
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/utility"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/go-xcode/xcodeproject/xcodeproj"
-	"github.com/bitrise-io/go-xcode/xcodeproject/xcscheme"
+	"github.com/bitrise-io/go-xcode/v2/xcodeproject/xcodeproj"
+	"github.com/bitrise-io/go-xcode/v2/xcodeproject/xcscheme"
 )
 
 func getMainTarget(project xcodeproj.XcodeProj, scheme xcscheme.Scheme) (xcodeproj.Target, error) {
 	entry, found := scheme.AppBuildActionEntry()
 	if !found {
-		return xcodeproj.Target{}, fmt.Errorf("scheme (%s) does not contain app buildable reference in project (%s)", scheme.Name, project.Path)
+		return xcodeproj.Target{}, fmt.Errorf("scheme (%s) does not contain app buildable reference in project (%s)", scheme.Name, project.Path())
 	}
 
 	blueprintID := entry.BuildableReference.BlueprintIdentifier
-	mainTarget, found := project.Proj.Target(blueprintID)
+	mainTarget, found := project.Target(blueprintID)
 	if !found {
-		return xcodeproj.Target{}, fmt.Errorf("no target found for blueprint ID (%s) in project (%s)", blueprintID, project.Path)
+		return xcodeproj.Target{}, fmt.Errorf("no target found for blueprint ID (%s) in project (%s)", blueprintID, project.Path())
 	}
 
 	return mainTarget, nil
@@ -34,11 +34,11 @@ func lookupIconByScheme(project xcodeproj.XcodeProj, scheme xcscheme.Scheme, bas
 		return nil, nil
 	}
 
-	return lookupIconByTarget(project.Path, mainTarget, basePath)
+	return lookupIconByTarget(project, mainTarget, basePath)
 }
 
-func lookupIconByTarget(projectPath string, target xcodeproj.Target, basepath string) (models.Icons, error) {
-	targetToAppIconSetPaths, err := xcodeproj.AppIconSetPaths(projectPath)
+func lookupIconByTarget(project xcodeproj.XcodeProj, target xcodeproj.Target, basepath string) (models.Icons, error) {
+	targetToAppIconSetPaths, err := project.AppIconSetPaths()
 	if err != nil {
 		return nil, err
 	}

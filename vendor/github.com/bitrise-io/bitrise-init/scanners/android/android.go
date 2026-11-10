@@ -433,9 +433,6 @@ func (scanner *Scanner) generateConfigBuilder(sshKeyActivation models.SSHKeyActi
 		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
 		},
-		envmanModels.EnvironmentItemModel{
-			CacheLevelInputKey: CacheLevelNone,
-		},
 	))
 	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.AndroidUnitTestStepListItem(
 		envmanModels.EnvironmentItemModel{

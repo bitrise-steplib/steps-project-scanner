@@ -1,9 +1,15 @@
 package ios
 
 import (
+	"fmt"
+	"slices"
+	"strings"
+
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/go-xcode/pathfilters"
+	"github.com/bitrise-io/go-xcode/v2/xcodeproject/xcodeproj"
+	"github.com/bitrise-io/go-xcode/v2/xcodeproject/xcworkspace"
 )
 
 // XcodeProjectType ...
@@ -35,14 +41,14 @@ func removeProjectFromList(projectPth string, projects []container) []container 
 	return newProjects
 }
 
-func createStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles []string) (containers, error) {
+func createStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles []string, projectFactory xcodeproj.Factory, workspaceFactory xcworkspace.Factory) (containers, error) {
 	var (
 		workspaces         []container
 		standaloneProjects []container
 	)
 
 	for _, workspaceFile := range workspaceFiles {
-		workspace, err := newWorkspace(workspaceFile)
+		workspace, err := newWorkspace(workspaceFile, workspaceFactory, projectFactory)
 		if err != nil {
 			return containers{}, err
 		}
@@ -65,7 +71,7 @@ func createStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles []string
 		}
 
 		if !workspaceContains {
-			project, err := newProject(projectFile)
+			project, err := newProject(projectFile, projectFactory)
 			if err != nil {
 				return containers{}, err
 			}
@@ -80,8 +86,7 @@ func createStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles []string
 	}, nil
 }
 
-// FilterRelevantProjectFiles ...
-func FilterRelevantProjectFiles(fileList []string, projectTypes ...XcodeProjectType) ([]string, error) {
+func filterRelevantProjectFiles(fileList []string, sdkFilter pathutil.FilterFunc) ([]string, error) {
 	filters := []pathutil.FilterFunc{
 		pathfilters.AllowXcodeProjExtFilter,
 		pathfilters.AllowIsDirectoryFilter,
@@ -92,22 +97,13 @@ func FilterRelevantProjectFiles(fileList []string, projectTypes ...XcodeProjectT
 		pathfilters.ForbidFramworkComponentWithExtensionFilter,
 		pathfilters.ForbidCordovaLibDirComponentFilter,
 		pathfilters.ForbidNodeModulesComponentFilter,
-	}
-
-	for _, projectType := range projectTypes {
-		switch projectType {
-		case XcodeProjectTypeIOS:
-			filters = append(filters, pathfilters.AllowIphoneosSDKFilter)
-		case XcodeProjectTypeMacOS:
-			filters = append(filters, pathfilters.AllowMacosxSDKFilter)
-		}
+		sdkFilter,
 	}
 
 	return pathutil.FilterPaths(fileList, filters...)
 }
 
-// FilterRelevantWorkspaceFiles ...
-func FilterRelevantWorkspaceFiles(fileList []string, projectTypes ...XcodeProjectType) ([]string, error) {
+func filterRelevantWorkspaceFiles(fileList []string, sdkFilter pathutil.FilterFunc) ([]string, error) {
 	filters := []pathutil.FilterFunc{
 		pathfilters.AllowXCWorkspaceExtFilter,
 		pathfilters.AllowIsDirectoryFilter,
@@ -119,18 +115,65 @@ func FilterRelevantWorkspaceFiles(fileList []string, projectTypes ...XcodeProjec
 		pathfilters.ForbidFramworkComponentWithExtensionFilter,
 		pathfilters.ForbidCordovaLibDirComponentFilter,
 		pathfilters.ForbidNodeModulesComponentFilter,
-	}
-
-	for _, projectType := range projectTypes {
-		switch projectType {
-		case XcodeProjectTypeIOS:
-			filters = append(filters, pathfilters.AllowIphoneosSDKFilter)
-		case XcodeProjectTypeMacOS:
-			filters = append(filters, pathfilters.AllowMacosxSDKFilter)
-		}
+		sdkFilter,
 	}
 
 	return pathutil.FilterPaths(fileList, filters...)
+}
+
+func newSDKFilter(projectType XcodeProjectType, projectFactory xcodeproj.Factory, workspaceFactory xcworkspace.Factory) pathutil.FilterFunc {
+	sdk := "iphoneos"
+	if projectType == XcodeProjectTypeMacOS {
+		sdk = "macosx"
+	}
+
+	return func(pth string) (bool, error) {
+		var (
+			c   container
+			err error
+		)
+		switch {
+		case xcodeproj.IsXcodeProj(pth):
+			c, err = newProject(pth, projectFactory)
+		case xcworkspace.IsWorkspace(pth):
+			c, err = newWorkspace(pth, workspaceFactory, projectFactory)
+		default:
+			return false, fmt.Errorf("not Xcode project nor workspace file: %s", pth)
+		}
+		if err != nil {
+			return false, err
+		}
+
+		projects, err := c.projects()
+		if err != nil {
+			return false, err
+		}
+
+		return slices.ContainsFunc(projects, func(project xcodeproj.XcodeProj) bool {
+			return projectSupportsSDK(project, sdk)
+		}), nil
+	}
+}
+
+func projectSupportsSDK(project xcodeproj.XcodeProj, sdk string) bool {
+	configurations := slices.Clone(project.BuildConfigurations())
+	for _, target := range project.Targets() {
+		configurations = append(configurations, target.BuildConfigurations...)
+	}
+
+	return slices.ContainsFunc(configurations, func(configuration xcodeproj.BuildConfiguration) bool {
+		sdkRoot, _ := configuration.BuildSetting("SDKROOT")
+		if sdkRoot == sdk {
+			return true
+		}
+		// An iOS target that lists macosx in SUPPORTED_PLATFORMS is still an iOS target.
+		if sdkRoot != "auto" {
+			return false
+		}
+
+		supportedPlatforms, _ := configuration.BuildSetting("SUPPORTED_PLATFORMS")
+		return slices.Contains(strings.Split(supportedPlatforms, " "), sdk)
+	})
 }
 
 // FilterRelevantPodfiles ...
