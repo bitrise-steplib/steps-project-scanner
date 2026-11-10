@@ -122,7 +122,7 @@ github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey
 # github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230711084209-91fcd09b2017
 ## explicit; go 1.17
 github.com/bitrise-steplib/steps-authenticate-host-with-netrc/netrcutil
-# github.com/bitrise-steplib/steps-git-clone v0.0.0-20261110094019-3de5b31bd813
+# github.com/bitrise-steplib/steps-git-clone v0.0.0-20261110095219-1d82c96c7466
 ## explicit; go 1.22.0
 github.com/bitrise-steplib/steps-git-clone/gitclone
 github.com/bitrise-steplib/steps-git-clone/gitclone/bitriseapi

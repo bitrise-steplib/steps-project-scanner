@@ -8,7 +8,7 @@ require (
 	github.com/bitrise-io/go-utils v1.0.15
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.39
 	github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203
-	github.com/bitrise-steplib/steps-git-clone v0.0.0-20261110094019-3de5b31bd813
+	github.com/bitrise-steplib/steps-git-clone v0.0.0-20261110095219-1d82c96c7466
 )
 
 require (
