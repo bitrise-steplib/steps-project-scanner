@@ -23,6 +23,7 @@ import (
 	"github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey"
 	"github.com/bitrise-steplib/steps-git-clone/gitclone"
 	"github.com/bitrise-steplib/steps-git-clone/gitclone/bitriseapi"
+	"github.com/bitrise-steplib/steps-git-clone/gitclone/steperror"
 	"github.com/bitrise-steplib/steps-git-clone/gitclone/tracker"
 	"github.com/bitrise-steplib/steps-git-clone/transport"
 )
@@ -156,6 +157,9 @@ func cloneRepo(cfg repoConfig) error {
 	if _, err := gitcloner.CheckoutState(config); err != nil {
 		if _, ok := err.(*step.Error); ok {
 			return err
+		}
+		if gitCloneErr, ok := err.(*steperror.Error); ok {
+			return stepErrorFromGitClone(gitCloneErr)
 		}
 
 		hasSSH := len(cfg.SSHRsaPrivateKey) > 0
