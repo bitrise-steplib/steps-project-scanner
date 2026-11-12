@@ -4,8 +4,8 @@ github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/beevik/etree v1.2.0 h1:l7WETslUG/T+xOPs47dtd6jov2Ii/8/OjCldk5fYfQw=
 github.com/beevik/etree v1.2.0/go.mod h1:aiPf89g/1k3AShMVAzriilpcE4R/Vuor90y83zVZWFc=
-github.com/bitrise-io/bitrise-init v0.0.0-20261109155538-7a76bb9d5822 h1:G5hNFYXkL1p+98hl913ZSaUbBRWX8HLy8R80Sgizt/4=
-github.com/bitrise-io/bitrise-init v0.0.0-20261109155538-7a76bb9d5822/go.mod h1:BUM4WoCr5RbDnUJQXStdAsXUQnWCxe0CpK+BUAmFKtA=
+github.com/bitrise-io/bitrise-init v0.0.0-20261112144121-213241370aab h1:McAjdw0o8X9oI+EqbglXt4zmPY6fc4tq16r2sWJw9rs=
+github.com/bitrise-io/bitrise-init v0.0.0-20261112144121-213241370aab/go.mod h1:OYzq56E/2T7OK02p0zAKIccgH2/CVh881/TjvjHQXn8=
 github.com/bitrise-io/bitrise/v2 v2.39.1 h1:Cvxt+xyaMJdjGHWAhAI5om/t8H0HkpEwTpADAYkPDGk=
 github.com/bitrise-io/bitrise/v2 v2.39.1/go.mod h1:CJVf5qRIXUcQsdNz5g5Rsbo3iQUdi9zmUOKZeijQlg8=
 github.com/bitrise-io/envman v0.0.0-20230802102824-1300c57d49c4 h1:idT9p2ISMoW5SOz2ow3jWzxVNc4DkNreLeoTk8BGPHg=
@@ -30,8 +30,8 @@ github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.39 h1:QbWclC8fOI9rho//WXZFXmcbho+
 github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.39/go.mod h1:5Z/vkUZ2BIY7IAVlMGns3ypRjd+J872YBSCJaLWVo/U=
 github.com/bitrise-io/go-xcode v1.3.3 h1:aYkSMWP+1/n2ZabRy3OMfeaWmE4l1gAPq63azx06LIw=
 github.com/bitrise-io/go-xcode v1.3.3/go.mod h1:9OwsvrhZ4A2JxHVoEY7CPcABAKA+OE7FQqFfBfvbFuY=
-github.com/bitrise-io/go-xcode/v2 v2.0.0-alpha.93 h1:jhrlApig9uMUAIXhaTjaXHekt2ePYbbpHXDdVmfJaBI=
-github.com/bitrise-io/go-xcode/v2 v2.0.0-alpha.93/go.mod h1:EtkQs9saLPKXEUZ74aNJcXOalwrKKH11XAnXENNjDt0=
+github.com/bitrise-io/go-xcode/v2 v2.0.0-alpha.94 h1:bI5r1Zw3mLNxi435GfaaNAsZ9hK7A6J2mDeSMUvIH34=
+github.com/bitrise-io/go-xcode/v2 v2.0.0-alpha.94/go.mod h1:EtkQs9saLPKXEUZ74aNJcXOalwrKKH11XAnXENNjDt0=
 github.com/bitrise-io/goinp v0.0.0-20240103152431-054ed78518ef h1:R5FOa8RHjqZwMN9g1FQ8W7nXxQAG7iwq1Cw+mUk5S9A=
 github.com/bitrise-io/goinp v0.0.0-20240103152431-054ed78518ef/go.mod h1:27ldH2bkCdYN5CEJ6x92EK+gkd5EcDBkA7dMrSKQFYU=
 github.com/bitrise-io/stepman v0.19.0 h1:WI3SR2FmTRyi6X6TzLAMSDI4IP3gj5AtTUQnGkQlOe4=

@@ -3,7 +3,7 @@ module github.com/bitrise-steplib/steps-project-scanner
 go 1.25.7
 
 require (
-	github.com/bitrise-io/bitrise-init v0.0.0-20261109155538-7a76bb9d5822
+	github.com/bitrise-io/bitrise-init v0.0.0-20261112144121-213241370aab
 	github.com/bitrise-io/go-steputils v1.0.6
 	github.com/bitrise-io/go-utils v1.0.15
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.39
@@ -22,7 +22,7 @@ require (
 	github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10 // indirect
 	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.55 // indirect
 	github.com/bitrise-io/go-xcode v1.3.3 // indirect
-	github.com/bitrise-io/go-xcode/v2 v2.0.0-alpha.93 // indirect
+	github.com/bitrise-io/go-xcode/v2 v2.0.0-alpha.94 // indirect
 	github.com/bitrise-io/goinp v0.0.0-20240103152431-054ed78518ef // indirect
 	github.com/bitrise-io/stepman v0.19.0 // indirect
 	github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230711084209-91fcd09b2017 // indirect

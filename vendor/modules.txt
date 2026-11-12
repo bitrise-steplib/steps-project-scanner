@@ -8,7 +8,7 @@ github.com/Masterminds/semver/v3
 # github.com/beevik/etree v1.2.0
 ## explicit; go 1.13
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise-init v0.0.0-20261109155538-7a76bb9d5822
+# github.com/bitrise-io/bitrise-init v0.0.0-20261112144121-213241370aab
 ## explicit; go 1.25.7
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/detectors/direntry
@@ -100,7 +100,7 @@ github.com/bitrise-io/go-xcode/xcodeproject/serialized
 github.com/bitrise-io/go-xcode/xcodeproject/xcodeproj
 github.com/bitrise-io/go-xcode/xcodeproject/xcscheme
 github.com/bitrise-io/go-xcode/xcodeproject/xcworkspace
-# github.com/bitrise-io/go-xcode/v2 v2.0.0-alpha.93
+# github.com/bitrise-io/go-xcode/v2 v2.0.0-alpha.94
 ## explicit; go 1.23
 github.com/bitrise-io/go-xcode/v2/internal/filewriter
 github.com/bitrise-io/go-xcode/v2/plistutil
