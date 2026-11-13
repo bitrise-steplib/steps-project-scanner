@@ -19,9 +19,11 @@ import (
 	cmdv2 "github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
 	logv2 "github.com/bitrise-io/go-utils/v2/log"
+	pathutilv2 "github.com/bitrise-io/go-utils/v2/pathutil"
 	"github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey"
 	"github.com/bitrise-steplib/steps-git-clone/gitclone"
 	"github.com/bitrise-steplib/steps-git-clone/gitclone/bitriseapi"
+	"github.com/bitrise-steplib/steps-git-clone/gitclone/steperror"
 	"github.com/bitrise-steplib/steps-git-clone/gitclone/tracker"
 	"github.com/bitrise-steplib/steps-git-clone/transport"
 )
@@ -133,9 +135,18 @@ func cloneRepo(cfg repoConfig) error {
 	cmdFactory := cmdv2.NewFactory(envRepo)
 	// patchSource and mergeRefChecker used for merging only
 	// build URL and build api token don't apply here
-	patchSource := bitriseapi.NewPatchSource("", "")
+	patchSource := bitriseapi.NewPatchSource("", "", logger)
 	mergeRefChecker := bitriseapi.NewMergeRefChecker("", "", retry.NewHTTPClient(), logger, stepTracker)
-	gitcloner := gitclone.NewGitCloner(logger, stepTracker, cmdFactory, patchSource, mergeRefChecker, false)
+	gitcloner := gitclone.NewGitCloner(gitclone.GitClonerParams{
+		Logger:          logger,
+		Tracker:         stepTracker,
+		CmdFactory:      cmdFactory,
+		PatchSource:     patchSource,
+		MergeRefChecker: mergeRefChecker,
+		Runner:          gitclone.NewDefaultRunner(logger),
+		PathChecker:     pathutilv2.NewPathChecker(),
+		PathModifier:    pathutilv2.NewPathModifier(),
+	})
 	config := gitclone.Config{
 		RepositoryURL: cfg.RepositoryURL,
 		CloneIntoDir:  cfg.CloneIntoDir, // Using the same directory later to run scan
@@ -146,6 +157,9 @@ func cloneRepo(cfg repoConfig) error {
 	if _, err := gitcloner.CheckoutState(config); err != nil {
 		if _, ok := err.(*step.Error); ok {
 			return err
+		}
+		if gitCloneErr, ok := err.(*steperror.Error); ok {
+			return stepErrorFromGitClone(gitCloneErr)
 		}
 
 		hasSSH := len(cfg.SSHRsaPrivateKey) > 0

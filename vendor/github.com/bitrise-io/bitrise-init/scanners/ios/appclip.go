@@ -5,15 +5,15 @@ import (
 	"github.com/bitrise-io/bitrise-init/steps"
 	envmanModels "github.com/bitrise-io/envman/v2/models"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/go-xcode/xcodeproject/xcodeproj"
-	"github.com/bitrise-io/go-xcode/xcodeproject/xcscheme"
+	"github.com/bitrise-io/go-xcode/v2/xcodeproject/xcodeproj"
+	"github.com/bitrise-io/go-xcode/v2/xcodeproject/xcscheme"
 )
 
 func schemeHasAppClipTarget(project xcodeproj.XcodeProj, scheme xcscheme.Scheme) bool {
 	for _, entry := range scheme.BuildAction.BuildActionEntries {
-		target, found := project.Proj.Target(entry.BuildableReference.BlueprintIdentifier)
+		target, found := project.Target(entry.BuildableReference.BlueprintIdentifier)
 		if !found {
-			log.TDebugf("no target found for blueprint ID (%s) project (%s)", entry.BuildableReference.BlueprintIdentifier, project.Path)
+			log.TDebugf("no target found for blueprint ID (%s) project (%s)", entry.BuildableReference.BlueprintIdentifier, project.Path())
 			continue
 		}
 

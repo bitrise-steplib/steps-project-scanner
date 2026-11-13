@@ -8,7 +8,7 @@ github.com/Masterminds/semver/v3
 # github.com/beevik/etree v1.2.0
 ## explicit; go 1.13
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise-init v0.0.0-20260622165137-67dd158ae0fc
+# github.com/bitrise-io/bitrise-init v0.0.0-20261112144121-213241370aab
 ## explicit; go 1.25.7
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/detectors/direntry
@@ -57,21 +57,17 @@ github.com/bitrise-io/go-flutter/fluttersdk
 github.com/bitrise-io/go-plist
 # github.com/bitrise-io/go-steputils v1.0.6
 ## explicit; go 1.15
-github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.48
-## explicit; go 1.17
+# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.55
+## explicit; go 1.21
 github.com/bitrise-io/go-steputils/v2/export
-github.com/bitrise-io/go-steputils/v2/internal
 # github.com/bitrise-io/go-utils v1.0.15
 ## explicit; go 1.13
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
-github.com/bitrise-io/go-utils/command/git
 github.com/bitrise-io/go-utils/errorutil
-github.com/bitrise-io/go-utils/filedownloader
 github.com/bitrise-io/go-utils/fileutil
 github.com/bitrise-io/go-utils/log
 github.com/bitrise-io/go-utils/parseutil
@@ -80,19 +76,23 @@ github.com/bitrise-io/go-utils/pointers
 github.com/bitrise-io/go-utils/pretty
 github.com/bitrise-io/go-utils/retry
 github.com/bitrise-io/go-utils/sliceutil
-github.com/bitrise-io/go-utils/ziputil
-# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.33
-## explicit; go 1.17
+# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.39
+## explicit; go 1.21
 github.com/bitrise-io/go-utils/v2/analytics
 github.com/bitrise-io/go-utils/v2/command
 github.com/bitrise-io/go-utils/v2/env
+github.com/bitrise-io/go-utils/v2/filedownloader
 github.com/bitrise-io/go-utils/v2/fileutil
+github.com/bitrise-io/go-utils/v2/git
 github.com/bitrise-io/go-utils/v2/log
 github.com/bitrise-io/go-utils/v2/log/colorstring
 github.com/bitrise-io/go-utils/v2/parseutil
 github.com/bitrise-io/go-utils/v2/pathutil
+github.com/bitrise-io/go-utils/v2/retry
 github.com/bitrise-io/go-utils/v2/retryhttp
-# github.com/bitrise-io/go-xcode v1.0.18
+github.com/bitrise-io/go-utils/v2/sliceutil
+github.com/bitrise-io/go-utils/v2/ziputil
+# github.com/bitrise-io/go-xcode v1.3.3
 ## explicit; go 1.20
 github.com/bitrise-io/go-xcode/pathfilters
 github.com/bitrise-io/go-xcode/xcodebuild
@@ -100,6 +100,15 @@ github.com/bitrise-io/go-xcode/xcodeproject/serialized
 github.com/bitrise-io/go-xcode/xcodeproject/xcodeproj
 github.com/bitrise-io/go-xcode/xcodeproject/xcscheme
 github.com/bitrise-io/go-xcode/xcodeproject/xcworkspace
+# github.com/bitrise-io/go-xcode/v2 v2.0.0-alpha.94
+## explicit; go 1.23
+github.com/bitrise-io/go-xcode/v2/internal/filewriter
+github.com/bitrise-io/go-xcode/v2/plistutil
+github.com/bitrise-io/go-xcode/v2/xcodeproject/serialized
+github.com/bitrise-io/go-xcode/v2/xcodeproject/xcodeproj
+github.com/bitrise-io/go-xcode/v2/xcodeproject/xcodeproj/internal/xcproj
+github.com/bitrise-io/go-xcode/v2/xcodeproject/xcscheme
+github.com/bitrise-io/go-xcode/v2/xcodeproject/xcworkspace
 # github.com/bitrise-io/goinp v0.0.0-20240103152431-054ed78518ef
 ## explicit; go 1.18
 github.com/bitrise-io/goinp/goinp
@@ -113,10 +122,11 @@ github.com/bitrise-steplib/steps-activate-ssh-key/activatesshkey
 # github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230711084209-91fcd09b2017
 ## explicit; go 1.17
 github.com/bitrise-steplib/steps-authenticate-host-with-netrc/netrcutil
-# github.com/bitrise-steplib/steps-git-clone v0.0.0-20260323082101-d766f0962a2b
-## explicit; go 1.18
+# github.com/bitrise-steplib/steps-git-clone v0.0.0-20261110095219-1d82c96c7466
+## explicit; go 1.22.0
 github.com/bitrise-steplib/steps-git-clone/gitclone
 github.com/bitrise-steplib/steps-git-clone/gitclone/bitriseapi
+github.com/bitrise-steplib/steps-git-clone/gitclone/steperror
 github.com/bitrise-steplib/steps-git-clone/gitclone/tracker
 github.com/bitrise-steplib/steps-git-clone/transport
 # github.com/emirpasic/gods v1.18.1
@@ -153,22 +163,25 @@ github.com/mitchellh/mapstructure
 # github.com/ryanuber/go-glob v1.0.0
 ## explicit
 github.com/ryanuber/go-glob
-# golang.org/x/crypto v0.46.0
-## explicit; go 1.24.0
+# github.com/tailscale/hujson v0.0.0-20250605163823-992244df8c5a
+## explicit; go 1.23
+github.com/tailscale/hujson
+# golang.org/x/crypto v0.52.0
+## explicit; go 1.25.0
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
 ## explicit; go 1.22.0
 golang.org/x/exp/maps
-# golang.org/x/sys v0.39.0
-## explicit; go 1.24.0
+# golang.org/x/sys v0.45.0
+## explicit; go 1.25.0
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.38.0
-## explicit; go 1.24.0
+# golang.org/x/term v0.43.0
+## explicit; go 1.25.0
 golang.org/x/term
-# golang.org/x/text v0.32.0
-## explicit; go 1.24.0
+# golang.org/x/text v0.37.0
+## explicit; go 1.25.0
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
 # gopkg.in/yaml.v2 v2.4.0

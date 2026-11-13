@@ -7,7 +7,7 @@ const (
 
 const (
 	AndroidLintID      = "android-lint"
-	AndroidLintVersion = "0"
+	AndroidLintVersion = "1"
 )
 
 const (
@@ -22,7 +22,7 @@ const (
 
 const (
 	GradleRunnerID      = "gradle-runner"
-	GradleRunnerVersion = "5"
+	GradleRunnerVersion = "6"
 )
 
 const (
@@ -67,7 +67,7 @@ const (
 	CacheSaveVersion          = "1"
 
 	ActivateBuildCacheForGradleID      = "activate-build-cache-for-gradle"
-	ActivateBuildCacheForGradleVersion = "2"
+	ActivateBuildCacheForGradleVersion = "3"
 )
 
 const (
@@ -204,7 +204,7 @@ const (
 
 const (
 	FlutterBuildID      = "flutter-build"
-	FlutterBuildVersion = "0"
+	FlutterBuildVersion = "1"
 )
 
 const (
@@ -219,7 +219,7 @@ const (
 
 const (
 	XcodeTestWithoutBuildingID      = "xcode-test-without-building"
-	XcodeTestWithoutBuildingVersion = "0"
+	XcodeTestWithoutBuildingVersion = "1"
 )
 
 const (

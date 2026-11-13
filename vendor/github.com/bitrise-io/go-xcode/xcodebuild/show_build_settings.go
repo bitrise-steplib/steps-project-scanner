@@ -2,7 +2,9 @@ package xcodebuild
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"path/filepath"
 	"strings"
 
@@ -94,23 +96,43 @@ func (c ShowBuildSettingsCommandModel) PrintableCmd() string {
 	return command.PrintableCommandArgs(false, cmdSlice)
 }
 
+// parseBuildSettings parses xcodebuild -showBuildSettings output into a map of build settings.
+// When using multi-target schemes, the output may contain multiple entries for the same key.
+// In this case, the first occurrence of each key is used, which corresponds to the main target.
 func parseBuildSettings(out string) (serialized.Object, error) {
 	settings := serialized.Object{}
 
-	scanner := bufio.NewScanner(strings.NewReader(out))
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+	reader := bufio.NewReader(strings.NewReader(out))
+	var buffer bytes.Buffer
 
-		if split := strings.Split(line, "="); len(split) > 1 {
-			key := strings.TrimSpace(split[0])
-			value := strings.TrimSpace(strings.Join(split[1:], "="))
-			value = strings.Trim(value, `"`)
-
-			settings[key] = value
+	for {
+		b, isPrefix, err := reader.ReadLine()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, err
 		}
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, err
+
+		lineFragment := string(b)
+		buffer.WriteString(lineFragment)
+
+		// isPrefix is set to false once a full line has been read
+		if !isPrefix {
+			line := strings.TrimSpace(buffer.String())
+
+			if split := strings.Split(line, "="); len(split) > 1 {
+				key := strings.TrimSpace(split[0])
+				value := strings.TrimSpace(strings.Join(split[1:], "="))
+				value = strings.Trim(value, `"`)
+
+				// Use the first occurrence of each key (the main target in case of multi-target schemes)
+				if _, exists := settings[key]; !exists {
+					settings[key] = value
+				}
+			}
+
+			buffer.Reset()
+		}
 	}
 
 	return settings, nil

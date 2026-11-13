@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bitrise-io/go-utils/retry"
 	"github.com/bitrise-io/go-utils/v2/log"
+	"github.com/bitrise-io/go-utils/v2/retry"
 	"github.com/bitrise-steplib/steps-git-clone/gitclone/tracker"
 	"github.com/hashicorp/go-retryablehttp"
 )
@@ -48,10 +48,10 @@ type mergeRefFetcher func(attempt uint) (mergeRefResponse, error)
 
 func (c apiMergeRefChecker) IsMergeRefUpToDate(ref string) (bool, error) {
 	if c.buildURL == "" {
-		return false, fmt.Errorf("Bitrise build URL is not defined")
+		return false, fmt.Errorf("Bitrise build URL is not defined") //nolint:staticcheck
 	}
 	if c.apiToken == "" {
-		return false, fmt.Errorf("Bitrise API token is not defined")
+		return false, fmt.Errorf("Bitrise API token is not defined") //nolint:staticcheck
 	}
 
 	startTime := time.Now()

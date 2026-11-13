@@ -3,12 +3,12 @@ module github.com/bitrise-steplib/steps-project-scanner
 go 1.25.7
 
 require (
-	github.com/bitrise-io/bitrise-init v0.0.0-20260622165137-67dd158ae0fc
+	github.com/bitrise-io/bitrise-init v0.0.0-20261112144121-213241370aab
 	github.com/bitrise-io/go-steputils v1.0.6
 	github.com/bitrise-io/go-utils v1.0.15
-	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.33
+	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.39
 	github.com/bitrise-steplib/steps-activate-ssh-key v0.0.0-20210518131750-a0d69ff2d203
-	github.com/bitrise-steplib/steps-git-clone v0.0.0-20260323082101-d766f0962a2b
+	github.com/bitrise-steplib/steps-git-clone v0.0.0-20261110095219-1d82c96c7466
 )
 
 require (
@@ -20,8 +20,9 @@ require (
 	github.com/bitrise-io/envman/v2 v2.5.6 // indirect
 	github.com/bitrise-io/go-flutter v0.3.0 // indirect
 	github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10 // indirect
-	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.48 // indirect
-	github.com/bitrise-io/go-xcode v1.0.18 // indirect
+	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.55 // indirect
+	github.com/bitrise-io/go-xcode v1.3.3 // indirect
+	github.com/bitrise-io/go-xcode/v2 v2.0.0-alpha.94 // indirect
 	github.com/bitrise-io/goinp v0.0.0-20240103152431-054ed78518ef // indirect
 	github.com/bitrise-io/stepman v0.19.0 // indirect
 	github.com/bitrise-steplib/steps-authenticate-host-with-netrc v0.0.0-20230711084209-91fcd09b2017 // indirect
@@ -34,11 +35,12 @@ require (
 	github.com/heimdalr/dag v1.4.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
+	github.com/tailscale/hujson v0.0.0-20250605163823-992244df8c5a // indirect
+	golang.org/x/crypto v0.52.0 // indirect
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/term v0.38.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/term v0.43.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	howett.net/plist v1.0.0 // indirect

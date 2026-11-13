@@ -12,7 +12,7 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
-	"github.com/bitrise-io/go-xcode/xcodeproject/xcscheme"
+	"github.com/bitrise-io/go-xcode/v2/xcodeproject/xcscheme"
 )
 
 const (
@@ -229,9 +229,12 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 		return DetectResult{}, err
 	}
 
+	projectFactory, workspaceFactory := newProjectFactories()
+	sdkFilter := newSDKFilter(projectType, projectFactory, workspaceFactory)
+
 	// Separate workspaces and standalone projects
 	log.TInfof("Filtering relevant Xcode project files")
-	projectFiles, err := FilterRelevantProjectFiles(fileList, projectType)
+	projectFiles, err := filterRelevantProjectFiles(fileList, sdkFilter)
 	if err != nil {
 		return DetectResult{}, err
 	}
@@ -248,12 +251,12 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 
 	log.TSuccessf("Platform detected")
 
-	workspaceFiles, err := FilterRelevantWorkspaceFiles(fileList, projectType)
+	workspaceFiles, err := filterRelevantWorkspaceFiles(fileList, sdkFilter)
 	if err != nil {
 		return DetectResult{}, err
 	}
 
-	detectedContainers, err := createStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles)
+	detectedContainers, err := createStandaloneProjectsAndWorkspaces(projectFiles, workspaceFiles, projectFactory, workspaceFactory)
 	if err != nil {
 		return DetectResult{}, err
 	}
@@ -344,18 +347,14 @@ func ParseProjects(projectType XcodeProjectType, searchDir string, excludeAppIco
 			return DetectResult{}, fmt.Errorf("failed to read Schemes: %w", err)
 		}
 
-		containerProjects, missingProjects, err := container.projects()
+		containerProjects, err := container.projects()
 		if err != nil {
 			return DetectResult{}, fmt.Errorf("%w", err)
 		}
 
-		for _, missingProject := range missingProjects {
-			log.Warnf("Skipping Project (%s), as it is not present", relPathForLog(searchDir, missingProject))
-		}
-
 		for _, project := range containerProjects {
 			var sharedSchemes []xcscheme.Scheme
-			for _, s := range projectToSchemes[project.Path] {
+			for _, s := range projectToSchemes[project.Path()] {
 				if s.IsShared {
 					sharedSchemes = append(sharedSchemes, s)
 				}
